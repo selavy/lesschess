@@ -48,10 +48,11 @@ def starting_position_perft_test():
             (2, PerftResult(400, 0, 0, 0, 0, 0, 0)),
             (3, PerftResult(8902, 34, 0, 0, 0, 12, 0)),
             (4, PerftResult(197281, 1576, 0, 0, 0, 469, 8)),
-            # (5, PerftResult(4865609, 82719, 258, 0, 0, 27351, 347)),
+            (5, PerftResult(4865609, 82719, 258, 0, 0, 27351, 347)),
             )
     fen = start_position_fen
     for depth, e in expected:
+        run_perft_test(fen, depth)
         res = run_perft_test(fen, depth)
         if res != e:
             print ""

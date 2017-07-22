@@ -18,7 +18,9 @@ static uint64_t perft(int depth,
     int nmoves;
     uint64_t nodes = 0;    
     move moves[MAX_MOVES];
+#ifndef NDEBUG
     struct position tmp;
+#endif
     struct savepos sp;
     uint32_t flags;
 
@@ -36,8 +38,10 @@ static uint64_t perft(int depth,
     }
 
     assert(in_check(pos, FLIP(pos->wtm)) == 0);
-    assert(validate_position(pos) == 0);    
+    assert(validate_position(pos) == 0);
+#ifndef NDEBUG
     memcpy(&tmp, pos, sizeof(tmp));
+#endif
     nmoves = generate_legal_moves(pos, &moves[0]);
 
     if (depth > 1) {
@@ -45,7 +49,9 @@ static uint64_t perft(int depth,
             make_move(pos, &sp, moves[i]);
             nodes += perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
             undo_move(pos, &sp, moves[i]);
+#ifndef NDEBUG
             assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);
+#endif
         }
     } else {
         nodes += nmoves;
@@ -57,7 +63,7 @@ static uint64_t perft(int depth,
                         ++(*captures);
                     }
                     break;
-                case FLG_EP: ++(*eps); ++(*castles); break;
+                case FLG_EP: ++(*eps); ++(*captures); break;
                 case FLG_PROMO: ++(*promos); break;
                 case FLG_CASTLE: ++(*castles); break;
                 default: break;
@@ -67,7 +73,9 @@ static uint64_t perft(int depth,
             make_move(pos, &sp, moves[i]);
             perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
             undo_move(pos, &sp, moves[i]);
-            assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);	    
+#ifndef NDEBUG
+            assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);
+#endif
 #endif
         }
     }
@@ -87,7 +95,7 @@ int perft_test(const struct position *restrict position,
     if (depth < 0) {
         return 1;
     }
-    struct position pos;
+    static struct position pos;
     memcpy(&pos, position, sizeof(pos));
     *nodes = perft(depth, &pos, captures, eps, castles, promos, checks, mates);
     return 0;

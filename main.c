@@ -51,8 +51,6 @@ void run_perft_test(int argc, char **argv) {
         fprintf(stderr, "Usage: ./lesschess perft <fen> <depth>\n");
         return;
     }
-    const char *fen = argv[0];
-    const int depth = atoi(argv[1]);
     struct position pos;
     uint64_t nodes;
     uint64_t captures;
@@ -62,6 +60,8 @@ void run_perft_test(int argc, char **argv) {
     uint64_t checks;
     uint64_t mates;
     int result;
+    const char *fen = argv[0];
+    const int depth = atoi(argv[1]);
 
     result = position_from_fen(&pos, fen);
     if (result != 0) {
