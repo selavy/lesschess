@@ -66,17 +66,18 @@ void run_perft_test(int argc, char **argv) {
     result = position_from_fen(&pos, fen);
     if (result != 0) {
         fprintf(stderr, "Invalid FEN\n");
-        return;
+        exit(EXIT_FAILURE);
     }
     result = validate_position(&pos);
     if (result != 0) {
         fprintf(stderr, "Invalid position\n");
-        return;
+        exit(EXIT_FAILURE);
     }
     result = perft_test(&pos, depth, &nodes, &captures, &eps, &castles,
             &promos, &checks, &mates);
     if (result != 0) {
         fprintf(stderr, "perft_test failed\n");
+        exit(EXIT_FAILURE);
     }
 
     printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n",
