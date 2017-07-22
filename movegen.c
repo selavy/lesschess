@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include "magic_tables.h"
 
-static int in_check(const struct position * const restrict pos, uint8_t side) {
+int in_check(const struct position * const restrict pos, uint8_t side) {
     // find `side`'s king
     uint64_t kings = pos->brd[PIECE(side,KING)];
     int kingloc = 0;

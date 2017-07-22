@@ -19,5 +19,6 @@ extern uint64_t generate_pinned(const struct position *const restrict pos, uint8
 extern move *generate_evasions(const struct position *const restrict pos, uint64_t checkers, move *restrict moves);
 extern move *generate_non_evasions(const struct position *const restrict pos, move *restrict moves);
 extern int generate_legal_moves(const struct position *const restrict pos, move *restrict moves);
+extern int in_check(const struct position * const restrict pos, uint8_t side);
 
 #endif // MOVEGEN__H_

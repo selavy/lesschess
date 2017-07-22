@@ -16,4 +16,5 @@ add_executable(lesschess
     move.c
     position.c
     movegen.c
+    perft.c
     )
