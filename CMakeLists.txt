@@ -4,9 +4,9 @@ project(lesschess C)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 set(CMAME_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
-add_compile_options("--std=c11")
+add_compile_options("--std=gnu11")
 add_compile_options("-Wall")
 add_compile_options("-Werror")
 
@@ -18,3 +18,4 @@ add_executable(lesschess
     movegen.c
     perft.c
     )
+target_link_libraries(lesschess rt)
