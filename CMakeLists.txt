@@ -15,4 +15,5 @@ add_executable(lesschess
     magic_tables.c
     move.c
     position.c
+    movegen.c
     )
