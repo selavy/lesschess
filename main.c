@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <assert.h>
+#include <string.h>
 #include <time.h>
 #include "magic_tables.h"
 #include "move.h"
@@ -45,9 +46,53 @@ static void time_test(int depth) {
             depth, nodes, dur.tv_sec, dur.tv_nsec / 1000000);
 }
 
-int main(int argc, char **argv) {
-    for (int depth = 0; depth < 7; ++depth) {
-        time_test(depth);
+void run_perft_test(int argc, char **argv) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: ./lesschess perft <fen> <depth>\n");
+        return;
     }
+    const char *fen = argv[0];
+    const int depth = atoi(argv[1]);
+    struct position pos;
+    uint64_t nodes;
+    uint64_t captures;
+    uint64_t eps;
+    uint64_t castles;
+    uint64_t promos;
+    uint64_t checks;
+    uint64_t mates;
+    int result;
+
+    result = position_from_fen(&pos, fen);
+    if (result != 0) {
+        fprintf(stderr, "Invalid FEN\n");
+        return;
+    }
+    result = validate_position(&pos);
+    if (result != 0) {
+        fprintf(stderr, "Invalid position\n");
+        return;
+    }
+    result = perft_test(&pos, depth, &nodes, &captures, &eps, &castles,
+            &promos, &checks, &mates);
+    if (result != 0) {
+        fprintf(stderr, "perft_test failed\n");
+    }
+
+    printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n",
+            nodes, captures, eps, castles, promos, checks, mates);
+}
+
+int main(int argc, char **argv) {
+    if (argc < 2) {
+        for (int depth = 0; depth < 7; ++depth) {
+            time_test(depth);
+        }
+    } else {
+        if (strcmp(argv[1], "perft") == 0) {
+            run_perft_test(argc-2, argv+2);
+        }
+    }
+
     return 0;
 }
