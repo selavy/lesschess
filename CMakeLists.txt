@@ -14,4 +14,5 @@ add_executable(lesschess
     main.c
     magic_tables.c
     move.c
+    position.c
     )
