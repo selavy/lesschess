@@ -10,4 +10,8 @@ add_compile_options("--std=c11")
 add_compile_options("-Wall")
 add_compile_options("-Werror")
 
-add_executable(lesschess main.c)
+add_executable(lesschess
+    main.c
+    magic_tables.c
+    move.c
+    )
