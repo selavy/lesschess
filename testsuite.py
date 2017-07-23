@@ -46,8 +46,9 @@ def run_perft_test(fen, depth):
                        mates=int(mates))
 
 
-def run_perft_test_suite(name, fen, expected, max_depth):
-    iwrite("Test: starting position perft")
+def run_perft_test_suite(name, fen, expected, max_depth=None):
+    iwrite("Test: {}".format(name))
+    max_depth = max_depth or 1000
     for depth, e in expected:
         if depth > max_depth:
             break
@@ -66,7 +67,6 @@ def run_perft_test_suite(name, fen, expected, max_depth):
 
 
 def starting_position_perft_test(max_depth=None):
-    max_depth = max_depth or 6
     expected = (
             (0, PerftResult(1, 0, 0, 0, 0, 0, 0)),
             (1, PerftResult(20, 0, 0, 0, 0, 0, 0)),
@@ -80,18 +80,44 @@ def starting_position_perft_test(max_depth=None):
                          max_depth)
 
 
-def kiwipete_perft_test():
+def kiwipete_perft_test(max_depth=None):
     kiwipete_fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -"
     expected = (
             (1, PerftResult(48, 8, 0, 2, 0, 0, 0)),
             (2, PerftResult(2039, 351, 1, 91, 0, 3, 0)),
             (3, PerftResult(97862, 17102, 45, 3162, 0, 993, 1)),
             (4, PerftResult(4085603, 757163, 1929, 128013, 15172, 25523, 43)),
+            (5, PerftResult(193690690, 35043416, 73365, 4993637, 8392, 3309887, 30171)),
             )
-    run_perft_test_suite("kiwi pete perft", kiwipete_fen, expected, 100)
+    run_perft_test_suite("kiwi pete perft", kiwipete_fen, expected, max_depth)
+
+
+def position3_perft_test(max_depth=None):
+    position3_fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -"
+    expected = (
+            (1, PerftResult(14, 1, 0, 0, 0, 2, 0)),
+            (2, PerftResult(191, 14, 0, 0, 0, 10, 0)),
+            (3, PerftResult(2812, 209, 2, 0, 0, 267, 0)),
+            (4, PerftResult(43238, 3348, 123, 0, 0, 1680, 17)),
+            (5, PerftResult(674624, 52051, 1165, 0, 0, 52950, 0)),
+            (6, PerftResult(11030083, 940350, 33325, 0, 7552, 452473, 2733)),
+            (7, PerftResult(178633661, 14519036, 294874, 0, 140024, 12797406, 87)),
+            )
+    run_perft_test_suite("position3 perft", position3_fen, expected, max_depth)
 
 
 if __name__ == '__main__':
+    fast_mode = True
+
+    start_max_depth = None
+    kiwi_max_depth = None
+    position3_max_depth = None
+    if fast_mode:
+        start_max_depth = 4
+        kiwi_max_depth = 4
+        position3_max_depth = 5
+
     find_executable()
-    starting_position_perft_test(5)
-    kiwipete_perft_test()
+    starting_position_perft_test(start_max_depth)
+    kiwipete_perft_test(kiwi_max_depth)
+    position3_perft_test(position3_max_depth)
