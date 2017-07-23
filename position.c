@@ -26,37 +26,38 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
             c = *fen++;
             switch (c) {
                 case 0:
+                    fprintf(stderr, "FEN string ended too early\n");
                     return 1;
                 case 'P':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, PAWN);
                     pos->brd[PIECE(WHITE, PAWN)] |= MASK(SQUARE(file, rank));
                     pos->side[WHITE] |= MASK(SQUARE(file, rank));
-                    break;		
+                    break;
                 case 'N':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, KNIGHT);
                     pos->brd[PIECE(WHITE, KNIGHT)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                    break;
                 case 'B':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, BISHOP);
                     pos->brd[PIECE(WHITE, BISHOP)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                    break;
                 case 'R':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, ROOK);
                     pos->brd[PIECE(WHITE, ROOK)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                    break;
                 case 'Q':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, QUEEN);
                     pos->brd[PIECE(WHITE, QUEEN)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                    break;
                 case 'K':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, KING);
                     pos->brd[PIECE(WHITE, KING)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                    break;
                 case 'p':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, PAWN);
                     pos->brd[PIECE(BLACK, PAWN)] |= MASK(SQUARE(file, rank));
@@ -65,32 +66,33 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
                 case 'n':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, KNIGHT);
                     pos->brd[PIECE(BLACK, KNIGHT)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                    break;
                 case 'b':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, BISHOP);
                     pos->brd[PIECE(BLACK, BISHOP)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                    break;
                 case 'r':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, ROOK);
                     pos->brd[PIECE(BLACK, ROOK)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                    break;
                 case 'q':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, QUEEN);
                     pos->brd[PIECE(BLACK, QUEEN)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                    break;
                 case 'k':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, KING);
                     pos->brd[PIECE(BLACK, KING)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));		
-                    break;		
+                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                    break;
                 default:
                     if (c >= '1' && c <= '8') {
                         file += c - '0' - 1; // file will get incremented by for loop
                     } else {
+                        fprintf(stderr, "Invalid empty file specification: %c\n", c);
                         return 2;
                     }
             }
@@ -110,10 +112,12 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
             pos->wtm = BLACK;
             break;
         default:
+            fprintf(stderr, "Invalid color: %c\n", c);
             return 3;
     }
 
     if (*fen++ != ' ') {
+        fprintf(stderr, "Expected space after color spec, instead %d\n", *(fen - 1));
         return 4;
     }
 
@@ -171,7 +175,13 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
             (pos->enpassant >= A3 && pos->enpassant <= H3) ||
             (pos->enpassant >= A6 && pos->enpassant <= H6));
 
-    if (*fen++ != ' ') {
+    c = *fen++;
+    if (c == 0) {
+        // no move specification, just use 0
+        pos->halfmoves = 0;
+        pos->nmoves = 0;
+        return 0;
+    } else if (c != ' ') {
         return 11;
     }
 

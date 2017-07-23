@@ -65,7 +65,7 @@ void run_perft_test(int argc, char **argv) {
 
     result = position_from_fen(&pos, fen);
     if (result != 0) {
-        fprintf(stderr, "Invalid FEN\n");
+        fprintf(stderr, "Invalid FEN: %d\n", result);
         exit(EXIT_FAILURE);
     }
     result = validate_position(&pos);
