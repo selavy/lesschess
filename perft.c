@@ -16,7 +16,7 @@ static uint64_t perft(int depth,
         uint64_t *mates) {
     int i;
     int nmoves;
-    uint64_t nodes = 0;    
+    uint64_t nodes = 0;
     move moves[MAX_MOVES];
 #ifndef NDEBUG
     struct position tmp;
@@ -64,7 +64,12 @@ static uint64_t perft(int depth,
                     }
                     break;
                 case FLG_EP: ++(*eps); ++(*captures); break;
-                case FLG_PROMO: ++(*promos); break;
+                case FLG_PROMO:
+                    ++(*promos);
+                    if (pos->sqtopc[TO(moves[i])] != EMPTY) {
+                        ++(*captures);
+                    }
+                    break;
                 case FLG_CASTLE: ++(*castles); break;
                 default: break;
             }
@@ -73,9 +78,9 @@ static uint64_t perft(int depth,
             make_move(pos, &sp, moves[i]);
             perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
             undo_move(pos, &sp, moves[i]);
-#ifndef NDEBUG
+            #ifndef NDEBUG
             assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);
-#endif
+            #endif
 #endif
         }
     }

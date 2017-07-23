@@ -85,6 +85,8 @@ def kiwipete_perft_test():
     expected = (
             (1, PerftResult(48, 8, 0, 2, 0, 0, 0)),
             (2, PerftResult(2039, 351, 1, 91, 0, 3, 0)),
+            (3, PerftResult(97862, 17102, 45, 3162, 0, 993, 1)),
+            (4, PerftResult(4085603, 757163, 1929, 128013, 15172, 25523, 43)),
             )
     run_perft_test_suite("kiwi pete perft", kiwipete_fen, expected, 100)
 
