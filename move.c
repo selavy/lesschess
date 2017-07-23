@@ -14,7 +14,8 @@ const char *sq_to_str[64] = {
     "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 };
-const char *const visual_pcs = "NBRQPKnbrqpk ";
+//const char *const visual_pcs = "NBRQPKnbrqpk ";
+const char *const visual_pcs = "NnBbRrQqPpKk ";
 
 #ifndef NDEBUG
 move MOVE(int from, int to) {
@@ -42,13 +43,13 @@ move CASTLE(int from, int to) {
 }
 #endif
 
-void move_print(move mv) {
+void move_print(FILE *fp, move mv) {
     const uint32_t to    = TO(mv);
     const uint32_t from  = FROM(mv);
     const uint32_t prm   = PROMO_PC(mv);
     const uint32_t flags = FLAGS(mv);
 
-    printf("from(%s) to(%s)", sq_to_str[from], sq_to_str[to]);
+    fprintf(fp, "from(%s) to(%s)", sq_to_str[from], sq_to_str[to]);
     switch (flags) {
     case FLG_EP:
         printf(" e.p.");
@@ -61,7 +62,7 @@ void move_print(move mv) {
     default:
         break;
     }
-    printf("\n");
+    fprintf(fp, "\n");
 }
 
 void move_print_short(move m) {

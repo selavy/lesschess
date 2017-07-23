@@ -17,17 +17,19 @@
 //               0..7  = a3..h3
 //               8..15 = a6..h6
 struct position {
-    uint64_t brd[12];
+    uint64_t brd[10];
     uint64_t side[2];
     uint8_t  sqtopc[64];
+    uint8_t  ksq[2];
     uint16_t nmoves;
     uint8_t  wtm;
     uint8_t  halfmoves;
     uint8_t  castle;
     uint8_t  enpassant;
 };
-#define PIECES(p, side, type) (p).brd[PIECE(side, type)]
+#define PIECES(p, color, type) (p).brd[PIECE(color, type)]
 #define FULLSIDE(p, color) (p).side[color]
+#define KSQ(p, color) (p).ksq[color]
 
 struct savepos {
     uint8_t halfmoves;

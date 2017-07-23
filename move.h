@@ -1,6 +1,7 @@
 #ifndef MOVE__H_
 #define MOVE__H_
 
+#include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
 
@@ -34,9 +35,11 @@ enum {
     A7, B7, C7, D7, E7, F7, G7, H7,
     A8, B8, C8, D8, E8, F8, G8, H8,
 };
-enum { KNIGHT, BISHOP, ROOK, QUEEN, PAWN, KING, NPIECES=6, EMPTY=(NPIECES*2) };
-#define PIECECOLOR(pc) ((pc) <= KING ? WHITE:BLACK)
-#define PIECE(color, type) ((NPIECES*(color))+(type))
+enum { KNIGHT=0, BISHOP=1, ROOK=2, QUEEN=3, PAWN=4, KING=5, NPIECES=6, EMPTY=(NPIECES*2) };
+//#define PIECECOLOR(pc) ((pc) <= KING ? WHITE:BLACK)
+//#define PIECE(color, type) ((NPIECES*(color))+(type))
+#define PIECE(color, type) (2*(type) + (color))
+#define PIECECOLOR(pc) (((pc) % 2) == 0 ? WHITE:BLACK)
 
 // moves are 16 bits
 // 6 bits for `to'
@@ -96,7 +99,7 @@ extern move CASTLE(int from, int to);
 #define CASTLE     _CASTLE
 #endif
 
-extern void move_print(move m);
+extern void move_print(FILE *fp, move m);
 extern void move_print_short(move m);
 extern const char *xboard_move_print(move m);
 

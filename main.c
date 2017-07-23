@@ -70,7 +70,7 @@ void run_perft_test(int argc, char **argv) {
     }
     result = validate_position(&pos);
     if (result != 0) {
-        fprintf(stderr, "Invalid position\n");
+        fprintf(stderr, "Invalid position: %d\n", result);
         exit(EXIT_FAILURE);
     }
     result = perft_test(&pos, depth, &nodes, &captures, &eps, &castles,
@@ -86,7 +86,7 @@ void run_perft_test(int argc, char **argv) {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        for (int depth = 0; depth < 7; ++depth) {
+        for (int depth = 0; depth < 9; ++depth) {
             time_test(depth);
         }
     } else {

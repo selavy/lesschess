@@ -7,11 +7,12 @@
 
 int in_check(const struct position * const restrict pos, uint8_t side) {
     // find `side`'s king
-    uint64_t kings = pos->brd[PIECE(side,KING)];
-    int kingloc = 0;
-    assert(kings != 0); // there should be a king...
-    for (; (kings & ((uint64_t)1 << kingloc)) == 0; ++kingloc);
-    // check if the other side attacks the king location
+//    uint64_t kings = pos->brd[PIECE(side,KING)];
+//    int kingloc = 0;
+//    assert(kings != 0); // there should be a king...
+//    for (; (kings & ((uint64_t)1 << kingloc)) == 0; ++kingloc);
+//    // check if the other side attacks the king location
+    int kingloc = KSQ(*pos, side);
     return attacks(pos, FLIP(side), kingloc);
 }
 
@@ -92,7 +93,7 @@ static move *generate_castling(const struct position *const restrict pos, const 
     if (side == WHITE) {
         if ((castle & (CSL_WKSIDE | CSL_WQSIDE)) != 0) {
             if (from == E1) {
-                const uint64_t attacked = generate_attacked(pos, BLACK);		
+                const uint64_t attacked = generate_attacked(pos, BLACK);
                 const uint64_t kside = MASK(E1) | MASK(F1) | MASK(G1);
                 const uint64_t qside = MASK(E1) | MASK(D1) | MASK(C1);
                 if ((castle & CSL_WKSIDE) != 0 &&
@@ -139,14 +140,14 @@ static move *generate_castling(const struct position *const restrict pos, const 
     }
 #endif
 
-#if 1 
+#if 1
     const uint8_t contraside = FLIP(side);
     if (side == WHITE) {
         if ((castle & CSL_WKSIDE) != 0 &&
                 (from == E1)               &&
                 (pos->sqtopc[F1] == EMPTY) &&
                 (pos->sqtopc[G1] == EMPTY) &&
-                (attacks(pos, contraside, E1) == 0) && 
+                (attacks(pos, contraside, E1) == 0) &&
                 (attacks(pos, contraside, F1) == 0) &&
                 (attacks(pos, contraside, G1) == 0)) {
             assert(pos->sqtopc[H1] == PIECE(WHITE,ROOK));
@@ -157,9 +158,9 @@ static move *generate_castling(const struct position *const restrict pos, const 
                 (pos->sqtopc[D1] == EMPTY) &&
                 (pos->sqtopc[C1] == EMPTY) &&
                 (pos->sqtopc[B1] == EMPTY) &&
-                (attacks(pos, contraside, E1) == 0) && 
-                (attacks(pos, contraside, D1) == 0) && 
-                (attacks(pos, contraside, C1) == 0)) { 
+                (attacks(pos, contraside, E1) == 0) &&
+                (attacks(pos, contraside, D1) == 0) &&
+                (attacks(pos, contraside, C1) == 0)) {
             assert(pos->sqtopc[A1] == PIECE(WHITE,ROOK));
             *moves++ = CASTLE(E1, C1);
         }
@@ -168,9 +169,9 @@ static move *generate_castling(const struct position *const restrict pos, const 
                 (from == E8)               &&
                 (pos->sqtopc[F8] == EMPTY) &&
                 (pos->sqtopc[G8] == EMPTY) &&
-                (attacks(pos, contraside, E8) == 0) && 
-                (attacks(pos, contraside, F8) == 0) && 
-                (attacks(pos, contraside, G8) == 0)) { 
+                (attacks(pos, contraside, E8) == 0) &&
+                (attacks(pos, contraside, F8) == 0) &&
+                (attacks(pos, contraside, G8) == 0)) {
             assert(pos->sqtopc[H8] == PIECE(BLACK,ROOK));
             *moves++ = CASTLE(E8, G8);
         }
@@ -179,9 +180,9 @@ static move *generate_castling(const struct position *const restrict pos, const 
                 (pos->sqtopc[D8] == EMPTY) &&
                 (pos->sqtopc[C8] == EMPTY) &&
                 (pos->sqtopc[B8] == EMPTY) &&
-                (attacks(pos, contraside, E8) == 0) && 
-                (attacks(pos, contraside, D8) == 0) && 
-                (attacks(pos, contraside, C8) == 0)) { 
+                (attacks(pos, contraside, E8) == 0) &&
+                (attacks(pos, contraside, D8) == 0) &&
+                (attacks(pos, contraside, C8) == 0)) {
             assert(pos->sqtopc[A8] == PIECE(BLACK,ROOK));
             *moves++ = CASTLE(E8, C8);
         }
@@ -200,7 +201,8 @@ static move *generate_castling(const struct position *const restrict pos, const 
     const uint64_t from = MASK(fromsq);
     const int pc = pos->sqtopc[fromsq];
     const int flags = FLAGS(m);
-    const int ksq = lsb(PIECES(*pos, side, KING));
+    //const int ksq = lsb(PIECES(*pos, side, KING));
+    const int ksq = KSQ(*pos, side);
 
     if (flags == FLG_CASTLE) {
         return 1;
@@ -231,36 +233,38 @@ static move *generate_castling(const struct position *const restrict pos, const 
     } else if (pc == PIECE(side, KING)) {
         assert(flags == FLG_NONE);
         // don't need to remove the king before checking this, because if
-        // the king was blocking a ray, then he would already be in check...		
+        // the king was blocking a ray, then he would already be in check...
         const uint64_t attacked = attacks(pos, contra, tosq);
-        return !attacked;	
+        return !attacked;
     } else {
         // TODO(plesslie): need to test that "flags==FLG_PROMO" case is working correctly
 
         // legal if not pinned or moving on the same ray as the king (i.e. pinned piece
         // will still be blocking are moving)
-        return !pinned || !(pinned & from) || lined_up(fromsq, tosq, ksq);	
+        return !pinned || !(pinned & from) || lined_up(fromsq, tosq, ksq);
     }
 }
 
 /*extern*/ uint64_t generate_checkers(const struct position *const restrict pos, uint8_t side) {
-    const int ksq = lsb(PIECES(*pos, side, KING));
-    const uint8_t contra = FLIP(side);    
+    //const int ksq = lsb(PIECES(*pos, side, KING));
+    const int ksq = KSQ(*pos, side);
+    const uint8_t contra = FLIP(side);
     const uint64_t occupied = pos->side[side] | pos->side[contra];
     const uint64_t knights = PIECES(*pos, contra, KNIGHT);
     const uint64_t bishops = PIECES(*pos, contra, BISHOP);
     const uint64_t rooks = PIECES(*pos, contra, ROOK);
     const uint64_t queens = PIECES(*pos, contra, QUEEN);
     const uint64_t pawns = PIECES(*pos, contra, PAWN);
-    const uint64_t king = PIECES(*pos, contra, KING);
-    uint64_t rval = 0;    
+    //const uint64_t king = PIECES(*pos, contra, KING);
+    const uint64_t king = MASK(KSQ(*pos, contra));
+    uint64_t rval = 0;
 
     rval |= rook_attacks(ksq, occupied) & (rooks | queens);
     rval |= bishop_attacks(ksq, occupied) & (bishops | queens);
     rval |= knight_attacks(ksq) & knights;
     rval |= king_attacks(ksq) & king;
     rval |= pawn_attacks(side, ksq) & pawns;
-    
+
     return rval;
 }
 
@@ -271,13 +275,15 @@ static move *generate_castling(const struct position *const restrict pos, const 
     const uint8_t contraside = FLIP(side);
     const uint64_t same = pos->side[side];
     const uint64_t contra = pos->side[contraside];
-    const uint64_t ksq = lsb(PIECES(*pos, contraside, KING));
-    const uint64_t occupied = (same | contra) & ~MASK(ksq);
+    //const uint64_t ksq = lsb(PIECES(*pos, contraside, KING));
+    const uint64_t cksq = KSQ(*pos, contraside);
+    const uint64_t occupied = (same | contra) & ~MASK(cksq);
     const uint64_t knights = PIECES(*pos, side, KNIGHT);
     const uint64_t bishops = PIECES(*pos, side, BISHOP);
     const uint64_t rooks = PIECES(*pos, side, ROOK);
     const uint64_t queens = PIECES(*pos, side, QUEEN);
-    const uint64_t king = PIECES(*pos, side, KING);
+    //const uint64_t king = PIECES(*pos, side, KING);
+    const int ksq = KSQ(*pos, side);
     const uint64_t pawns = PIECES(*pos, side, PAWN);
 
     pcs = knights;
@@ -301,10 +307,11 @@ static move *generate_castling(const struct position *const restrict pos, const 
         clear_lsb(pcs);
     }
 
-    assert(king);
-    assert(popcountll(king) == 1);    
-    from = lsb(king);
-    rval |= king_attacks(from);
+//    assert(king);
+//    assert(popcountll(king) == 1);    
+//    from = lsb(king);
+//    rval |= king_attacks(from);
+    rval |= king_attacks(ksq);
 
     // capture left
     pcs = pawns & ~A_FILE;
@@ -340,7 +347,8 @@ static move *generate_castling(const struct position *const restrict pos, const 
     if ((pawn_attacks(contra, square) & pcs) != 0) {
         return 4;
     }
-    pcs = pos->brd[PIECE(side, KING)];
+    //pcs = pos->brd[PIECE(side, KING)];
+    pcs = MASK(KSQ(*pos, side));
     if ((king_attacks(square) & pcs) != 0) {
         return 5;
     }
@@ -356,16 +364,17 @@ static move *generate_castling(const struct position *const restrict pos, const 
     uint64_t ret = 0;
     const uint8_t contraking = FLIP(kingcolor);
     const uint64_t pieces = pos->side[side];
-    const uint64_t allpieces = pos->side[WHITE] | pos->side[BLACK];    
-    const uint64_t kingbb = pos->brd[PIECE(kingcolor, KING)];
-    const uint32_t ksq = lsb(kingbb);
+    const uint64_t allpieces = pos->side[WHITE] | pos->side[BLACK];
+    //const uint64_t kingbb = pos->brd[PIECE(kingcolor, KING)];
+    //const uint32_t ksq = lsb(kingbb);
+    const uint32_t ksq = KSQ(*pos, side);
     const uint64_t rooks = PIECES(*pos, contraking, ROOK);
     const uint64_t queens = PIECES(*pos, contraking, QUEEN);
     const uint64_t bishops = PIECES(*pos, contraking, BISHOP);
     uint64_t pinners = ((rooks | queens) & rook_attacks(ksq, 0))
 	| ((bishops | queens) & bishop_attacks(ksq, 0));
-    assert(kingbb);
-    #define more_than_one_piece_between(b) more_than_one_piece(b)    
+    //assert(kingbb);
+    #define more_than_one_piece_between(b) more_than_one_piece(b)
     while (pinners) {
 	sq = lsb(pinners);
 	bb = between_sqs(sq, ksq) & allpieces;
@@ -374,14 +383,14 @@ static move *generate_castling(const struct position *const restrict pos, const 
 	}
 	clear_lsb(pinners);
     }
-    
+
     return ret;
 }
 
 /*extern*/ move *generate_evasions(const struct position *const restrict pos, const uint64_t checkers, move *restrict moves) {
     uint32_t to;
     uint32_t from;
-    uint64_t pcs;    
+    uint64_t pcs;
     uint64_t posmoves;
     const uint8_t side = pos->wtm;
     const uint8_t contra = FLIP(side); // TODO: does this create a data dependency on `side'?
@@ -390,14 +399,15 @@ static move *generate_castling(const struct position *const restrict pos, const 
     // REVISIT(plesslie): check that these loads are scheduled well
     const int checksq = lsb(checkers);
     const int checkpc = pos->sqtopc[checksq];
-    const uint64_t kings = PIECES(*pos, side, KING);
+    //const uint64_t kings = PIECES(*pos, side, KING);
     const uint64_t pawns = PIECES(*pos, side, PAWN);
     const uint64_t knights = PIECES(*pos, side, KNIGHT);
     const uint64_t bishops = PIECES(*pos, side, BISHOP);
     const uint64_t rooks = PIECES(*pos, side, ROOK);
     const uint64_t queens = PIECES(*pos, side, QUEEN);
     const uint64_t occupied = pos->side[WHITE] | pos->side[BLACK];
-    const int ksq = lsb(kings);
+    //const int ksq = lsb(kings);
+    const int ksq = KSQ(*pos, side);
 
     assert(in_check(pos, pos->wtm) != 0);
     assert(checkers);    
@@ -534,20 +544,25 @@ static move *generate_castling(const struct position *const restrict pos, const 
     const uint64_t occupied = same | contra;
     const uint64_t opp_or_empty = ~same;
     //const uint8_t castle = pos->castle;
-    const uint64_t king = PIECES(*pos, side, KING);    
+    //const uint64_t king = PIECES(*pos, side, KING);
     const uint64_t knights = PIECES(*pos, side, KNIGHT);
     const uint64_t bishops = PIECES(*pos, side, BISHOP);
     const uint64_t rooks = PIECES(*pos, side, ROOK);
     const uint64_t queens = PIECES(*pos, side, QUEEN);
-    const int ksq = lsb(king);
-    uint64_t posmoves;    
+    //const int ksq = lsb(king);
+    const int ksq = KSQ(*pos, side);
+    uint64_t posmoves;
     uint64_t pcs;
     uint32_t from;
-    uint32_t to;    
+    uint32_t to;
 
-#define TOSQ_NOT_KING(sq)				\
-    assert(pos->sqtopc[sq] != PIECE(WHITE, KING));	\
-    assert(pos->sqtopc[sq] != PIECE(BLACK, KING));
+#if 0
+//#define TOSQ_NOT_KING(sq)				
+//    assert(pos->sqtopc[sq] != PIECE(WHITE, KING));	
+//    assert(pos->sqtopc[sq] != PIECE(BLACK, KING));
+#endif
+
+#define TOSQ_NOT_KING(sq) assert(sq != KSQ(*pos, WHITE)); assert(sq != KSQ(*pos, BLACK));
 
     moves = generate_knight_moves(knights, opp_or_empty, moves);
     moves = generate_bishop_moves(bishops | queens, occupied, opp_or_empty, moves);
@@ -562,20 +577,20 @@ static move *generate_castling(const struct position *const restrict pos, const 
     while (posmoves) {
         to = lsb(posmoves);
         from = side == WHITE ? to - 8 : to + 8;
-        assert(pos->sqtopc[from] == PIECE(side,PAWN));        
+        assert(pos->sqtopc[from] == PIECE(side,PAWN));
         if (to >= A8 || to <= H1) { // promotion
-	    TOSQ_NOT_KING(to);
+            TOSQ_NOT_KING(to);
             *moves++ = PROMOTION(from, to, KNIGHT);
             *moves++ = PROMOTION(from, to, BISHOP);
             *moves++ = PROMOTION(from, to, ROOK);
             *moves++ = PROMOTION(from, to, QUEEN);
         } else {
-	    TOSQ_NOT_KING(to);
+            TOSQ_NOT_KING(to);
             *moves++ = MOVE(from, to);
-        }        
+        }
         clear_lsb(posmoves);
     }
-    
+
     // pawn moves - 2 squares
     posmoves = pcs & RANK2(side);
     posmoves = side == WHITE ? posmoves << 16 : posmoves >> 16;
@@ -587,12 +602,12 @@ static move *generate_castling(const struct position *const restrict pos, const 
         // TODO(plesslie): do this with bitmasks?
         // make sure we aren't jumping over another piece
         if (pos->sqtopc[side == WHITE ? to - 8 : to + 8] == EMPTY) {
-	    TOSQ_NOT_KING(to);
-            *moves++ = MOVE(from, to);            
-        }        
+            TOSQ_NOT_KING(to);
+            *moves++ = MOVE(from, to);
+        }
 	clear_lsb(posmoves);
     }
-    
+
     // pawn moves - capture left
     posmoves = pcs & ~A_FILE;
     posmoves = side == WHITE ? posmoves << 7 : posmoves >> 9;
@@ -603,13 +618,13 @@ static move *generate_castling(const struct position *const restrict pos, const 
         assert(pos->sqtopc[from] == PIECE(side,PAWN));
         assert(pos->sqtopc[to] != EMPTY);
         if (to >= A8 || to <= H1) { // last rank => promotion
-	    TOSQ_NOT_KING(to);
+            TOSQ_NOT_KING(to);
             *moves++ = PROMOTION(from, to, KNIGHT);
             *moves++ = PROMOTION(from, to, BISHOP);
             *moves++ = PROMOTION(from, to, ROOK);
             *moves++ = PROMOTION(from, to, QUEEN);
         } else {
-	    TOSQ_NOT_KING(to);
+            TOSQ_NOT_KING(to);
             *moves++ = MOVE(from, to);
         }
 	clear_lsb(posmoves);
@@ -625,13 +640,13 @@ static move *generate_castling(const struct position *const restrict pos, const 
         assert(pos->sqtopc[from] == PIECE(side,PAWN));
         assert(pos->sqtopc[to] != EMPTY);
         if (to >= A8 || to <= H1) { // last rank => promotion
-	    TOSQ_NOT_KING(to);
+            TOSQ_NOT_KING(to);
             *moves++ = PROMOTION(from, to, KNIGHT);
             *moves++ = PROMOTION(from, to, BISHOP);
             *moves++ = PROMOTION(from, to, ROOK);
             *moves++ = PROMOTION(from, to, QUEEN);
         } else {
-	    TOSQ_NOT_KING(to);
+            TOSQ_NOT_KING(to);
             *moves++ = MOVE(from, to);
         }
 	clear_lsb(posmoves);
@@ -650,31 +665,32 @@ static move *generate_castling(const struct position *const restrict pos, const 
 	    assert((side == WHITE && from >= A5 && from <= H5) ||
 		   (side == BLACK && from >= A4 && from <= H4));
 	    if (pos->sqtopc[from] == PIECE(side, PAWN)) {
-		TOSQ_NOT_KING(to);
-		*moves++ = EP_CAPTURE(from, to);
+            TOSQ_NOT_KING(to);
+            *moves++ = EP_CAPTURE(from, to);
 	    }
 	}
-	
+
 	// capture right
 	if (to != A6 && to != A3) {
 	    from = side == WHITE ? to - 9 : to + 7;
 	    assert((side == WHITE && from >= A5 && from <= H5) ||
 		   (side == BLACK && from >= A4 && from <= H4));
 	    if (pos->sqtopc[from] == PIECE(side, PAWN)) {
-		TOSQ_NOT_KING(to);
-		*moves++ = EP_CAPTURE(from, to);
+            TOSQ_NOT_KING(to);
+            *moves++ = EP_CAPTURE(from, to);
 	    }
 	}
     }
-    
+
     return moves;
 }
 
 /*extern*/ int generate_legal_moves(const struct position *const restrict pos, move *restrict moves) {
     const uint64_t checkers = generate_checkers(pos, pos->wtm);
     const uint8_t side = pos->wtm;
-    const uint64_t kingbb = pos->brd[PIECE(side, KING)];
-    const int ksq = lsb(kingbb);
+    //const uint64_t kingbb = pos->brd[PIECE(side, KING)];
+    //const int ksq = lsb(kingbb);
+    const int ksq = KSQ(*pos, side);
     const uint64_t pinned = generate_pinned(pos, side, side);
     move *restrict cur = moves;
     move *restrict end = checkers ? generate_evasions(pos, checkers, moves) : generate_non_evasions(pos, moves);
