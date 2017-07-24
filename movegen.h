@@ -5,6 +5,8 @@
 #include "move.h"
 #include "position.h"
 
+// Move Generation code heavily inspired/taken from Stockfish
+
 #define lsb(bb) __builtin_ctzll(bb)
 #define clear_lsb(bb) bb &= (bb - 1)
 #define popcountll(bb) __builtin_popcountll(bb)
