@@ -167,6 +167,10 @@ def position6_perft_test(max_depth=None):
 if __name__ == '__main__':
     fast_mode = True
 
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "slow":
+            fast_mode = False
+
     start_max_depth = None
     kiwi_max_depth = None
     position3_max_depth = None

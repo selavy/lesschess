@@ -15,7 +15,6 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
     pos->halfmoves = 0;
     pos->castle = CSL_NONE;
     pos->enpassant = EP_NONE;
-    //memset(&pos->brd[0], 0, sizeof(pos->brd) * 12)
     memset(&pos->brd[0], 0, sizeof(pos->brd[0]) * 10);
     memset(&pos->sqtopc[0], EMPTY, sizeof(pos->sqtopc[0]) * 64);
     KSQ(*pos, WHITE) = 64;
@@ -58,7 +57,6 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
                     break;
                 case 'K':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, KING);
-                    //pos->brd[PIECE(WHITE, KING)] |= MASK(SQUARE(file, rank));
                     KSQ(*pos, WHITE) = SQUARE(file, rank);
                     pos->side[WHITE] |= MASK(SQUARE(file, rank));
                     break;
@@ -89,7 +87,6 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
                     break;
                 case 'k':
                     pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, KING);
-                    //pos->brd[PIECE(BLACK, KING)] |= MASK(SQUARE(file, rank));
                     KSQ(*pos, BLACK) = SQUARE(file, rank);
                     pos->side[BLACK] |= MASK(SQUARE(file, rank));
                     break;
@@ -316,7 +313,6 @@ int validate_position(struct position *restrict const pos) {
     }
 
     for (pc = PIECE(WHITE, KNIGHT); pc <= PIECE(BLACK, KING); ++pc) {
-        // TODO: check pos->sqtopc[KSQ
         if (pc == PIECE(WHITE, KING)) {
             if (pos->sqtopc[KSQ(*pos, WHITE)] != PIECE(WHITE, KING)) {
                 fprintf(stderr, "\nvalidate_position: white king location\n");
@@ -402,7 +398,7 @@ extern void make_move(struct position *restrict pos, struct savepos *restrict sp
     const uint32_t topc      = pos->sqtopc[tosq];
     const uint32_t flags     = FLAGS(m);
     const int      promopc   = PIECE(side, PROMO_PC(m));
-    uint64_t *restrict pcs   = ((pc != PIECE(WHITE, KING)) && (pc != PIECE(BLACK, KING))) ? &pos->brd[pc] : 0;
+    uint64_t *restrict pcs   = pc != PIECE(side, KING) ? &pos->brd[pc] : 0;
     uint8_t  *restrict s2p   = pos->sqtopc;
     uint64_t *restrict rooks = &pos->brd[PIECE(side, ROOK)];
     int epsq;
@@ -523,8 +519,6 @@ extern void make_move(struct position *restrict pos, struct savepos *restrict sp
                     assert(s2p[F1] == EMPTY);
                     assert(s2p[G1] == EMPTY);
                     assert(s2p[H1] == PIECE(WHITE, ROOK));
-                    //*pcs &= ~MASK(E1);
-                    //*pcs |= MASK(G1);
                     KSQ(*pos, WHITE) = G1;
                     *rooks &= ~MASK(H1);
                     *rooks |= MASK(F1);
@@ -540,8 +534,6 @@ extern void make_move(struct position *restrict pos, struct savepos *restrict sp
                     assert(s2p[C1] == EMPTY);
                     assert(s2p[B1] == EMPTY);
                     assert(s2p[A1] == PIECE(WHITE, ROOK));
-                    //*pcs   &= ~MASK(E1);
-                    //*pcs   |= MASK(C1);
                     KSQ(*pos, WHITE) = C1;
                     *rooks &= ~MASK(A1);
                     *rooks |= MASK(D1);
@@ -562,8 +554,6 @@ extern void make_move(struct position *restrict pos, struct savepos *restrict sp
                     assert(s2p[F8] == EMPTY);
                     assert(s2p[G8] == EMPTY);
                     assert(s2p[H8] == PIECE(BLACK, ROOK));
-                    //*pcs   &= ~MASK(E8);
-                    //*pcs   |= MASK(G8);
                     KSQ(*pos, BLACK) = G8;
                     *rooks &= ~MASK(H8);
                     *rooks |= MASK(F8);
@@ -579,8 +569,6 @@ extern void make_move(struct position *restrict pos, struct savepos *restrict sp
                     assert(s2p[C8] == EMPTY);
                     assert(s2p[B8] == EMPTY);
                     assert(s2p[A8] == PIECE(BLACK, ROOK));
-                    //*pcs   &= ~MASK(E8);
-                    //*pcs   |= MASK(C8);
                     KSQ(*pos, BLACK) = C8;
                     *rooks &= ~MASK(A8);
                     *rooks |= MASK(D8);
@@ -622,12 +610,8 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
     const uint32_t cappc   = sp->captured_pc;
     const uint64_t from    = MASK(fromsq);
     const uint64_t to      = MASK(tosq); // REVISIT: all uses of `to' are `~to' so just calculate that?
-    // REVISIT: make sp->enpassant be the captured pawn square when FLG_EP?
-    //const uint32_t epsq    = sp->enpassant;
-    const uint32_t epsq = side == WHITE ? tosq - 8 : tosq + 8;
-    //uint64_t *restrict pcs = &pos->brd[pc];
-    uint64_t *restrict pcs = (pc != PIECE(WHITE, KING) && pc != PIECE(BLACK, KING)) ? &pos->brd[pc] : 0;
-
+    const uint32_t epsq    = side == WHITE ? tosq - 8 : tosq + 8;
+    uint64_t *restrict pcs = pc != PIECE(side, KING) ? &pos->brd[pc] : 0;
     uint8_t  *restrict s2p = pos->sqtopc;
     uint64_t *restrict sidebb = &pos->side[side];
     uint64_t *restrict contrabb = &pos->side[pos->wtm];
@@ -717,8 +701,6 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
                     *sidebb &= ~(MASK(B1) | MASK(C1) | MASK(D1));
                     pos->brd[PIECE(WHITE,ROOK)] &= ~MASK(D1);
                     pos->brd[PIECE(WHITE,ROOK)] |= MASK(A1);
-                    //pos->brd[PIECE(WHITE,KING)] &= ~MASK(C1);
-                    //pos->brd[PIECE(WHITE,KING)] |= MASK(E1);
                     KSQ(*pos, WHITE) = E1;
                     break;
                 case G1:
@@ -733,8 +715,6 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
                     s2p[H1] = PIECE(WHITE,ROOK);
                     *sidebb |= MASK(E1) | MASK(H1);
                     *sidebb &= ~(MASK(F1) | MASK(G1));
-                    //pos->brd[PIECE(WHITE,KING)] &= ~MASK(G1);
-                    //pos->brd[PIECE(WHITE,KING)] |= MASK(E1);
                     KSQ(*pos, WHITE) = E1;
                     pos->brd[PIECE(WHITE,ROOK)] &= ~MASK(F1);
                     pos->brd[PIECE(WHITE,ROOK)] |= MASK(H1);
@@ -755,8 +735,6 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
                     *sidebb &= ~(MASK(B8) | MASK(C8) | MASK(D8));
                     pos->brd[PIECE(BLACK,ROOK)] &= ~MASK(D8);
                     pos->brd[PIECE(BLACK,ROOK)] |= MASK(A8);
-                    //pos->brd[PIECE(BLACK,KING)] &= ~MASK(C8);
-                    //pos->brd[PIECE(BLACK,KING)] |= MASK(E8);
                     KSQ(*pos, BLACK) = E8;
                     break;
                 case G8:
@@ -771,8 +749,6 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
                     s2p[H8] = PIECE(BLACK,ROOK);
                     *sidebb |= MASK(E8) | MASK(H8);
                     *sidebb &= ~(MASK(F8) | MASK(G8));
-                    //pos->brd[PIECE(BLACK,KING)] &= ~MASK(G8);
-                    //pos->brd[PIECE(BLACK,KING)] |= MASK(E8);
                     KSQ(*pos, BLACK) = E8;
                     pos->brd[PIECE(BLACK,ROOK)] &= ~MASK(F8);
                     pos->brd[PIECE(BLACK,ROOK)] |= MASK(H8);
