@@ -64,7 +64,7 @@ move search(const struct position *restrict const position) {
     int best = position->wtm == WHITE ? NEG_INFINITI : INFINITI;
     int value;
     int bestmoveno = -1;
-    const int depth = 1;
+    const int depth = 3;
 
     memcpy(&pos, position, sizeof(pos));
     nmoves = generate_legal_moves(&pos, &moves[0]);
