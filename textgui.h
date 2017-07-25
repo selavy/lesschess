@@ -3,6 +3,7 @@
 
 #include "move.h"
 
-extern int get_move(move *m);
+struct position;
+extern void get_move(const struct position *restrict const pos, move *m);
 
 #endif

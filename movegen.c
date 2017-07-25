@@ -5,6 +5,22 @@
 #include <inttypes.h>
 #include "magic_tables.h"
 
+int is_legal_move_FIXME(const struct position *restrict const pos, move m) {
+    int nmoves;
+    int result = 0;
+    move moves[MAX_MOVES];
+
+    nmoves = generate_legal_moves(pos, &moves[0]);
+    for (int i = 0; i < nmoves; ++i) {
+        if (moves[i] == m) {
+            result = 1;
+            break;
+        }
+    }
+
+    return result;
+}
+
 int in_check(const struct position * const restrict pos, uint8_t side) {
     return attacks(pos, FLIP(side), KSQ(*pos, side));
 }

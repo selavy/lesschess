@@ -213,7 +213,7 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
     return 0;
 }
 
-void position_print(FILE *os, const struct position *restrict pos) {
+void position_print(FILE *os, const struct position *restrict const pos) {
     fprintf(os, "+---+---+---+---+---+---+---+---+\n");
     for (int rank = RANK_8; rank >= RANK_1; --rank) {
         for (int file = FILE_A; file <= FILE_H; ++file) {

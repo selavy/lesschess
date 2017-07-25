@@ -22,5 +22,6 @@ extern move *generate_evasions(const struct position *const restrict pos, uint64
 extern move *generate_non_evasions(const struct position *const restrict pos, move *restrict moves);
 extern int generate_legal_moves(const struct position *const restrict pos, move *restrict moves);
 extern int in_check(const struct position * const restrict pos, uint8_t side);
+extern int is_legal_move_FIXME(const struct position *restrict const pos, move m);
 
 #endif // MOVEGEN__H_

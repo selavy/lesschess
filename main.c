@@ -12,6 +12,8 @@
 #include "perft.h"
 #include "textgui.h"
 
+const char *const g_starting_position_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 static struct timespec timediff(struct timespec start, struct timespec end) {
     struct timespec result;
     if ((end.tv_nsec - start.tv_nsec) < 0) {
@@ -30,7 +32,7 @@ static void time_test(int depth) {
     struct timespec end;
     struct timespec dur;
     struct position pos;
-    const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    const char *fen = g_starting_position_fen;
     if (position_from_fen(&pos, fen) != 0) {
         fprintf(stderr, "position_from_fen failed\n");
         exit(EXIT_FAILURE);
@@ -50,14 +52,21 @@ static void time_test(int depth) {
 static void run_text_gui() {
     int result;
     move m;
-    result = get_move(&m);
-    if (result == 0) {
-        move_print(stdout, m);
-        move_print_short(m);
-        printf("%s\n", xboard_move_print(m));
-    } else {
-        printf("Error reading move: %d\n", result);
+    struct position pos;
+    struct savepos sp;
+
+    result = position_from_fen(&pos, g_starting_position_fen);
+    if (result != 0) {
+        fprintf(stderr, "position_from_fen");
+        exit(EXIT_FAILURE);
     }
+
+    get_move(&pos, &m);
+    move_print(stdout, m);
+    move_print_short(m);
+    printf("%s\n", xboard_move_print(m));
+    make_move(&pos, &sp, m);
+    position_print(stdout, &pos);
 }
 
 void run_perft_test(int argc, char **argv) {
