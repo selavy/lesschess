@@ -8,6 +8,12 @@
 #define unreachable() do { __builtin_unreachable(); assert(0); } while(0)
 #define force_inline __attribute__((always_inline)) inline
 
+#define lsb(bb) __builtin_ctzll(bb)
+#define clear_lsb(bb) bb &= (bb - 1)
+#define popcountll(bb) __builtin_popcountll(bb)
+#define power_of_two(bb) (bb & (bb - 1))
+#define more_than_one_piece(bb) power_of_two(bb)
+
 #define WHITE 0
 #define BLACK 1
 #define COLORSTR(x) ((x) == WHITE ? "WHITE":"BLACK")
@@ -60,6 +66,9 @@ enum { KNIGHT=0, BISHOP=1, ROOK=2, QUEEN=3, PAWN=4, KING=5, NPIECES=6, EMPTY=(NP
     (((to)    <<  0) |					\
      ((from)  <<  6) |					\
      (3 << 14))
+
+#define MATED        0
+#define INVALID_MOVE 0xFFFF
 
 #define TO(m)       (((m) >>  0) & 0x3f)
 #define FROM(m)     (((m) >>  6) & 0x3f)

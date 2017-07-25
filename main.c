@@ -62,11 +62,19 @@ static void run_text_gui() {
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 100; ++i) {
+        if (is_mate_FIXME(&pos)) {
+            printf("%s is mated.\n", pos.wtm==WHITE? "WHITE":"BLACK");
+            break;
+        }
         get_move(&pos, &m);
         make_move(&pos, &sp, m);
         position_print(stdout, &pos);
         m = search(&pos);
+        if (m == MATED) {
+            printf("Game Over! Computer Lost\n");
+            break;
+        }
         printf("Computer move: %s\n", xboard_move_print(m));
         make_move(&pos, &sp, m);
     }

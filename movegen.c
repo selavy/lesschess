@@ -21,6 +21,12 @@ int is_legal_move_FIXME(const struct position *restrict const pos, move m) {
     return result;
 }
 
+int is_mate_FIXME(const struct position *restrict const pos) {
+    move moves[MAX_MOVES];
+    int nmoves = generate_legal_moves(pos, &moves[0]);
+    return nmoves == 0;
+}
+
 int in_check(const struct position * const restrict pos, uint8_t side) {
     return attacks(pos, FLIP(side), KSQ(*pos, side));
 }

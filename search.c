@@ -68,6 +68,9 @@ move search(const struct position *restrict const position) {
 
     memcpy(&pos, position, sizeof(pos));
     nmoves = generate_legal_moves(&pos, &moves[0]);
+    if (nmoves == 0) {
+        return MATED;
+    }
 
     if (pos.wtm == WHITE) {
         for (i = 0; i < nmoves; ++i) {
