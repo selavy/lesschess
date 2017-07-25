@@ -3,20 +3,10 @@
 #include <string.h>
 #include "position.h"
 #include "movegen.h"
-
-// TODO: move to eval.h
-#define INFINITI 1000
-#define NEG_INFINITI -1000
-#define WHITE_WIN INFINITI
-#define BLACK_WIN NEG_INFINITI
+#include "eval.h"
 
 #define MIN(a, b) (((a)<(b))?(a):(b))
 #define MAX(a, b) (((a)>(b))?(a):(b))
-
-int eval(struct position *restrict const pos) {
-    // TODO:
-    return 0;
-}
 
 int alphabeta(struct position *restrict pos, int depth, int alpha, int beta, int maximizing, move last_move) {
     int best;
