@@ -31,8 +31,11 @@ static int get_move_helper(const struct position *restrict const pos, move *m) {
     int result = -EBADINPUT;
 
     if (!line) {
-        result = -EEOF;
-    } else if (strlen(line) == 4) {
+        return -EEOF;
+    }
+
+    const size_t len = strlen(line);
+    if (len == 4 || len == 5) {
         const int fromfile = getcol(line[0]);
         const int fromrank = getrow(line[1]);
         const int tofile = getcol(line[2]);
@@ -40,8 +43,30 @@ static int get_move_helper(const struct position *restrict const pos, move *m) {
         if (fromfile != -1 && fromrank != -1 && tofile != -1 && torank != -1) {
             const int fromsq = SQUARE(fromfile, fromrank);
             const int tosq = SQUARE(tofile, torank);
-
-            if ((fromsq == pos->ksq[pos->wtm]) && ((fromsq == E1 && (tosq == G1 || tosq == C1)) || (fromsq == E8 && (tosq == G8 || tosq == C8)))) {
+            if (len == 5) {
+                switch (line[4]) {
+                    case 'n':
+                    case 'N':
+                        *m = PROMOTION(fromsq, tosq, KNIGHT);
+                        break;
+                    case 'b':
+                    case 'B':
+                        *m = PROMOTION(fromsq, tosq, BISHOP);
+                        break;
+                    case 'r':
+                    case 'R':
+                        *m = PROMOTION(fromsq, tosq, ROOK);
+                        break;
+                    case 'q':
+                    case 'Q':
+                        *m = PROMOTION(fromsq, tosq, QUEEN);
+                        break;
+                    default:
+                        goto error;
+                }
+            } else if ((fromsq == pos->ksq[pos->wtm]) &&
+                    ((fromsq == E1 && (tosq == G1 || tosq == C1)) ||
+                     (fromsq == E8 && (tosq == G8 || tosq == C8)) )) {
                 *m = CASTLE(fromsq, tosq);
             } else {
                 *m = MOVE(fromsq, tosq);
@@ -50,6 +75,7 @@ static int get_move_helper(const struct position *restrict const pos, move *m) {
         }
     }
 
+error:
     free(line);
     return result;
 }
