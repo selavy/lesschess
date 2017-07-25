@@ -10,6 +10,7 @@
 #include "position.h"
 #include "movegen.h"
 #include "perft.h"
+#include "textgui.h"
 
 static struct timespec timediff(struct timespec start, struct timespec end) {
     struct timespec result;
@@ -44,6 +45,19 @@ static void time_test(int depth) {
     dur = timediff(begin, end);
     printf("Depth %d, nodes = %" PRIu64 " took %ld seconds %ld millis\n",
             depth, nodes, dur.tv_sec, dur.tv_nsec / 1000000);
+}
+
+static void run_text_gui() {
+    int result;
+    move m;
+    result = get_move(&m);
+    if (result == 0) {
+        move_print(stdout, m);
+        move_print_short(m);
+        printf("%s\n", xboard_move_print(m));
+    } else {
+        printf("Error reading move: %d\n", result);
+    }
 }
 
 void run_perft_test(int argc, char **argv) {
@@ -92,6 +106,8 @@ int main(int argc, char **argv) {
     } else {
         if (strcmp(argv[1], "perft") == 0) {
             run_perft_test(argc-2, argv+2);
+        } else if (strcmp(argv[1], "textgui") == 0) {
+            run_text_gui();
         }
     }
 

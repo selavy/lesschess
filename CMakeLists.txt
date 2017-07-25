@@ -17,5 +17,7 @@ add_executable(lesschess
     position.c
     movegen.c
     perft.c
+    textgui.c
     )
 target_link_libraries(lesschess rt)
+target_link_libraries(lesschess readline)

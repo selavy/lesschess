@@ -387,7 +387,7 @@ int validate_position(struct position *restrict const pos) {
     return 0;
 }
 
-extern void make_move(struct position *restrict pos, struct savepos *restrict sp, move m) {
+void make_move(struct position *restrict pos, struct savepos *restrict sp, move m) {
     const uint8_t  side      = pos->wtm;
     const uint8_t  contra    = FLIP(side);
     const uint32_t tosq      = TO(m);
