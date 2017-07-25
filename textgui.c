@@ -30,7 +30,7 @@ static int get_move_helper(move *m) {
     char *line = readline("> ");
     int result = -EBADINPUT;
 
-    if (!*line) {
+    if (!line) {
         result = -EEOF;
     } else if (strlen(line) == 4) {
         const int fromcol = getcol(line[0]);

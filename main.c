@@ -11,6 +11,7 @@
 #include "movegen.h"
 #include "perft.h"
 #include "textgui.h"
+#include "search.h"
 
 const char *const g_starting_position_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -61,12 +62,14 @@ static void run_text_gui() {
         exit(EXIT_FAILURE);
     }
 
-    get_move(&pos, &m);
-    move_print(stdout, m);
-    move_print_short(m);
-    printf("%s\n", xboard_move_print(m));
-    make_move(&pos, &sp, m);
-    position_print(stdout, &pos);
+    for (int i = 0; i < 10; ++i) {
+        get_move(&pos, &m);
+        make_move(&pos, &sp, m);
+        position_print(stdout, &pos);
+        m = search(&pos);
+        printf("Computer move: %s\n", xboard_move_print(m));
+        make_move(&pos, &sp, m);
+    }
 }
 
 void run_perft_test(int argc, char **argv) {
