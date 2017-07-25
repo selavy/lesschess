@@ -26,19 +26,26 @@ static int getrow(char c) {
 
 #define EEOF 1
 #define EBADINPUT 2
-static int get_move_helper(move *m) {
+static int get_move_helper(const struct position *restrict const pos, move *m) {
     char *line = readline("> ");
     int result = -EBADINPUT;
 
     if (!line) {
         result = -EEOF;
     } else if (strlen(line) == 4) {
-        const int fromcol = getcol(line[0]);
-        const int fromrow = getrow(line[1]);
-        const int tocol = getcol(line[2]);
-        const int torow = getrow(line[3]);
-        if (fromcol != -1 && fromrow != -1 && tocol != -1 && torow != -1) {
-            *m = MOVE(fromrow*8 + fromcol, torow*8 + tocol);
+        const int fromfile = getcol(line[0]);
+        const int fromrank = getrow(line[1]);
+        const int tofile = getcol(line[2]);
+        const int torank = getrow(line[3]);
+        if (fromfile != -1 && fromrank != -1 && tofile != -1 && torank != -1) {
+            const int fromsq = SQUARE(fromfile, fromrank);
+            const int tosq = SQUARE(tofile, torank);
+
+            if ((fromsq == pos->ksq[pos->wtm]) && ((fromsq == E1 && (tosq == G1 || tosq == C1)) || (fromsq == E8 && (tosq == G8 || tosq == C8)))) {
+                *m = CASTLE(fromsq, tosq);
+            } else {
+                *m = MOVE(fromsq, tosq);
+            }
             result = 0;
         }
     }
@@ -51,7 +58,7 @@ void get_move(const struct position *restrict const pos, move *m) {
     int result;
     position_print(stdout, pos);
     while (1) {
-        result = get_move_helper(m);
+        result = get_move_helper(pos, m);
         if (result == -EEOF) {
             printf("Bye.\n");
             exit(EXIT_FAILURE);
