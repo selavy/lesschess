@@ -1,0 +1,7 @@
+-texi2html
+texinfo
+libcairo2-dev
+libpango1.0-dev
+librsvg2-dev
+libgtk2.0-dev
+

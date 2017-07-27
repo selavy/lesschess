@@ -12,6 +12,7 @@
 #include "perft.h"
 #include "textgui.h"
 #include "search.h"
+#include "xboard.h"
 
 const char *const g_starting_position_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -120,14 +121,16 @@ void run_perft_test(int argc, char **argv) {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        for (int depth = 0; depth < 9; ++depth) {
-            time_test(depth);
-        }
+       xboard_uci_main();
     } else {
         if (strcmp(argv[1], "perft") == 0) {
             run_perft_test(argc-2, argv+2);
         } else if (strcmp(argv[1], "textgui") == 0) {
             run_text_gui();
+        } else if (strcmp(argv[1], "timetest") == 0) {
+            for (int depth = 0; depth < 8; ++depth) {
+                time_test(depth);
+            }
         }
     }
 
