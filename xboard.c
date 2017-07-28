@@ -8,17 +8,37 @@
 #include "move.h"
 #include "position.h"
 #include "movegen.h"
+#include "search.h"
 
 enum xboard_state {
     XB_NONE,
     XB_BEGIN,
     XB_FEATURES_SENT,
     XB_SETUP,
+    XB_PLAYING,
 };
 
 static int g_xbstate = XB_NONE;
-static struct position g_pos;
 static FILE *g_debug_stream;
+static struct position g_pos;
+static struct savepos g_sp;
+
+static const char *statestr() {
+    switch (g_xbstate) {
+        case XB_NONE:
+            return "None";
+        case XB_BEGIN:
+            return "Begin";
+        case XB_FEATURES_SENT:
+            return "FeaturesSent";
+        case XB_SETUP:
+            return "Setup";
+        case XB_PLAYING:
+            return "Playing";
+        default:
+            return "Unknown";
+    }
+}
 
 static void xbstate_init();
 static void xberror(const char *fmt, ...) __attribute__((noreturn));
@@ -28,6 +48,7 @@ static void handle_input(const char *line, int len);
 static void handle_begin_state(const char *line, int len);
 static void handle_features_sent(const char *line, int len);
 static void handle_setup(const char *line, int len);
+static void handle_playing(const char *line, int len);
 static int getfile(char c);
 
 static int strictcmp(const char *a, const char *b) {
@@ -91,6 +112,8 @@ void handle_input(const char *line, int len) {
             case XB_SETUP:
                 handle_setup(line, len);
                 break;
+            case XB_PLAYING:
+                return handle_playing(line, len);
             default:
                 xberror("unknown xboard state.");
         }
@@ -129,13 +152,15 @@ void handle_features_sent(const char *line, int len) {
 
 static move parse_xboard_move(const char *line, int len)
 {
+    xbdebug("parse_xboard_move");
     if (len < 4 || len > 5) {
         return INVALID_MOVE;
     }
-    const int fromrank = getrank(line[0]);
-    const int fromfile = getfile(line[1]);
-    const int torank = getrank(line[2]);
-    const int tofile = getfile(line[3]);
+    const int fromfile = getfile(line[0]);
+    const int fromrank = getrank(line[1]);
+    const int tofile = getfile(line[2]);
+    const int torank = getrank(line[3]);
+    xbdebug("parse_xboard_move: %d, %d, %d, %d", fromrank, fromfile, torank, tofile);
 
     if (fromrank == -1 || fromfile == -1 || torank == -1 || tofile == -1) {
         return INVALID_MOVE;
@@ -156,6 +181,7 @@ static move parse_xboard_move(const char *line, int len)
         const int promopc = getpromopiece(line[4]);
         return PROMOTION(from, to, promopc);
     } else {
+        xberror("uh-oh");
         unreachable();
         return INVALID_MOVE;
     }
@@ -163,6 +189,7 @@ static move parse_xboard_move(const char *line, int len)
 }
 
 void handle_setup(const char *line, int len) {
+    xbdebug("handle_setup: %.*s", len, line);
     if (strictcmp(line, "random")) {
         // nop
     } else if (strictcmp(line, "hard")) {
@@ -182,26 +209,46 @@ void handle_setup(const char *line, int len) {
             //xberror("unrecognized command: '%s'", line);
         } else {
             xbdebug("received move!!! %s", xboard_move_print(m));
-            exit(EXIT_SUCCESS);
+            //exit(EXIT_SUCCESS);
+            g_xbstate = XB_PLAYING;
+            handle_playing(line, len);
         }
     }
+    xbdebug("hit end of handle_setup");
+}
+
+void handle_playing(const char *line, int len) {
+    move m = parse_xboard_move(line, len);
+    if (m == INVALID_MOVE) {
+        xbwrite("Illegal move (invalid rank or file): %.*s", len, line);
+        return;
+    }
+    if (!is_legal_move_FIXME(&g_pos, m)) {
+        xbwrite("Illegal move: %.*s", len, line);
+        return;
+    }
+    make_move(&g_pos, &g_sp, m);
+    m = search(&g_pos);
+    if (m == MATED) {
+        xbdebug("lesschess has been mated\n");
+    }
+    make_move(&g_pos, &g_sp, m);
+    xbwrite("move %s\n", xboard_move_print(m));
 }
 
 void xberror(const char *fmt, ...) {
-    fprintf(stderr, "LessChess ERROR: ");
-    fprintf(g_debug_stream, "LessChess ERROR: ");
+    fprintf(g_debug_stream, "LessChess ERROR(%s): ", statestr());
     va_list args;
     va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
     vfprintf(g_debug_stream, fmt, args);
     va_end(args);
-    fprintf(stderr, "\n");
     fprintf(g_debug_stream, "\n");
+    fflush(g_debug_stream);
     exit(EXIT_FAILURE);
 }
 
 void xbdebug(const char *fmt, ...) {
-    fprintf(g_debug_stream, "LessChess INFO: ");
+    fprintf(g_debug_stream, "LessChess INFO(%s): ", statestr());
     va_list args;
     va_start(args, fmt);
     vfprintf(g_debug_stream, fmt, args);
