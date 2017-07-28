@@ -111,5 +111,8 @@ extern move CASTLE(int from, int to);
 extern void move_print(FILE *fp, move m);
 extern void move_print_short(move m);
 extern const char *xboard_move_print(move m);
+extern int getfile(char c);
+extern int getrank(char c);
+extern int getpromopiece(char c);
 
 #endif // MOVE__H_

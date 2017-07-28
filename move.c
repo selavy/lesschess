@@ -84,3 +84,40 @@ const char *xboard_move_print(move m) {
     return &buffer[0];    
 }
 
+int getfile(char c) {
+    if (c >= 'a' && c <= 'h') {
+        return c - 'a';
+    } else if (c >= 'A' && c <= 'H') {
+        return c - 'A';
+    } else {
+        return -1;
+    }
+}
+
+int getrank(char c) {
+    if (c >= '1' && c <= '8') {
+        return c - '1';
+    } else {
+        return -1;
+    }
+}
+
+int getpromopiece(char c) {
+    switch (c) {
+        case 'n':
+        case 'N':
+            return KNIGHT;
+        case 'b':
+        case 'B':
+            return BISHOP;
+        case 'r':
+        case 'R':
+            return ROOK;
+        case 'q':
+        case 'Q':
+            return QUEEN;
+        default:
+            return -1;
+    }
+}
+

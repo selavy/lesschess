@@ -49,7 +49,6 @@ static void handle_begin_state(const char *line, int len);
 static void handle_features_sent(const char *line, int len);
 static void handle_setup(const char *line, int len);
 static void handle_playing(const char *line, int len);
-static int getfile(char c);
 
 static int strictcmp(const char *a, const char *b) {
     return strncmp(a, b, strlen(b)) == 0;
@@ -59,43 +58,6 @@ static void sigh(int nsig) {
     xbdebug("received signal: %d", nsig);
 }
 
-
-static int getfile(char c) {
-    if (c >= 'a' && c <= 'h') {
-        return c - 'a';
-    } else if (c >= 'A' && c <= 'H') {
-        return c - 'A';
-    } else {
-        return -1;
-    }
-}
-
-static int getrank(char c) {
-    if (c >= '1' && c <= '8') {
-        return c - '1';
-    } else {
-        return -1;
-    }
-}
-
-static int getpromopiece(char c) {
-    switch (c) {
-        case 'n':
-        case 'N':
-            return KNIGHT;
-        case 'b':
-        case 'B':
-            return BISHOP;
-        case 'r':
-        case 'R':
-            return ROOK;
-        case 'q':
-        case 'Q':
-            return QUEEN;
-        default:
-            return -1;
-    }
-}
 
 void handle_input(const char *line, int len) {
     if (strictcmp(line, "quit")) {
