@@ -765,3 +765,36 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
     assert(validate_position(pos) == 0);
 }
 
+move parse_xboard_move(struct position *restrict const pos, const char *line, int len) {
+    if (len < 4 || len > 5) {
+        return INVALID_MOVE;
+    }
+    const int fromfile = getfile(line[0]);
+    const int fromrank = getrank(line[1]);
+    const int tofile = getfile(line[2]);
+    const int torank = getrank(line[3]);
+
+    if (fromrank == -1 || fromfile == -1 || torank == -1 || tofile == -1) {
+        return INVALID_MOVE;
+    }
+    const int from = SQUARE(fromfile, fromrank);
+    const int to = SQUARE(tofile, torank);
+    if (len == 4) {
+        if (from == E1 && KSQ(*pos, WHITE) == E1 && (to == C1 || to == G1)) {
+            return CASTLE(from, to);
+        } else if (from == E8 && KSQ(*pos, BLACK) == E8 && (to == C8 || to == G8)) {
+            return CASTLE(from, to);
+        } else if (to == pos->enpassant && pos->sqtopc[from] == PIECE(pos->wtm, PAWN)) {
+            return EP_CAPTURE(from, to);
+        } else {
+            return MOVE(from, to);
+        }
+    } else if (len == 5) {
+        const int promopc = getpromopiece(line[4]);
+        return PROMOTION(from, to, promopc);
+    } else {
+        unreachable();
+        return INVALID_MOVE;
+    }
+}
+

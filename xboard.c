@@ -23,7 +23,8 @@ static FILE *g_debug_stream;
 static struct position g_pos;
 static struct savepos g_sp;
 
-static const char *statestr() {
+static const char *statestr()
+{
     switch (g_xbstate) {
         case XB_NONE:
             return "None";
@@ -50,16 +51,19 @@ static void handle_features_sent(const char *line, int len);
 static void handle_setup(const char *line, int len);
 static void handle_playing(const char *line, int len);
 
-static int strictcmp(const char *a, const char *b) {
+static int strictcmp(const char *a, const char *b)
+{
     return strncmp(a, b, strlen(b)) == 0;
 }
 
-static void sigh(int nsig) {
+static void sigh(int nsig)
+{
     xbdebug("received signal: %d", nsig);
 }
 
 
-void handle_input(const char *line, int len) {
+void handle_input(const char *line, int len)
+{
     if (strictcmp(line, "quit")) {
         xbdebug("Bye.\n");
         exit(EXIT_SUCCESS);
@@ -82,7 +86,8 @@ void handle_input(const char *line, int len) {
     }
 }
 
-void handle_begin_state(const char *line, int len) {
+void handle_begin_state(const char *line, int len) 
+{
     if (strictcmp(line, "protover")) {
         if (len < 10 || line[9] != '2') {
             xberror("Unknown protocol version: %c", len < 10 ? '?' : line[9]);
@@ -98,7 +103,8 @@ void handle_begin_state(const char *line, int len) {
     }
 }
 
-void handle_features_sent(const char *line, int len) {
+void handle_features_sent(const char *line, int len)
+{
     if (strictcmp(line, "accepted")) {
         // TODO: keep bitfield of features that have been accepted.
         // verify that everything requested is accepted
@@ -112,45 +118,8 @@ void handle_features_sent(const char *line, int len) {
     }
 }
 
-static move parse_xboard_move(const char *line, int len)
+void handle_setup(const char *line, int len)
 {
-    xbdebug("parse_xboard_move");
-    if (len < 4 || len > 5) {
-        return INVALID_MOVE;
-    }
-    const int fromfile = getfile(line[0]);
-    const int fromrank = getrank(line[1]);
-    const int tofile = getfile(line[2]);
-    const int torank = getrank(line[3]);
-    xbdebug("parse_xboard_move: %d, %d, %d, %d", fromrank, fromfile, torank, tofile);
-
-    if (fromrank == -1 || fromfile == -1 || torank == -1 || tofile == -1) {
-        return INVALID_MOVE;
-    }
-    const int from = SQUARE(fromfile, fromrank);
-    const int to = SQUARE(tofile, torank);
-    if (len == 4) {
-        if (from == E1 && KSQ(g_pos, WHITE) == E1 && (to == C1 || to == G1)) {
-            return CASTLE(from, to);
-        } else if (from == E8 && KSQ(g_pos, BLACK) == E8 && (to == C8 || to == G8)) {
-            return CASTLE(from, to);
-        } else if (to == g_pos.enpassant && g_pos.sqtopc[from] == PIECE(g_pos.wtm, PAWN)) {
-            return EP_CAPTURE(from, to);
-        } else {
-            return MOVE(from, to);
-        }
-    } else if (len == 5) {
-        const int promopc = getpromopiece(line[4]);
-        return PROMOTION(from, to, promopc);
-    } else {
-        xberror("uh-oh");
-        unreachable();
-        return INVALID_MOVE;
-    }
-
-}
-
-void handle_setup(const char *line, int len) {
     xbdebug("handle_setup: %.*s", len, line);
     if (strictcmp(line, "random")) {
         // nop
@@ -165,7 +134,7 @@ void handle_setup(const char *line, int len) {
         // nop
         // XXX: parse level
     } else {
-        const move m = parse_xboard_move(line, len);
+        const move m = parse_xboard_move(&g_pos, line, len);
         if (m == INVALID_MOVE) {
             xberror("unrecognized command: '%.*s'", len, line);
             //xberror("unrecognized command: '%s'", line);
@@ -179,8 +148,9 @@ void handle_setup(const char *line, int len) {
     xbdebug("hit end of handle_setup");
 }
 
-void handle_playing(const char *line, int len) {
-    move m = parse_xboard_move(line, len);
+void handle_playing(const char *line, int len)
+{
+    move m = parse_xboard_move(&g_pos, line, len);
     if (m == INVALID_MOVE) {
         xbwrite("Illegal move (invalid rank or file): %.*s", len, line);
         return;
@@ -198,7 +168,8 @@ void handle_playing(const char *line, int len) {
     xbwrite("move %s\n", xboard_move_print(m));
 }
 
-void xberror(const char *fmt, ...) {
+void xberror(const char *fmt, ...)
+{
     fprintf(g_debug_stream, "LessChess ERROR(%s): ", statestr());
     va_list args;
     va_start(args, fmt);
@@ -209,7 +180,8 @@ void xberror(const char *fmt, ...) {
     exit(EXIT_FAILURE);
 }
 
-void xbdebug(const char *fmt, ...) {
+void xbdebug(const char *fmt, ...)
+{
     fprintf(g_debug_stream, "LessChess INFO(%s): ", statestr());
     va_list args;
     va_start(args, fmt);
@@ -218,7 +190,8 @@ void xbdebug(const char *fmt, ...) {
     fprintf(g_debug_stream, "\n");
 }
 
-void xbwrite(const char *fmt, ...) {
+void xbwrite(const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
     vfprintf(stdout, fmt, args);
@@ -226,7 +199,8 @@ void xbwrite(const char *fmt, ...) {
     fprintf(stdout, "\n");
 }
 
-void xbstate_init() {
+void xbstate_init()
+{
     int retcode;
     const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     retcode = position_from_fen(&g_pos, fen);
@@ -240,7 +214,8 @@ void xbstate_init() {
     }
 }
 
-void xboard_uci_main() {
+void xboard_uci_main()
+{
     FILE *istream;
     char *line = 0;
     size_t len = 0;

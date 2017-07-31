@@ -126,18 +126,16 @@ static void replay_file(const char *filename) {
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
-    const char *fen = g_starting_position_fen;
-    char *buffer = 0;
-    size_t buflen = 0;
+    move m;
     struct position pos;
-    const char *c;
+    struct savepos sp;
 
     stream = fopen(filename, "r");
     if (stream == NULL) {
         fprintf(stderr, "Unable to open file: %s\n", filename);
         exit(EXIT_FAILURE);
     }
-    if (position_from_fen(&pos, fen) != 0) {
+    if (position_from_fen(&pos, g_starting_position_fen) != 0) {
         fprintf(stderr, "position_from_fen failed\n");
         exit(EXIT_FAILURE);
     }
@@ -145,127 +143,16 @@ static void replay_file(const char *filename) {
         fprintf(stderr, "validate_position failed\n");
         exit(EXIT_FAILURE);
     }
-    // XXX: for simplicity, load entire file into a buffer
     while ((read = getline(&line, &len, stream)) != -1) {
-        buffer = realloc(buffer, buflen + read + 1);
-        memcpy(&buffer[buflen], line, read);
-        buflen += read;
-    }
-    if (buflen == 1) {
-        goto end;
-    }
-    buffer[buflen-1] = 0;
-    printf("Buffer Length: %zu\n", buflen);
-    printf("Buffer '%s'\n", buffer);
-
-    const char *whitespace_pattern = "[ \n\t\r]+";
-    const char *moveno_pattern = "^[0-9]+\\.";
-    const char *piece_pattern = "^[KQRBNkqrbn][a-h][1-8]";
-    const char *pawn_pattern  = "^[a-h][1-8]";
-    const char *piece_capture_pattern = "^[KQRBNkqrbn]x[a-h][1-8]";
-    const char *pawn_capture_pattern = "^[a-h]x[a-h][1-8]";
-    const char *castle_kingside_pattern = "^O-O";
-    const char *castle_queenside_pattern = "^O-O-O";
-    const char *pawn_queen_pattern = "[a-h][1-8]=[QRBNqrbn]";
-
-    regex_t whitespace_regex;
-    regex_t moveno_regex;
-    regex_t piece_regex;
-    regex_t pawn_regex;
-    regex_t piece_capture_regex;
-    regex_t pawn_capture_regex;
-    regex_t castle_kingside_regex;
-    regex_t castle_queenside_regex;
-    regex_t pawn_queen_regex;
-
-    printf("Compiling regex...\n");
-    if (regcomp(&whitespace_regex, whitespace_pattern, REG_EXTENDED) != 0) {
-        perror("regcomp");
-        goto end;
-    }
-    if (regcomp(&moveno_regex, moveno_pattern, REG_EXTENDED) != 0) {
-        perror("regcomp");
-        goto end;
-    }
-    if (regcomp(&piece_regex, piece_pattern, REG_EXTENDED) != 0) {
-        perror("regcomp");
-        goto end;
-    }
-    if (regcomp(&pawn_regex, pawn_pattern, REG_EXTENDED) != 0) {
-        perror("regcomp");
-        goto end;
-    }
-    if (regcomp(&piece_capture_regex, piece_capture_pattern, REG_EXTENDED) != 0) {
-        perror("regcomp");
-        goto end;
-    }
-    if (regcomp(&pawn_capture_regex, pawn_capture_pattern, REG_EXTENDED) != 0) {
-        perror("regcomp");
-        goto end;
-    }
-    if (regcomp(&castle_kingside_regex, castle_kingside_pattern, REG_EXTENDED) != 0) {
-        perror("regcomp");
-        goto end;
-    }
-    if (regcomp(&castle_queenside_regex, castle_queenside_pattern, REG_EXTENDED) != 0) {
-        perror("regcomp");
-        goto end;
-    }
-    if (regcomp(&pawn_queen_regex, pawn_queen_pattern, REG_EXTENDED) != 0) {
-        perror("regcomp");
-        goto end;
-    }
-    printf("Successfully compiled regex...\n");
-
-    regmatch_t pmatch[1];
-
-   int regcomp(regex_t *preg, const char *regex, int cflags);
-   int regexec(const regex_t *preg, const char *string, size_t nmatch,
-               regmatch_t pmatch[], int eflags);
-    c = buffer;
-    while (*c) {
-        if (regexec(&whitespace_regex, c, 1, pmatch, 0) > 0) {
-            printf("matched whitespace\n");
-            goto end;
+        m = parse_xboard_move(&pos, line, (int)read - 1);
+        if (m == INVALID_MOVE) {
+            fprintf(stderr, "Invalid move! '%.*s'\n", (int)read - 1, line);
+            exit(EXIT_FAILURE);
         }
-        if (regexec(&moveno_regex, c, 1, pmatch, 0) > 0) {
-            printf("matched moveno\n");
-            goto end;
-        }
-        if (regexec(&piece_regex, c, 1, pmatch, 0) > 0) {
-            printf("matched piece\n");
-            goto end;
-        }
-        if (regexec(&pawn_regex, c, 1, pmatch, 0) > 0) {
-            printf("matched pawn\n");
-            goto end;
-        }
-        if (regexec(&piece_capture_regex, c, 1, pmatch, 0) > 0) {
-            printf("matched piece capture\n");
-            goto end;
-        }
-        if (regexec(&pawn_capture_regex, c, 1, pmatch, 0) > 0) {
-            printf("matched pawn capture\n");
-            goto end;
-        }
-        if (regexec(&castle_kingside_regex, c, 1, pmatch, 0) > 0) {
-            printf("matched castle king\n");
-            goto end;
-        }
-        if (regexec(&castle_queenside_regex, c, 1, pmatch, 0) > 0) {
-            printf("matched whitespace\n");
-            goto end;
-        }
-        if (regexec(&pawn_queen_regex, c, 1, pmatch, 0) > 0) {
-            printf("matched pawn queen\n");
-            goto end;
-        }
-        printf("Didn't match anything!");
-        goto end;
+        make_move(&pos, &sp, m);
+        position_print(stdout, &pos);
     }
-
-end:
-    free(buffer);
+    printf("PGN Parser Info: finished parsing file\n");
     free(line);
     fclose(stream);
 }

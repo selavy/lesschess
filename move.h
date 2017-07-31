@@ -114,5 +114,6 @@ extern const char *xboard_move_print(move m);
 extern int getfile(char c);
 extern int getrank(char c);
 extern int getpromopiece(char c);
+extern int getpiece(char c);
 
 #endif // MOVE__H_

@@ -121,3 +121,25 @@ int getpromopiece(char c) {
     }
 }
 
+int getpiece(char c) {
+    switch (c) {
+        case 'n':
+        case 'N':
+            return KNIGHT;
+        case 'b':
+        case 'B':
+            return BISHOP;
+        case 'r':
+        case 'R':
+            return ROOK;
+        case 'q':
+        case 'Q':
+            return QUEEN;
+        case 'k':
+        case 'K':
+            return KING;
+        default:
+            return -1;
+    }
+}
+
