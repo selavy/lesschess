@@ -150,11 +150,24 @@ static void replay_file(const char *filename) {
             exit(EXIT_FAILURE);
         }
         make_move(&pos, &sp, m);
+        if (validate_position(&pos) != 0) {
+            fprintf(stderr, "validate_position failed\n");
+            exit(EXIT_FAILURE);
+        }
         position_print(stdout, &pos);
     }
     printf("PGN Parser Info: finished parsing file\n");
     free(line);
     fclose(stream);
+
+    m = search(&pos);
+    if (m == INVALID_MOVE) {
+        printf("Search returned invalid move!\n");
+    } else if (m == MATED) {
+        printf("Search returned MATED\n");
+    } else {
+        printf("Search result: %s\n", xboard_move_print(m));
+    }
 }
 
 int main(int argc, char **argv) {

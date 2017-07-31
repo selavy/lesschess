@@ -61,7 +61,7 @@ move search(const struct position *restrict const position) {
     move moves[MAX_MOVES];
     int nmoves;
     int i;
-    int best = position->wtm == WHITE ? NEG_INFINITI : INFINITI;
+    int best = position->wtm == WHITE ? NEG_INFINITI - 1 : INFINITI + 1;
     int value;
     int bestmoveno = -1;
     const int depth = 5;
