@@ -118,6 +118,16 @@ void handle_features_sent(const char *line, int len)
     }
 }
 
+static void xboard_make_move()
+{
+    const move m = search(&g_pos);
+    if (m == MATED) {
+        xbdebug("lesschess has been mated\n");
+    }
+    make_move(&g_pos, &g_sp, m);
+    xbwrite("move %s\n", xboard_move_print(m));
+}
+
 void handle_setup(const char *line, int len)
 {
     xbdebug("handle_setup: %.*s", len, line);
@@ -133,14 +143,13 @@ void handle_setup(const char *line, int len)
     } else if (strictcmp(line, "level")) {
         // nop
         // XXX: parse level
+    } else if (strictcmp(line, "white")) {
+        g_xbstate = XB_PLAYING;
     } else {
         const move m = parse_xboard_move(&g_pos, line, len);
         if (m == INVALID_MOVE) {
             xberror("unrecognized command: '%.*s'", len, line);
-            //xberror("unrecognized command: '%s'", line);
         } else {
-            xbdebug("received move!!! %s", xboard_move_print(m));
-            //exit(EXIT_SUCCESS);
             g_xbstate = XB_PLAYING;
             handle_playing(line, len);
         }
@@ -150,22 +159,19 @@ void handle_setup(const char *line, int len)
 
 void handle_playing(const char *line, int len)
 {
-    move m = parse_xboard_move(&g_pos, line, len);
-    if (m == INVALID_MOVE) {
-        xbwrite("Illegal move (invalid rank or file): %.*s", len, line);
-        return;
+    if (!strictcmp(line, "go")) {
+        move m = parse_xboard_move(&g_pos, line, len);
+        if (m == INVALID_MOVE) {
+            xbwrite("Illegal move (invalid rank or file): %.*s", len, line);
+            return;
+        }
+        if (!is_legal_move_FIXME(&g_pos, m)) {
+            xbwrite("Illegal move: %.*s", len, line);
+            return;
+        }
+        make_move(&g_pos, &g_sp, m);
     }
-    if (!is_legal_move_FIXME(&g_pos, m)) {
-        xbwrite("Illegal move: %.*s", len, line);
-        return;
-    }
-    make_move(&g_pos, &g_sp, m);
-    m = search(&g_pos);
-    if (m == MATED) {
-        xbdebug("lesschess has been mated\n");
-    }
-    make_move(&g_pos, &g_sp, m);
-    xbwrite("move %s\n", xboard_move_print(m));
+    xboard_make_move();
 }
 
 void xberror(const char *fmt, ...)
