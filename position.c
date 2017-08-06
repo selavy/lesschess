@@ -459,7 +459,7 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
             }
             break;
         case FLG_EP:
-            assert(pc == PIECE(side, PAWN));
+            assert(pc == PIECE(side, PAWN) && topc == EMPTY);
             sp->was_ep = 1;
             epsq = side == WHITE ? tosq - 8 : tosq + 8;
             *pcs &= ~from;
@@ -473,23 +473,18 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
             pos->side[contra] &= ~MASK(epsq);
             break;
         case FLG_PROMO:
-            assert(pc != PIECE(WHITE, KING));
-            assert(pc != PIECE(BLACK, KING));
-            *pcs              &= ~from;
+            assert(pc == PIECE(side, PAWN));
+            *pcs &= ~from;
             pos->brd[promopc] |= to;
-            s2p[tosq]       = promopc;
-            s2p[fromsq]     = EMPTY;
+            s2p[tosq] = promopc;
+            s2p[fromsq] = EMPTY;
             pos->side[side] &= ~from;
             pos->side[side] |= to;
             if (topc != EMPTY) {
-                pos->brd[topc]    &= ~to;
+                pos->brd[topc] &= ~to;
                 pos->side[contra] &= ~to;
-                switch (tosq) {
-                    case A1: pos->castle &= ~CSL_WQSIDE; break;
-                    case H1: pos->castle &= ~CSL_WKSIDE; break;
-                    case A8: pos->castle &= ~CSL_BQSIDE; break;
-                    case H8: pos->castle &= ~CSL_BKSIDE; break;
-                    default: break;
+                if (topc == PIECE(side, ROOK)) {
+                    pos->castle &= rook_square_to_castle_flag(tosq);
                 }
             }
             break;
