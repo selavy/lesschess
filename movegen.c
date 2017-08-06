@@ -108,6 +108,9 @@ static move *generate_castling(const struct position *const restrict pos, const 
                 (attacks(pos, contraside, E1) == 0) &&
                 (attacks(pos, contraside, F1) == 0) &&
                 (attacks(pos, contraside, G1) == 0)) {
+            if (pos->sqtopc[H1] != PIECE(WHITE,ROOK)) {
+                position_print(stderr, pos);
+            }
             assert(pos->sqtopc[H1] == PIECE(WHITE,ROOK));
             *moves++ = CASTLE(E1, H1);
         }

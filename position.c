@@ -387,7 +387,7 @@ int validate_position(struct position *restrict const pos) {
     return 0;
 }
 
-uint8_t rook_square_to_castle_flag(uint8_t sq) {
+uint8_t rook_square_to_castle_clear_flag(uint8_t sq) {
     // TODO(plesslie): make 64 entry lookup table
     uint8_t result;
     switch (sq) {
@@ -401,65 +401,64 @@ uint8_t rook_square_to_castle_flag(uint8_t sq) {
 }
 
 void make_move(struct position *restrict pos, struct savepos *restrict sp, move m) {
-    const uint8_t  side      = pos->wtm;
-    const uint8_t  contra    = FLIP(side);
-    const uint32_t tosq      = TO(m);
-    const uint32_t fromsq    = FROM(m);
-    const uint64_t from      = MASK(fromsq);
-    const uint64_t to        = MASK(tosq);
-    const uint32_t pc        = pos->sqtopc[fromsq];
-    const uint32_t topc      = pos->sqtopc[tosq];
-    const uint32_t flags     = FLAGS(m);
-    const int      promopc   = PIECE(side, PROMO_PC(m));
-    uint64_t *restrict pcs   = pc != PIECE(side, KING) ? &pos->brd[pc] : 0;
-    uint8_t  *restrict s2p   = pos->sqtopc;
-    uint64_t *restrict rooks = &pos->brd[PIECE(side, ROOK)];
-    int epsq;
+    const uint8_t side = pos->wtm;
+    const uint8_t contra = FLIP(side);
+    const uint32_t tosq = TO(m);
+    const uint32_t fromsq = FROM(m);
+    const uint64_t from = MASK(fromsq);
+    const uint64_t to = MASK(tosq);
+    const uint32_t pc = pos->sqtopc[fromsq];
+    const uint32_t topc = pos->sqtopc[tosq];
+    const uint32_t flags = FLAGS(m);
+    const int promopc = PIECE(side, PROMO_PC(m));
+    const int epsq = side == WHITE ? tosq - 8 : tosq + 8;
+    uint64_t *restrict const pcs = pc != PIECE(side, KING) ? &pos->brd[pc] : 0;
+    uint8_t *restrict const s2p = pos->sqtopc;
+    uint64_t *restrict const rooks = &pos->brd[PIECE(side, ROOK)];
+    uint8_t *restrict const castle = &pos->castle;
+    int ksq;
+    int rsq;
 
     assert(tosq != fromsq);
     assert(topc != PIECE(WHITE, KING) && topc != PIECE(BLACK, KING));
 
-    // update savepos
     sp->halfmoves = pos->halfmoves;
     sp->enpassant = pos->enpassant;
-    sp->castle = pos->castle;
+    sp->castle = *castle;
     sp->was_ep = 0;
     sp->captured_pc = topc;
 
     pos->enpassant = EP_NONE;
     switch (flags) {
         case FLG_NONE:
+            assert(((pcs != 0) && pc != PIECE(side, KING)) || ((pcs == 0) && pc == PIECE(side, KING)));
             if (pcs) {
-                assert(pc != PIECE(side, KING));
                 *pcs &= ~from;
                 *pcs |= to;
             } else {
-                assert(pc == PIECE(side, KING));
                 KSQ(*pos, side) = tosq;
-                pos->castle &= ~CSL_SIDE(side);
+                *castle &= ~CSL_SIDE(side);
             }
             s2p[fromsq] = EMPTY;
             s2p[tosq] = pc;
             pos->side[side] &= ~from;
             pos->side[side] |= to;
-
             if (topc != EMPTY) {
                 pos->brd[topc] &= ~to;
                 pos->side[contra] &= ~to;
-                pos->castle &= rook_square_to_castle_flag(tosq);
+                *castle &= rook_square_to_castle_clear_flag(tosq);
             } else if (pc == PIECE(side, PAWN) && (from & RANK2(side)) && (to & EP_SQUARES(side))) {
                 pos->enpassant = side == WHITE ? tosq - 8 : tosq + 8;
                 assert((pos->enpassant >= A3 && pos->enpassant <= H3) ||
                         (pos->enpassant >= A6 && pos->enpassant <= H6));
             }
             if (pc == PIECE(side, ROOK)) {
-                pos->castle &= rook_square_to_castle_flag(fromsq);
+                *castle &= rook_square_to_castle_clear_flag(fromsq);
             }
             break;
         case FLG_EP:
             assert(pc == PIECE(side, PAWN) && topc == EMPTY);
             sp->was_ep = 1;
-            epsq = side == WHITE ? tosq - 8 : tosq + 8;
             *pcs &= ~from;
             *pcs |= to;
             pos->brd[PIECE(contra, PAWN)] &= ~MASK(epsq);
@@ -481,15 +480,11 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
             if (topc != EMPTY) {
                 pos->brd[topc] &= ~to;
                 pos->side[contra] &= ~to;
-                if (topc == PIECE(side, ROOK)) {
-                    pos->castle &= rook_square_to_castle_flag(tosq);
-                }
+                *castle &= rook_square_to_castle_clear_flag(tosq);
             }
             break;
         case FLG_CASTLE:
             assert(pc == PIECE(side, KING));
-            int ksq;
-            int rsq;
             switch (tosq) {
                 case H1: ksq = G1; rsq = F1; break;
                 case A1: ksq = C1; rsq = D1; break;
@@ -505,7 +500,7 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
             s2p[rsq] = PIECE(side, ROOK);
             pos->side[side] &= ~(to | from);
             pos->side[side] |= MASK(ksq) | MASK(rsq);
-            pos->castle &= ~CSL_SIDE(side);
+            *castle &= ~CSL_SIDE(side);
             break;
         default:
             unreachable();
@@ -540,6 +535,8 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
     uint64_t *restrict rooks = &pos->brd[PIECE(side, ROOK)];
     uint64_t *restrict sidebb = &pos->side[side];
     uint64_t *restrict contrabb = &pos->side[pos->wtm];
+    int ksq;
+    int rsq;
 
     assert(validate_position(pos) == 0);
     assert(fromsq >= A1 && fromsq <= H8);
@@ -604,8 +601,6 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
             break;
         case FLG_CASTLE:
             assert(cappc == PIECE(side,ROOK));
-            int ksq;
-            int rsq;
             switch (tosq) {
                 case A1: ksq = C1; rsq = D1; break;
                 case H1: ksq = G1; rsq = F1; break;

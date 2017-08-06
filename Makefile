@@ -1,9 +1,14 @@
-test: build_target
+test: build
 	python ./testsuite.py
 
-slow: build_target
+slow: build
 	python ./testsuite.py slow
 
-build_target:
+.PHONY: build
+build:
 	make -C ./build
+
+.PHONY: clean
+clean:
+	make -C ./build clean
 
