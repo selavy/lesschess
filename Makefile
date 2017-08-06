@@ -4,6 +4,9 @@ test: build
 slow: build
 	python ./testsuite.py slow
 
+zobr: build
+	./build/lesschess zobrist
+
 .PHONY: build
 build:
 	make -C ./build

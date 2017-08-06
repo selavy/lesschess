@@ -170,6 +170,24 @@ static void replay_file(const char *filename) {
     }
 }
 
+static void zobrist_test() {
+    int result;
+    struct position pos;
+
+    result = position_from_fen(&pos, g_starting_position_fen);
+    if (result != 0) {
+        fprintf(stderr, "position_from_fen");
+        exit(EXIT_FAILURE);
+    }
+
+    zobrist_hash zh;
+    zobrist_hash_module_init();
+    zobrist_hash_init(&zh);
+    zobrist_hash_from_position(&pos, &zh);
+    zobrist_hash_description(stdout, &zh);
+}
+
+
 int main(int argc, char **argv) {
     if (argc < 2) {
        xboard_uci_main();
@@ -188,6 +206,8 @@ int main(int argc, char **argv) {
             } else {
                 fprintf(stderr, "Usage: ./lesschess replay <FILE>\n");
             }
+        } else if (strcmp(argv[1], "zobrist") == 0) {
+            zobrist_test();
         }
     }
 

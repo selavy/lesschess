@@ -2,6 +2,122 @@
 #include <string.h>
 #include <assert.h>
 #include <inttypes.h>
+#include <string.h>
+
+
+size_t ZOBRIST_BOARD_INDEX(int pc, int file, int rank) {
+    const int sq = SQUARE(file, rank);
+    const size_t npieces = 12;
+    const size_t index = npieces*sq + pc;
+    assert(pc >= 0 && pc <= npieces);
+    assert(file >= 0 && file <= 7);
+    assert(rank >= 0 && rank <= 7);
+    assert(index >= 0 && index < 64*12);
+    return index;
+}
+
+size_t ZOBRIST_SIDE_TO_MOVE_INDEX() {
+    const size_t base = 64*12;
+    const size_t off = 0;
+    return base + off;
+}
+
+size_t ZOBRIST_CASTLE_RIGHTS_INDEX(uint8_t castle_flag) {
+    const size_t base = 64*12 + 1;
+    const size_t off = castle_flag;
+    assert(castle_flag == CSL_WQSIDE || castle_flag == CSL_WKSIDE
+            || castle_flag == CSL_BQSIDE || castle_flag == CSL_BKSIDE);
+    return base + off;
+}
+
+size_t ZOBRIST_ENPASSANT_INDEX(int sq) {
+    const size_t base = 64*12 + 1 + 16;
+    const size_t file = sq % 8;
+    const size_t off = file;
+    return base + off;
+}
+
+void zobrist_hash_module_init() {
+    // TODO
+}
+
+void zobrist_hash_init(zobrist_hash *zh) {
+    memset(zh, 0, sizeof(*zh));
+}
+
+void zobrist_hash_from_position(const struct position *const pos, zobrist_hash *zh) {
+    int sq;
+    int pc;
+    zobrist_hash_init(zh);
+    for (int file = 0; file < 8; ++file) {
+        for (int rank = 0; rank < 8; ++rank) {
+            sq = SQUARE(file, rank);
+            pc = pos->sqtopc[sq];
+            if (pc != EMPTY) {
+                zh->hash[ZOBRIST_BOARD_INDEX(pc, file, rank)] = 1;
+            }
+        }
+    }
+    if (pos->wtm == WHITE) {
+        zh->hash[ZOBRIST_SIDE_TO_MOVE_INDEX()] = 1;
+    }
+    if ((pos->castle & CSL_WKSIDE) != 0) {
+        zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WKSIDE)] = 1;
+    }
+    if ((pos->castle & CSL_WQSIDE) != 0) {
+        zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WQSIDE)] = 1;
+    }
+    if ((pos->castle & CSL_BKSIDE) != 0) {
+        zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BKSIDE)] = 1;
+    }
+    if ((pos->castle & CSL_BQSIDE) != 0) {
+        zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BQSIDE)] = 1;
+    }
+    if (pos->enpassant != EP_NONE) {
+        zh->hash[ZOBRIST_ENPASSANT_INDEX(pos->enpassant)] = 1;
+    }
+}
+
+void zobrist_hash_description(FILE *fp, const zobrist_hash *zh) {
+    for (int pc = 0; pc < 12; ++pc) {
+        for (int file = 0; file < 8; ++file) {
+            for (int rank = 0; rank < 8; ++rank) {
+                if (zh->hash[ZOBRIST_BOARD_INDEX(pc, file, rank)]) {
+                    fprintf(fp, "%c%s ", visual_pcs[pc], sq_to_str[SQUARE(file, rank)]);
+                }
+            }
+        }
+    }
+    fprintf(fp, " %s ", zh->hash[ZOBRIST_SIDE_TO_MOVE_INDEX()] ? "WHITE" : "BLACK");
+
+    if (zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WKSIDE)]) {
+        fprintf(fp, "k");
+    }
+    if (zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WQSIDE)]) {
+        fprintf(fp, "q");
+    }
+    if (zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BKSIDE)]) {
+        fprintf(fp, "K");
+    }
+    if (zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BQSIDE)]) {
+        fprintf(fp, "Q");
+    }
+    fprintf(fp, " ");
+
+    const char *files = "abcdefgh";
+    int found_ep = 0;
+    for (int i = 0; i < 8; ++i) {
+        if (zh->hash[ZOBRIST_ENPASSANT_INDEX(i)]) {
+            fprintf(fp, "%c", files[i]);
+            found_ep = 1;
+        }
+    }
+    if (found_ep == 0) {
+        fprintf(fp, "-");
+    }
+
+    fprintf(fp, "\n");
+}
 
 int position_from_fen(struct position *restrict pos, const char *fen) {
     int rank;
