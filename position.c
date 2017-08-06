@@ -495,6 +495,7 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
                 case A1: ksq = C1; rsq = D1; break;
                 case H8: ksq = G8; rsq = F8; break;
                 case A8: ksq = C8; rsq = D8; break;
+                default: unreachable();
             }
             KSQ(*pos, side) = ksq;
             *rooks &= ~MASK(tosq);
@@ -536,6 +537,7 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
     const uint32_t epsq    = side == WHITE ? tosq - 8 : tosq + 8;
     uint64_t *restrict pcs = pc != PIECE(side, KING) ? &pos->brd[pc] : 0;
     uint8_t  *restrict s2p = pos->sqtopc;
+    uint64_t *restrict rooks = &pos->brd[PIECE(side, ROOK)];
     uint64_t *restrict sidebb = &pos->side[side];
     uint64_t *restrict contrabb = &pos->side[pos->wtm];
 
@@ -602,79 +604,24 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
             break;
         case FLG_CASTLE:
             assert(cappc == PIECE(side,ROOK));
+            int ksq;
+            int rsq;
             switch (tosq) {
-                case A1:
-                    assert(fromsq == E1);
-                    assert(s2p[A1] == EMPTY);
-                    assert(s2p[B1] == EMPTY);
-                    assert(s2p[C1] == PIECE(WHITE,KING));
-                    assert(s2p[D1] == PIECE(WHITE,ROOK));
-                    assert(s2p[E1] == EMPTY);
-                    s2p[A1] = PIECE(WHITE,ROOK);
-                    s2p[B1] = EMPTY;
-                    s2p[C1] = EMPTY;
-                    s2p[D1] = EMPTY;
-                    s2p[E1] = PIECE(WHITE,KING);
-                    *sidebb |= MASK(A1) | MASK(E1);
-                    *sidebb &= ~(MASK(B1) | MASK(C1) | MASK(D1));
-                    pos->brd[PIECE(WHITE,ROOK)] &= ~MASK(D1);
-                    pos->brd[PIECE(WHITE,ROOK)] |= MASK(A1);
-                    KSQ(*pos, WHITE) = E1;
-                    break;
-                case H1:
-                    assert(fromsq == E1);
-                    assert(s2p[E1] == EMPTY);
-                    assert(s2p[F1] == PIECE(WHITE,ROOK));
-                    assert(s2p[G1] == PIECE(WHITE,KING));
-                    assert(s2p[H1] == EMPTY);
-                    s2p[E1] = PIECE(WHITE,KING);
-                    s2p[F1] = EMPTY;
-                    s2p[G1] = EMPTY;
-                    s2p[H1] = PIECE(WHITE,ROOK);
-                    *sidebb |= MASK(E1) | MASK(H1);
-                    *sidebb &= ~(MASK(F1) | MASK(G1));
-                    KSQ(*pos, WHITE) = E1;
-                    pos->brd[PIECE(WHITE,ROOK)] &= ~MASK(F1);
-                    pos->brd[PIECE(WHITE,ROOK)] |= MASK(H1);
-                    break;
-                case A8:
-                    assert(fromsq == E8);
-                    assert(s2p[A8] == EMPTY);
-                    assert(s2p[B8] == EMPTY);
-                    assert(s2p[C8] == PIECE(BLACK,KING));
-                    assert(s2p[D8] == PIECE(BLACK,ROOK));
-                    assert(s2p[E8] == EMPTY);
-                    s2p[A8] = PIECE(BLACK,ROOK);
-                    s2p[B8] = EMPTY;
-                    s2p[C8] = EMPTY;
-                    s2p[D8] = EMPTY;
-                    s2p[E8] = PIECE(BLACK,KING);
-                    *sidebb |= MASK(A8) | MASK(E8);
-                    *sidebb &= ~(MASK(B8) | MASK(C8) | MASK(D8));
-                    pos->brd[PIECE(BLACK,ROOK)] &= ~MASK(D8);
-                    pos->brd[PIECE(BLACK,ROOK)] |= MASK(A8);
-                    KSQ(*pos, BLACK) = E8;
-                    break;
-                case H8:
-                    assert(fromsq == E8);
-                    assert(s2p[E8] == EMPTY);
-                    assert(s2p[F8] == PIECE(BLACK,ROOK));
-                    assert(s2p[G8] == PIECE(BLACK,KING));
-                    assert(s2p[H8] == EMPTY);
-                    s2p[E8] = PIECE(BLACK,KING);
-                    s2p[F8] = EMPTY;
-                    s2p[G8] = EMPTY;
-                    s2p[H8] = PIECE(BLACK,ROOK);
-                    *sidebb |= MASK(E8) | MASK(H8);
-                    *sidebb &= ~(MASK(F8) | MASK(G8));
-                    KSQ(*pos, BLACK) = E8;
-                    pos->brd[PIECE(BLACK,ROOK)] &= ~MASK(F8);
-                    pos->brd[PIECE(BLACK,ROOK)] |= MASK(H8);
-                    break;
-                default:
-                    unreachable();
-                    break;
+                case A1: ksq = C1; rsq = D1; break;
+                case H1: ksq = G1; rsq = F1; break;
+                case A8: ksq = C8; rsq = D8; break;
+                case H8: ksq = G8; rsq = F8; break;
+                default: unreachable(); break;
             }
+            s2p[fromsq] = PIECE(side, KING);
+            s2p[tosq] = PIECE(side, ROOK);
+            s2p[ksq] = EMPTY;
+            s2p[rsq] = EMPTY;
+            *sidebb |= to | from;
+            *sidebb &= ~(MASK(ksq) | MASK(rsq));
+            *rooks &= ~MASK(rsq);
+            *rooks |= to;
+            KSQ(*pos, side) = fromsq;
             break;
         default:
             unreachable();
