@@ -109,7 +109,7 @@ static move *generate_castling(const struct position *const restrict pos, const 
                 (attacks(pos, contraside, F1) == 0) &&
                 (attacks(pos, contraside, G1) == 0)) {
             assert(pos->sqtopc[H1] == PIECE(WHITE,ROOK));
-            *moves++ = CASTLE(E1, G1);
+            *moves++ = CASTLE(E1, H1);
         }
         if ((castle & CSL_WQSIDE) != 0 &&
                 (from == E1)               &&
@@ -120,7 +120,7 @@ static move *generate_castling(const struct position *const restrict pos, const 
                 (attacks(pos, contraside, D1) == 0) &&
                 (attacks(pos, contraside, C1) == 0)) {
             assert(pos->sqtopc[A1] == PIECE(WHITE,ROOK));
-            *moves++ = CASTLE(E1, C1);
+            *moves++ = CASTLE(E1, A1);
         }
     } else {
         if ((castle & CSL_BKSIDE) != 0 &&
@@ -131,7 +131,7 @@ static move *generate_castling(const struct position *const restrict pos, const 
                 (attacks(pos, contraside, F8) == 0) &&
                 (attacks(pos, contraside, G8) == 0)) {
             assert(pos->sqtopc[H8] == PIECE(BLACK,ROOK));
-            *moves++ = CASTLE(E8, G8);
+            *moves++ = CASTLE(E8, H8);
         }
         if ((castle & CSL_BQSIDE) != 0 &&
                 (from == E8)               &&
@@ -142,7 +142,7 @@ static move *generate_castling(const struct position *const restrict pos, const 
                 (attacks(pos, contraside, D8) == 0) &&
                 (attacks(pos, contraside, C8) == 0)) {
             assert(pos->sqtopc[A8] == PIECE(BLACK,ROOK));
-            *moves++ = CASTLE(E8, C8);
+            *moves++ = CASTLE(E8, A8);
         }
     }
 

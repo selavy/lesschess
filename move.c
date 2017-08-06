@@ -73,9 +73,22 @@ const char *xboard_move_print(move m) {
     // max move length is "e7e8q", most moves are "e7e8"
     static char buffer[7];
     const char *pieces = "nbrq";
-    const uint32_t to = TO(m);
     const uint32_t from = FROM(m);
     const uint32_t flags = FLAGS(m);
+    uint32_t to = TO(m);
+    if (flags == FLG_CASTLE) {
+        // castling to square is "capturing" the rook.
+        // Xboard expects white 0-0 to be e1g1 so adjust
+        // to square if necessary.
+        switch (to) {
+            case H1: to = G1; break;
+            case A1: to = C1; break;
+            case H8: to = G8; break;
+            case A8: to = C8; break;
+            default: unreachable();
+
+        }
+    }
     memset(&buffer[0], 0, sizeof(buffer));
     sprintf(&buffer[0], "%s%s", sq_to_str[from], sq_to_str[to]);
     if (flags == FLG_PROMO) {
