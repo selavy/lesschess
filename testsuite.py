@@ -160,36 +160,35 @@ def position6_perft_test(max_depth=None):
             (8, 11923589843526),
             (9, 490154852788714),
             )
-    run_perft_test_suite("position6", fen, expected, max_depth,
-            nodes_only=True)
+    run_perft_test_suite("position6", fen, expected, max_depth, nodes_only=True)
 
 
 if __name__ == '__main__':
     fast_mode = True
 
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "slow":
-            fast_mode = False
+    available_suites = {
+            "start": (starting_position_perft_test, 4),
+            "kiwi": (kiwipete_perft_test, 3),
+            "position3": (position3_perft_test, 5),
+            "white_position4": (position4_white_perft_test, 4),
+            "black_position4": (position4_black_perft_test, 4),
+            "talkchess": (talkchess_perft_test, 4),
+            "position6": (position6_perft_test, 4),
+            }
 
-    start_max_depth = None
-    kiwi_max_depth = None
-    position3_max_depth = None
-    position4_max_depth = None
-    talkchess_max_depth = None
-    position6_max_depth = None
-    if fast_mode:
-        start_max_depth = 4
-        kiwi_max_depth = 3
-        position3_max_depth = 5
-        position4_max_depth = 4
-        talkchess_max_depth = 4
-        position6_max_depth = 4
+    suites = []
+    fast_mode = True
+    if len(sys.argv) > 1:
+        for arg in sys.argv[1:]:
+            if arg == "slow":
+                fast_mode = False
+            else:
+                suites.append(available_suites[arg])
+
+    if not suites:
+        suites = list(available_suites.itervalues())
 
     find_executable()
-    starting_position_perft_test(start_max_depth)
-    kiwipete_perft_test(kiwi_max_depth)
-    position3_perft_test(position3_max_depth)
-    position4_white_perft_test(position4_max_depth)
-    position4_black_perft_test(position4_max_depth)
-    talkchess_perft_test(talkchess_max_depth)
-    position6_perft_test(position6_max_depth)
+    for suite, fast_depth in suites:
+        depth = fast_depth if fast_mode else None
+        suite(depth)
