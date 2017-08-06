@@ -448,7 +448,7 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
                 pos->side[contra] &= ~to;
                 *castle &= rook_square_to_castle_clear_flag(tosq);
             } else if (pc == PIECE(side, PAWN) && (from & RANK2(side)) && (to & EP_SQUARES(side))) {
-                pos->enpassant = side == WHITE ? tosq - 8 : tosq + 8;
+                pos->enpassant = epsq;
                 assert((pos->enpassant >= A3 && pos->enpassant <= H3) ||
                         (pos->enpassant >= A6 && pos->enpassant <= H6));
             }
@@ -519,19 +519,19 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
 }
 
 void undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m) {
-    const uint8_t side     = FLIP(pos->wtm);
-    const uint32_t fromsq  = FROM(m);
-    const uint32_t tosq    = TO(m);
-    const uint32_t promo   = PROMO_PC(m);
+    const uint8_t side = FLIP(pos->wtm);
+    const uint32_t fromsq = FROM(m);
+    const uint32_t tosq = TO(m);
+    const uint32_t promo = PROMO_PC(m);
     const uint32_t promopc = PIECE(side, promo);
-    const uint32_t flags   = FLAGS(m);
-    const uint32_t pc      = pos->sqtopc[tosq];
-    const uint32_t cappc   = sp->captured_pc;
-    const uint64_t from    = MASK(fromsq);
-    const uint64_t to      = MASK(tosq); // REVISIT: all uses of `to' are `~to' so just calculate that?
-    const uint32_t epsq    = side == WHITE ? tosq - 8 : tosq + 8;
+    const uint32_t flags = FLAGS(m);
+    const uint32_t pc = pos->sqtopc[tosq];
+    const uint32_t cappc = sp->captured_pc;
+    const uint64_t from = MASK(fromsq);
+    const uint64_t to = MASK(tosq); // REVISIT: all uses of `to' are `~to' so just calculate that?
+    const uint32_t epsq = side == WHITE ? tosq - 8 : tosq + 8;
     uint64_t *restrict pcs = pc != PIECE(side, KING) ? &pos->brd[pc] : 0;
-    uint8_t  *restrict s2p = pos->sqtopc;
+    uint8_t *restrict s2p = pos->sqtopc;
     uint64_t *restrict rooks = &pos->brd[PIECE(side, ROOK)];
     uint64_t *restrict sidebb = &pos->side[side];
     uint64_t *restrict contrabb = &pos->side[pos->wtm];
