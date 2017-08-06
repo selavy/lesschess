@@ -387,6 +387,19 @@ int validate_position(struct position *restrict const pos) {
     return 0;
 }
 
+uint8_t rook_square_to_castle_flag(uint8_t sq) {
+    // TODO(plesslie): make 64 entry lookup table
+    uint8_t result;
+    switch (sq) {
+        case A8: result = CSL_BQSIDE; break;
+        case H8: result = CSL_BKSIDE; break;
+        case A1: result = CSL_WQSIDE; break;
+        case H1: result = CSL_WKSIDE; break;
+        default: result = 0;          break;
+    }
+    return ~result;
+}
+
 void make_move(struct position *restrict pos, struct savepos *restrict sp, move m) {
     const uint8_t  side      = pos->wtm;
     const uint8_t  contra    = FLIP(side);
@@ -418,12 +431,13 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
     switch (flags) {
         case FLG_NONE:
             if (pcs) {
-                assert(pc != PIECE(WHITE, KING));
-                assert(pc != PIECE(BLACK, KING));
+                assert(pc != PIECE(side, KING));
                 *pcs &= ~from;
                 *pcs |= to;
             } else {
+                assert(pc == PIECE(side, KING));
                 KSQ(*pos, side) = tosq;
+                pos->castle &= ~CSL_SIDE(side);
             }
             s2p[fromsq] = EMPTY;
             s2p[tosq] = pc;
@@ -434,59 +448,29 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
             if (topc != EMPTY) {
                 pos->brd[topc] &= ~to;
                 pos->side[contra] &= ~to;
-                switch (tosq) {
-                    case A8: pos->castle &= ~CSL_BQSIDE; break;
-                    case H8: pos->castle &= ~CSL_BKSIDE; break;
-                    case A1: pos->castle &= ~CSL_WQSIDE; break;
-                    case H1: pos->castle &= ~CSL_WKSIDE; break;
-                    default: break;
-                }
+                pos->castle &= rook_square_to_castle_flag(tosq);
             } else if (pc == PIECE(side, PAWN) && (from & RANK2(side)) && (to & EP_SQUARES(side))) {
                 pos->enpassant = side == WHITE ? tosq - 8 : tosq + 8;
                 assert((pos->enpassant >= A3 && pos->enpassant <= H3) ||
                         (pos->enpassant >= A6 && pos->enpassant <= H6));
             }
-
-            if (pc == PIECE(side, KING)) {
-                // TODO: move up to after pcs check becuase we know pc == KING
-                pos->castle &= ~CSL_SIDE(side);
-            } else if (pc == PIECE(side, ROOK)) {
-                switch (fromsq) {
-                    case A1: pos->castle &= ~CSL_WQSIDE; break;
-                    case H1: pos->castle &= ~CSL_WKSIDE; break;
-                    case A8: pos->castle &= ~CSL_BQSIDE; break;
-                    case H8: pos->castle &= ~CSL_BKSIDE; break;
-                    default: break;
-                }
+            if (pc == PIECE(side, ROOK)) {
+                pos->castle &= rook_square_to_castle_flag(fromsq);
             }
             break;
         case FLG_EP:
-            assert(pc != PIECE(WHITE, KING));
-            assert(pc != PIECE(BLACK, KING));
+            assert(pc == PIECE(side, PAWN));
             sp->was_ep = 1;
-            if (side == WHITE) {
-                epsq = tosq - 8;
-                *pcs &= ~from;
-                *pcs |= to;
-                pos->brd[PIECE(BLACK, PAWN)] &= ~MASK(epsq);
-                s2p[epsq] = EMPTY;
-                s2p[fromsq] = EMPTY;
-                s2p[tosq] = PIECE(WHITE, PAWN);
-                pos->side[WHITE] &= ~from;
-                pos->side[WHITE] |= to;
-                pos->side[BLACK] &= ~MASK(epsq);
-            } else {
-                epsq = tosq + 8;
-                *pcs &= ~from;
-                *pcs |= to;
-                pos->brd[PIECE(WHITE, PAWN)] &= ~MASK(epsq);
-                s2p[epsq] = EMPTY;
-                s2p[fromsq] = EMPTY;
-                s2p[tosq] = PIECE(BLACK, PAWN);
-                pos->side[BLACK] &= ~from;
-                pos->side[BLACK] |= to;
-                pos->side[WHITE] &= ~MASK(epsq);
-            }
+            epsq = side == WHITE ? tosq - 8 : tosq + 8;
+            *pcs &= ~from;
+            *pcs |= to;
+            pos->brd[PIECE(contra, PAWN)] &= ~MASK(epsq);
+            s2p[epsq] = EMPTY;
+            s2p[fromsq] = EMPTY;
+            s2p[tosq] = PIECE(side, PAWN);
+            pos->side[side] &= ~from;
+            pos->side[side] |= to;
+            pos->side[contra] &= ~MASK(epsq);
             break;
         case FLG_PROMO:
             assert(pc != PIECE(WHITE, KING));
@@ -511,80 +495,79 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
             break;
         case FLG_CASTLE:
             assert(pc == PIECE(side, KING));
-            if (side == WHITE) {
+            if (tosq == G1) {
                 assert(fromsq == E1);
-                assert(tosq == C1 || tosq == G1);
-                if (tosq == G1) {
-                    assert(s2p[E1] == PIECE(WHITE, KING));
-                    assert(s2p[F1] == EMPTY);
-                    assert(s2p[G1] == EMPTY);
-                    assert(s2p[H1] == PIECE(WHITE, ROOK));
-                    KSQ(*pos, WHITE) = G1;
-                    *rooks &= ~MASK(H1);
-                    *rooks |= MASK(F1);
-                    s2p[E1] = EMPTY;
-                    s2p[F1] = PIECE(WHITE, ROOK);
-                    s2p[G1] = PIECE(WHITE, KING);
-                    s2p[H1] = EMPTY;
-                    pos->side[side] &= ~(MASK(E1) | MASK(H1));
-                    pos->side[side] |= (MASK(F1) | MASK(G1));
-                } else {
-                    assert(s2p[E1] == PIECE(WHITE, KING));
-                    assert(s2p[D1] == EMPTY);
-                    assert(s2p[C1] == EMPTY);
-                    assert(s2p[B1] == EMPTY);
-                    assert(s2p[A1] == PIECE(WHITE, ROOK));
-                    KSQ(*pos, WHITE) = C1;
-                    *rooks &= ~MASK(A1);
-                    *rooks |= MASK(D1);
-                    s2p[A1] = EMPTY;
-                    s2p[B1] = EMPTY;
-                    s2p[C1] = PIECE(WHITE, KING);
-                    s2p[D1] = PIECE(WHITE, ROOK);
-                    s2p[E1] = EMPTY;
-                    pos->side[side] &= ~(MASK(E1) | MASK(A1));
-                    pos->side[side] |= (MASK(C1) | MASK(D1));
-                }
+                assert(s2p[E1] == PIECE(WHITE, KING));
+                assert(s2p[F1] == EMPTY);
+                assert(s2p[G1] == EMPTY);
+                assert(s2p[H1] == PIECE(WHITE, ROOK));
+                KSQ(*pos, WHITE) = G1;
+                *rooks &= ~MASK(H1);
+                *rooks |= MASK(F1);
+                s2p[E1] = EMPTY;
+                s2p[F1] = PIECE(WHITE, ROOK);
+                s2p[G1] = PIECE(WHITE, KING);
+                s2p[H1] = EMPTY;
+                pos->side[side] &= ~(MASK(E1) | MASK(H1));
+                pos->side[side] |= (MASK(F1) | MASK(G1));
                 pos->castle &= ~(CSL_WQSIDE | CSL_WKSIDE);
-            } else {
+            } else if (tosq == C1){
+                assert(fromsq == E1);
+                assert(s2p[E1] == PIECE(WHITE, KING));
+                assert(s2p[D1] == EMPTY);
+                assert(s2p[C1] == EMPTY);
+                assert(s2p[B1] == EMPTY);
+                assert(s2p[A1] == PIECE(WHITE, ROOK));
+                KSQ(*pos, WHITE) = C1;
+                *rooks &= ~MASK(A1);
+                *rooks |= MASK(D1);
+                s2p[A1] = EMPTY;
+                s2p[B1] = EMPTY;
+                s2p[C1] = PIECE(WHITE, KING);
+                s2p[D1] = PIECE(WHITE, ROOK);
+                s2p[E1] = EMPTY;
+                pos->side[side] &= ~(MASK(E1) | MASK(A1));
+                pos->side[side] |= (MASK(C1) | MASK(D1));
+                pos->castle &= ~(CSL_WQSIDE | CSL_WKSIDE);
+            } else if (tosq == G8) {
                 assert(fromsq == E8);
-                assert(tosq == C8 || tosq == G8);
-                if (tosq == G8) {
-                    assert(s2p[E8] == PIECE(BLACK, KING));
-                    assert(s2p[F8] == EMPTY);
-                    assert(s2p[G8] == EMPTY);
-                    assert(s2p[H8] == PIECE(BLACK, ROOK));
-                    KSQ(*pos, BLACK) = G8;
-                    *rooks &= ~MASK(H8);
-                    *rooks |= MASK(F8);
-                    s2p[E8] = EMPTY;
-                    s2p[F8] = PIECE(BLACK, ROOK);
-                    s2p[G8] = PIECE(BLACK, KING);
-                    s2p[H8] = EMPTY;
-                    pos->side[side] &= ~(MASK(E8) | MASK(H8));
-                    pos->side[side] |= (MASK(F8) | MASK(G8));
-                } else {
-                    assert(s2p[E8] == PIECE(BLACK, KING));
-                    assert(s2p[D8] == EMPTY);
-                    assert(s2p[C8] == EMPTY);
-                    assert(s2p[B8] == EMPTY);
-                    assert(s2p[A8] == PIECE(BLACK, ROOK));
-                    KSQ(*pos, BLACK) = C8;
-                    *rooks &= ~MASK(A8);
-                    *rooks |= MASK(D8);
-                    s2p[A8] = EMPTY;
-                    s2p[B8] = EMPTY;
-                    s2p[C8] = PIECE(BLACK, KING);
-                    s2p[D8] = PIECE(BLACK, ROOK);
-                    s2p[E8] = EMPTY;
-                    pos->side[side] &= ~(MASK(E8) | MASK(A8));
-                    pos->side[side] |= (MASK(C8) | MASK(D8));
-                }
+                assert(s2p[E8] == PIECE(BLACK, KING));
+                assert(s2p[F8] == EMPTY);
+                assert(s2p[G8] == EMPTY);
+                assert(s2p[H8] == PIECE(BLACK, ROOK));
+                KSQ(*pos, BLACK) = G8;
+                *rooks &= ~MASK(H8);
+                *rooks |= MASK(F8);
+                s2p[E8] = EMPTY;
+                s2p[F8] = PIECE(BLACK, ROOK);
+                s2p[G8] = PIECE(BLACK, KING);
+                s2p[H8] = EMPTY;
+                pos->side[side] &= ~(MASK(E8) | MASK(H8));
+                pos->side[side] |= (MASK(F8) | MASK(G8));
+                pos->castle &= ~(CSL_BQSIDE | CSL_BKSIDE);
+            } else if (tosq == C8){
+                assert(fromsq == E8);
+                assert(s2p[E8] == PIECE(BLACK, KING));
+                assert(s2p[D8] == EMPTY);
+                assert(s2p[C8] == EMPTY);
+                assert(s2p[B8] == EMPTY);
+                assert(s2p[A8] == PIECE(BLACK, ROOK));
+                KSQ(*pos, BLACK) = C8;
+                *rooks &= ~MASK(A8);
+                *rooks |= MASK(D8);
+                s2p[A8] = EMPTY;
+                s2p[B8] = EMPTY;
+                s2p[C8] = PIECE(BLACK, KING);
+                s2p[D8] = PIECE(BLACK, ROOK);
+                s2p[E8] = EMPTY;
+                pos->side[side] &= ~(MASK(E8) | MASK(A8));
+                pos->side[side] |= (MASK(C8) | MASK(D8));
                 pos->castle &= ~(CSL_BQSIDE | CSL_BKSIDE);
             }
             break;
         default:
             assert(0);
+            unreachable();
     }
 
     pos->wtm = contra;
