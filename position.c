@@ -721,6 +721,7 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
 
 void undo_move_ex(struct position *restrict pos, const struct savepos *restrict sp, move m, zobrist_hash *zh) {
     const uint8_t side = FLIP(pos->wtm);
+    const uint8_t contra = pos->wtm;
     const uint32_t fromsq = FROM(m);
     const uint32_t tosq = TO(m);
     const uint32_t promo = PROMO_PC(m);
@@ -735,7 +736,7 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
     uint8_t *restrict s2p = pos->sqtopc;
     uint64_t *restrict rooks = &pos->brd[PIECE(side, ROOK)];
     uint64_t *restrict sidebb = &pos->side[side];
-    uint64_t *restrict contrabb = &pos->side[pos->wtm];
+    uint64_t *restrict contrabb = &pos->side[contra];
     int ksq;
     int rsq;
 
@@ -797,22 +798,19 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
             }
             break;
         case FLG_EP:
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, fromsq)] = 1;
             s2p[fromsq] = pc;
             *pcs |= from;
             *pcs &= ~to;
             *sidebb |= from;
             *sidebb &= ~to;
             *contrabb |= MASK(epsq);
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, tosq)] = 0;
             s2p[tosq] = EMPTY;
-            if (side == WHITE) {
-                assert(epsq == (tosq - 8));
-                s2p[epsq] = PIECE(BLACK,PAWN);
-                pos->brd[PIECE(BLACK,PAWN)] |= MASK(epsq);
-            } else {
-                assert(epsq == (tosq + 8));
-                s2p[epsq] = PIECE(WHITE,PAWN);
-                pos->brd[PIECE(WHITE,PAWN)] |= MASK(epsq);
-            }
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(contra, PAWN), epsq)] = 1;
+            assert((side == WHITE && epsq == (tosq - 8)) || (side == BLACK && epsq == (tosq + 8)));
+            s2p[epsq] = PIECE(contra, PAWN);
+            pos->brd[PIECE(contra, PAWN)] |= MASK(epsq);
             break;
         case FLG_PROMO:
             pos->brd[PIECE(side,PAWN)] |= from;
@@ -857,11 +855,6 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
     }
 
     assert(validate_position(pos) == 0);
-
-//    // TEMP TEMP
-//    if (zh) {
-//        zobrist_hash_from_position(pos, zh);
-//    }
 }
 
 move parse_xboard_move(struct position *restrict const pos, const char *line, int len) {
