@@ -21,6 +21,8 @@ static uint64_t perft(int depth,
 #ifndef NDEBUG
     struct position tmp;
 #endif
+    zobrist_hash orig_zobrist_hash;
+    zobrist_hash new_zobrist_hash;
     struct savepos sp;
     uint32_t flags;
 
@@ -42,13 +44,18 @@ static uint64_t perft(int depth,
 #ifndef NDEBUG
     memcpy(&tmp, pos, sizeof(tmp));
 #endif
+    zobrist_hash_from_position(pos, &orig_zobrist_hash);
+    memcpy(&new_zobrist_hash, &orig_zobrist_hash, sizeof(new_zobrist_hash));
     nmoves = generate_legal_moves(pos, &moves[0]);
 
     if (depth > 1) {
         for (i = 0; i < nmoves; ++i) {
-            make_move(pos, &sp, moves[i]);
+            make_move_ex(pos, &sp, moves[i], &new_zobrist_hash);
+            assert(memcmp(&new_zobrist_hash, &orig_zobrist_hash, sizeof(new_zobrist_hash)) != 0);
             nodes += perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
-            undo_move(pos, &sp, moves[i]);
+            undo_move_ex(pos, &sp, moves[i], &new_zobrist_hash);
+            assert(memcmp(&new_zobrist_hash, &orig_zobrist_hash, sizeof(new_zobrist_hash)) == 0);
+
 #ifndef NDEBUG
             assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);
 #endif

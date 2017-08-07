@@ -517,6 +517,10 @@ uint8_t rook_square_to_castle_clear_flag(uint8_t sq) {
 }
 
 void make_move(struct position *restrict pos, struct savepos *restrict sp, move m) {
+    make_move_ex(pos, sp, m, 0);
+}
+
+void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, move m, zobrist_hash *zh) {
     const uint8_t side = pos->wtm;
     const uint8_t contra = FLIP(side);
     const uint32_t tosq = TO(m);
@@ -632,9 +636,18 @@ void make_move(struct position *restrict pos, struct savepos *restrict sp, move 
 
     assert(pos->enpassant == EP_NONE || pc == PIECE(side,PAWN));
     assert(validate_position(pos) == 0);
+
+    // TEMP TEMP
+    if (zh) {
+        zobrist_hash_from_position(pos, zh);
+    }
 }
 
 void undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m) {
+    undo_move_ex(pos, sp, m, 0);
+}
+
+void undo_move_ex(struct position *restrict pos, const struct savepos *restrict sp, move m, zobrist_hash *zh) {
     const uint8_t side = FLIP(pos->wtm);
     const uint32_t fromsq = FROM(m);
     const uint32_t tosq = TO(m);
@@ -739,6 +752,11 @@ void undo_move(struct position *restrict pos, const struct savepos *restrict sp,
     }
 
     assert(validate_position(pos) == 0);
+
+    // TEMP TEMP
+    if (zh) {
+        zobrist_hash_from_position(pos, zh);
+    }
 }
 
 move parse_xboard_move(struct position *restrict const pos, const char *line, int len) {

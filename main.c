@@ -173,6 +173,8 @@ static void replay_file(const char *filename) {
 static void zobrist_test() {
     int result;
     struct position pos;
+    struct savepos sp;
+    move m;
 
     result = position_from_fen(&pos, g_starting_position_fen);
     if (result != 0) {
@@ -183,6 +185,11 @@ static void zobrist_test() {
     zobrist_hash zh;
     zobrist_hash_module_init();
     zobrist_hash_init(&zh);
+    zobrist_hash_from_position(&pos, &zh);
+    zobrist_hash_description(stdout, &zh);
+
+    m = MOVE(E2, E4);
+    make_move(&pos, &sp, m);
     zobrist_hash_from_position(&pos, &zh);
     zobrist_hash_description(stdout, &zh);
 }
