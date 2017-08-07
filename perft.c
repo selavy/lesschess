@@ -52,10 +52,8 @@ static uint64_t perft(int depth,
         for (i = 0; i < nmoves; ++i) {
             make_move_ex(pos, &sp, moves[i], &new_zobrist_hash);
             assert(memcmp(&new_zobrist_hash, &orig_zobrist_hash, sizeof(new_zobrist_hash)) != 0);
-            //assert(zobrist_compare(&new_zobrist_hash, &orig_zobrist_hash, sizeof(new_zobrist_hash)) != 0);
             nodes += perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
             undo_move_ex(pos, &sp, moves[i], &new_zobrist_hash);
-            //assert(memcmp(&new_zobrist_hash, &orig_zobrist_hash, sizeof(new_zobrist_hash)) == 0);
             assert(zobrist_compare(&new_zobrist_hash, &orig_zobrist_hash) == 0);
 
 #ifndef NDEBUG

@@ -819,9 +819,12 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
             pos->brd[promopc] &= ~to;
             s2p[tosq] = cappc;
             s2p[fromsq] = PIECE(side, PAWN);
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, PAWN), fromsq)] = 1;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(promopc, tosq)] = 0;
             *sidebb |= from;
             *sidebb &= ~to;
             if (cappc != EMPTY) {
+                zh->hash[ZOBRIST_BOARD_SQ_INDEX(cappc, tosq)] = 1;
                 pos->brd[cappc] |= to;
                 *contrabb |= to;
             }
@@ -835,8 +838,12 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
                 case H8: ksq = G8; rsq = F8; break;
                 default: unreachable(); break;
             }
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, KING), fromsq)] = 1;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, ROOK), tosq)] = 1;
             s2p[fromsq] = PIECE(side, KING);
             s2p[tosq] = PIECE(side, ROOK);
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, KING), ksq)] = 0;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, ROOK), rsq)] = 0;
             s2p[ksq] = EMPTY;
             s2p[rsq] = EMPTY;
             *sidebb |= to | from;
