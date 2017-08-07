@@ -45,9 +45,12 @@ struct zobrist_hash {
 typedef struct zobrist_hash zobrist_hash;
 
 extern size_t ZOBRIST_BOARD_INDEX(int pc, int file, int rank);
+extern size_t ZOBRIST_BOARD_SQ_INDEX(int pc, int sq);
 extern size_t ZOBRIST_SIDE_TO_MOVE_INDEX();
 extern size_t ZOBRIST_CASTLE_RIGHTS_INDEX(uint8_t castle_flag);
 extern size_t ZOBRIST_ENPASSANT_INDEX(int sq);
+extern size_t ZOBRIST_ENPASSANT_FILE_INDEX(int file);
+extern int zobrist_compare(const zobrist_hash *h1, const zobrist_hash *h2);
 
 extern void zobrist_hash_module_init();
 extern void zobrist_hash_init(zobrist_hash *zh);

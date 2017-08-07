@@ -6,12 +6,16 @@
 
 
 size_t ZOBRIST_BOARD_INDEX(int pc, int file, int rank) {
+    assert(file >= 0 && file <= 7);
+    assert(rank >= 0 && rank <= 7);
     const int sq = SQUARE(file, rank);
+    return ZOBRIST_BOARD_SQ_INDEX(pc, sq);
+}
+
+size_t ZOBRIST_BOARD_SQ_INDEX(int pc, int sq) {
     const size_t npieces = 12;
     const size_t index = npieces*sq + pc;
     assert(pc >= 0 && pc <= npieces);
-    assert(file >= 0 && file <= 7);
-    assert(rank >= 0 && rank <= 7);
     assert(index >= 0 && index < 64*12);
     return index;
 }
@@ -31,10 +35,76 @@ size_t ZOBRIST_CASTLE_RIGHTS_INDEX(uint8_t castle_flag) {
 }
 
 size_t ZOBRIST_ENPASSANT_INDEX(int sq) {
-    const size_t base = 64*12 + 1 + 16;
     const size_t file = sq % 8;
+    return ZOBRIST_ENPASSANT_FILE_INDEX(file);
+}
+
+size_t ZOBRIST_ENPASSANT_FILE_INDEX(int file) {
+    const size_t base = 64*12 + 1 + 16;
     const size_t off = file;
     return base + off;
+}
+
+int zobrist_compare(const zobrist_hash *h1, const zobrist_hash *h2) {
+#define V(x) ((x)?"ON":"OFF")
+    int v1, v2;
+    int result = 0;
+    for (int pc = 0; pc < 12; ++pc) {
+        for (int sq = 0; sq < 8; ++sq) {
+            v1 = h1->hash[ZOBRIST_BOARD_SQ_INDEX(pc, sq)];
+            v2 = h2->hash[ZOBRIST_BOARD_SQ_INDEX(pc, sq)];
+            if (v1 != v2) {
+                fprintf(stderr, "Disagreement on %c%s, v1=%s, v2=%s\n", visual_pcs[pc], sq_to_str[sq], V(v1), V(v2));
+                result = 1;
+            }
+        }
+    }
+
+    v1 = h1->hash[ZOBRIST_SIDE_TO_MOVE_INDEX()];
+    v2 = h2->hash[ZOBRIST_SIDE_TO_MOVE_INDEX()];
+    if (v1 != v2) {
+        fprintf(stderr, "Disagreement on side to move, v1=%s, v2=%s\n", V(v1), V(v2));
+        result = 1;
+    }
+
+    v1 = h1->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WKSIDE)];
+    v2 = h2->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WKSIDE)];
+    if (v1 != v2) {
+        fprintf(stderr, "Disagreement on white king side castle, v1=%s, v2=%s\n", V(v1), V(v2));
+        result = 1;
+    }
+
+    v1 = h1->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WQSIDE)];
+    v2 = h2->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WQSIDE)];
+    if (v1 != v2) {
+        fprintf(stderr, "Disagreement on white queen side castle, v1=%s, v2=%s\n", V(v1), V(v2));
+        result = 1;
+    }
+
+    v1 = h1->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BKSIDE)];
+    v2 = h2->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BKSIDE)];
+    if (v1 != v2) {
+        fprintf(stderr, "Disagreement on black king side castle, v1=%s, v2=%s\n", V(v1), V(v2));
+        result = 1;
+    }
+
+    v1 = h1->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BQSIDE)];
+    v2 = h2->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BQSIDE)];
+    if (v1 != v2) {
+        fprintf(stderr, "Disagreement on black queen side castle, v1=%s, v2=%s\n", V(v1), V(v2));
+        result = 1;
+    }
+
+    for (int file = 0; file < 8; ++file) {
+        v1 = h1->hash[ZOBRIST_ENPASSANT_FILE_INDEX(file)];
+        v2 = h2->hash[ZOBRIST_ENPASSANT_FILE_INDEX(file)];
+        if (v1 != v2) {
+            fprintf(stderr, "Disagree on enpassant file: %d, v1=%s, v2=%s\n", file, V(v1), V(v2));
+            result = 1;
+        }
+    }
+    return result;
+#undef V
 }
 
 void zobrist_hash_module_init() {
@@ -517,7 +587,8 @@ uint8_t rook_square_to_castle_clear_flag(uint8_t sq) {
 }
 
 void make_move(struct position *restrict pos, struct savepos *restrict sp, move m) {
-    make_move_ex(pos, sp, m, 0);
+    zobrist_hash zh;
+    make_move_ex(pos, sp, m, &zh);
 }
 
 void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, move m, zobrist_hash *zh) {
@@ -644,7 +715,8 @@ void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, mo
 }
 
 void undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m) {
-    undo_move_ex(pos, sp, m, 0);
+    zobrist_hash zh;
+    undo_move_ex(pos, sp, m, &zh);
 }
 
 void undo_move_ex(struct position *restrict pos, const struct savepos *restrict sp, move m, zobrist_hash *zh) {
@@ -676,13 +748,38 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
     assert(flags != FLG_PROMO || (promopc >= PIECE(side, KNIGHT) && promopc <= PIECE(side, KING)));
 
     pos->halfmoves = sp->halfmoves;
+
+    // reset enpassant flag
+    if (pos->enpassant != EP_NONE) {
+        zh->hash[ZOBRIST_ENPASSANT_INDEX(pos->enpassant)] = 0;
+    }
     pos->enpassant = sp->enpassant;
+    if (pos->enpassant != EP_NONE) {
+        zh->hash[ZOBRIST_ENPASSANT_INDEX(pos->enpassant)] = 1;
+    }
+
+    // reset castling flags
     pos->castle = sp->castle;
+    uint8_t flag;
+    flag = CSL_WKSIDE;
+    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
+    flag = CSL_WQSIDE;
+    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
+    flag = CSL_BKSIDE;
+    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
+    flag = CSL_BQSIDE;
+    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
+
+    // reset side to move
     pos->wtm = side;
+    zh->hash[ZOBRIST_SIDE_TO_MOVE_INDEX()] = pos->wtm == WHITE;
+
     --pos->nmoves;
 
     switch (flags) {
         case FLG_NONE:
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(s2p[tosq], tosq)] = 0;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, fromsq)] = 1;
             s2p[fromsq] = pc;
             if (pcs) {
                 *pcs |= from;
@@ -694,6 +791,7 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
             *sidebb &= ~to;
             s2p[tosq] = cappc;
             if (cappc != EMPTY) {
+                zh->hash[ZOBRIST_BOARD_SQ_INDEX(cappc, tosq)] = 1;
                 pos->brd[cappc] |= to;
                 *contrabb |= to;
             }
@@ -753,10 +851,10 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
 
     assert(validate_position(pos) == 0);
 
-    // TEMP TEMP
-    if (zh) {
-        zobrist_hash_from_position(pos, zh);
-    }
+//    // TEMP TEMP
+//    if (zh) {
+//        zobrist_hash_from_position(pos, zh);
+//    }
 }
 
 move parse_xboard_move(struct position *restrict const pos, const char *line, int len) {
