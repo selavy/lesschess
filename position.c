@@ -752,35 +752,53 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
 
     // reset enpassant flag
     if (pos->enpassant != EP_NONE) {
-        zh->hash[ZOBRIST_ENPASSANT_INDEX(pos->enpassant)] = 0;
+        //zh->hash[ZOBRIST_ENPASSANT_INDEX(pos->enpassant)] = 0;
+        zh->hash[ZOBRIST_ENPASSANT_INDEX(pos->enpassant)] ^= 1;
     }
     pos->enpassant = sp->enpassant;
     if (pos->enpassant != EP_NONE) {
-        zh->hash[ZOBRIST_ENPASSANT_INDEX(pos->enpassant)] = 1;
+        //zh->hash[ZOBRIST_ENPASSANT_INDEX(pos->enpassant)] = 1;
+        zh->hash[ZOBRIST_ENPASSANT_INDEX(pos->enpassant)] ^= 1;
     }
 
+    if ((pos->castle & CSL_WKSIDE) != (sp->castle & CSL_WKSIDE)) {
+        zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WKSIDE)] ^= 1;
+    }
+    if ((pos->castle & CSL_WQSIDE) != (sp->castle & CSL_WQSIDE)) {
+        zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_WQSIDE)] ^= 1;
+    }
+    if ((pos->castle & CSL_BKSIDE) != (sp->castle & CSL_BKSIDE)) {
+        zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BKSIDE)] ^= 1;
+    }
+    if ((pos->castle & CSL_BQSIDE) != (sp->castle & CSL_BQSIDE)) {
+        zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(CSL_BQSIDE)] ^= 1;
+    }
     // reset castling flags
     pos->castle = sp->castle;
-    uint8_t flag;
-    flag = CSL_WKSIDE;
-    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
-    flag = CSL_WQSIDE;
-    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
-    flag = CSL_BKSIDE;
-    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
-    flag = CSL_BQSIDE;
-    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
+
+//    uint8_t flag;
+//    flag = CSL_WKSIDE;
+//    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
+//    flag = CSL_WQSIDE;
+//    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
+//    flag = CSL_BKSIDE;
+//    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
+//    flag = CSL_BQSIDE;
+//    zh->hash[ZOBRIST_CASTLE_RIGHTS_INDEX(flag)] = (pos->castle & flag) != 0;
 
     // reset side to move
     pos->wtm = side;
-    zh->hash[ZOBRIST_SIDE_TO_MOVE_INDEX()] = pos->wtm == WHITE;
+    //zh->hash[ZOBRIST_SIDE_TO_MOVE_INDEX()] = pos->wtm == WHITE;
+    zh->hash[ZOBRIST_SIDE_TO_MOVE_INDEX()] ^= 1;
 
     --pos->nmoves;
 
     switch (flags) {
         case FLG_NONE:
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(s2p[tosq], tosq)] = 0;
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, fromsq)] = 1;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(s2p[tosq], tosq)] = 0;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(s2p[tosq], tosq)] ^= 1;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, fromsq)] = 1;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, fromsq)] ^= 1;
             s2p[fromsq] = pc;
             if (pcs) {
                 *pcs |= from;
@@ -792,22 +810,26 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
             *sidebb &= ~to;
             s2p[tosq] = cappc;
             if (cappc != EMPTY) {
-                zh->hash[ZOBRIST_BOARD_SQ_INDEX(cappc, tosq)] = 1;
+                //zh->hash[ZOBRIST_BOARD_SQ_INDEX(cappc, tosq)] = 1;
+                zh->hash[ZOBRIST_BOARD_SQ_INDEX(cappc, tosq)] ^= 1;
                 pos->brd[cappc] |= to;
                 *contrabb |= to;
             }
             break;
         case FLG_EP:
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, fromsq)] = 1;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, fromsq)] = 1;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, fromsq)] ^= 1;
             s2p[fromsq] = pc;
             *pcs |= from;
             *pcs &= ~to;
             *sidebb |= from;
             *sidebb &= ~to;
             *contrabb |= MASK(epsq);
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, tosq)] = 0;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, tosq)] = 0;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, tosq)] ^= 1;
             s2p[tosq] = EMPTY;
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(contra, PAWN), epsq)] = 1;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(contra, PAWN), epsq)] = 1;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(contra, PAWN), epsq)] ^= 1;
             assert((side == WHITE && epsq == (tosq - 8)) || (side == BLACK && epsq == (tosq + 8)));
             s2p[epsq] = PIECE(contra, PAWN);
             pos->brd[PIECE(contra, PAWN)] |= MASK(epsq);
@@ -817,12 +839,15 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
             pos->brd[promopc] &= ~to;
             s2p[tosq] = cappc;
             s2p[fromsq] = PIECE(side, PAWN);
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, PAWN), fromsq)] = 1;
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(promopc, tosq)] = 0;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, PAWN), fromsq)] = 1;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, PAWN), fromsq)] ^= 1;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(promopc, tosq)] = 0;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(promopc, tosq)] ^= 1;
             *sidebb |= from;
             *sidebb &= ~to;
             if (cappc != EMPTY) {
-                zh->hash[ZOBRIST_BOARD_SQ_INDEX(cappc, tosq)] = 1;
+                //zh->hash[ZOBRIST_BOARD_SQ_INDEX(cappc, tosq)] = 1;
+                zh->hash[ZOBRIST_BOARD_SQ_INDEX(cappc, tosq)] ^= 1;
                 pos->brd[cappc] |= to;
                 *contrabb |= to;
             }
@@ -836,12 +861,16 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
                 case H8: ksq = G8; rsq = F8; break;
                 default: unreachable(); break;
             }
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, KING), fromsq)] = 1;
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, ROOK), tosq)] = 1;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, KING), fromsq)] = 1;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, KING), fromsq)] ^= 1;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, ROOK), tosq)] = 1;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, ROOK), tosq)] ^= 1;
             s2p[fromsq] = PIECE(side, KING);
             s2p[tosq] = PIECE(side, ROOK);
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, KING), ksq)] = 0;
-            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, ROOK), rsq)] = 0;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, KING), ksq)] = 0;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, KING), ksq)] ^= 1;
+            //zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, ROOK), rsq)] = 0;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(side, ROOK), rsq)] ^= 1;
             s2p[ksq] = EMPTY;
             s2p[rsq] = EMPTY;
             *sidebb |= to | from;
