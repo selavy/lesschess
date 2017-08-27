@@ -54,16 +54,16 @@ extern int zobrist_compare(const zobrist_hash *h1, const zobrist_hash *h2);
 
 extern void zobrist_hash_module_init();
 extern void zobrist_hash_init(zobrist_hash *zh);
-extern void zobrist_hash_from_position(const struct position *const pos, zobrist_hash *zh);
+extern void zobrist_hash_from_position(const struct position *const pos, uint64_t *hash, zobrist_hash *zh);
 extern void zobrist_hash_description(FILE *fp, const zobrist_hash *zh);
 
 extern int position_from_fen(struct position *restrict pos, const char *fen);
 extern void position_print(FILE *os, const struct position *restrict const pos);
 extern int validate_position(struct position *restrict const pos);
 extern void make_move(struct position *restrict pos, struct savepos *restrict sp, move m);
-extern void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, move m, zobrist_hash *zh);
+extern void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, move m, uint64_t *hash, zobrist_hash *zh);
 extern void undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m);
-extern void undo_move_ex(struct position *restrict pos, const struct savepos *restrict sp, move m, zobrist_hash *zh);
+extern void undo_move_ex(struct position *restrict pos, const struct savepos *restrict sp, move m, uint64_t *hash, zobrist_hash *zh);
 extern move parse_xboard_move(struct position *restrict const pos, const char *line, int len);
 
 #endif // POSITION__H_

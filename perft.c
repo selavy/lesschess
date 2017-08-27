@@ -22,7 +22,11 @@ static uint64_t perft(int depth,
     struct position tmp;
 #endif
     zobrist_hash orig_zobrist_hash;
+    uint64_t orig_z;
     zobrist_hash new_zobrist_hash;
+    uint64_t new_z;
+    zobrist_hash zh;
+    uint64_t z;
     struct savepos sp;
     uint32_t flags;
 
@@ -44,17 +48,26 @@ static uint64_t perft(int depth,
 #ifndef NDEBUG
     memcpy(&tmp, pos, sizeof(tmp));
 #endif
-    zobrist_hash_from_position(pos, &orig_zobrist_hash);
+    zobrist_hash_from_position(pos, &orig_z, &orig_zobrist_hash);
     memcpy(&new_zobrist_hash, &orig_zobrist_hash, sizeof(new_zobrist_hash));
+    new_z = orig_z;
+    assert(new_z != 0);
     nmoves = generate_legal_moves(pos, &moves[0]);
 
     if (depth > 1) {
         for (i = 0; i < nmoves; ++i) {
-            make_move_ex(pos, &sp, moves[i], &new_zobrist_hash);
-            assert(memcmp(&new_zobrist_hash, &orig_zobrist_hash, sizeof(new_zobrist_hash)) != 0);
+            make_move_ex(pos, &sp, moves[i], &new_z, &new_zobrist_hash);
+            zobrist_hash_from_position(pos, &z, &zh);
+            assert(zobrist_compare(&new_zobrist_hash, &zh) == 0);
+            assert(new_z == z);
+            if (new_z == orig_z) {
+                fprintf(stderr, "%" PRIu64 "\n", new_z);
+                assert(new_z != orig_z);
+            }
             nodes += perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
-            undo_move_ex(pos, &sp, moves[i], &new_zobrist_hash);
+            undo_move_ex(pos, &sp, moves[i], &new_z, &new_zobrist_hash);
             assert(zobrist_compare(&new_zobrist_hash, &orig_zobrist_hash) == 0);
+            assert(new_z == orig_z);
 
 #ifndef NDEBUG
             assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);

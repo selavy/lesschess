@@ -183,19 +183,21 @@ static void zobrist_test() {
     }
 
     zobrist_hash zh;
+    uint64_t z;
     zobrist_hash_module_init();
     zobrist_hash_init(&zh);
-    zobrist_hash_from_position(&pos, &zh);
+    zobrist_hash_from_position(&pos, &z, &zh);
     zobrist_hash_description(stdout, &zh);
 
     m = MOVE(E2, E4);
     make_move(&pos, &sp, m);
-    zobrist_hash_from_position(&pos, &zh);
+    zobrist_hash_from_position(&pos, &z, &zh);
     zobrist_hash_description(stdout, &zh);
 }
 
 
 int main(int argc, char **argv) {
+    zobrist_hash_module_init();
     if (argc < 2) {
        xboard_uci_main();
     } else {
