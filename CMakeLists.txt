@@ -10,6 +10,8 @@ add_compile_options("--std=gnu11")
 add_compile_options("-Wall")
 add_compile_options("-Werror")
 
+add_compile_options("-Wno-unused-function")
+
 add_executable(lesschess
     main.c
     magic_tables.c

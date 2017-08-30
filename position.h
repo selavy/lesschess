@@ -58,6 +58,7 @@ extern void zobrist_hash_from_position(const struct position *const pos, uint64_
 extern void zobrist_hash_description(FILE *fp, const zobrist_hash *zh);
 
 extern int position_from_fen(struct position *restrict pos, const char *fen);
+extern void position_to_fen(const struct position *restrict const pos);
 extern void position_print(FILE *os, const struct position *restrict const pos);
 extern int validate_position(struct position *restrict const pos);
 extern void make_move(struct position *restrict pos, struct savepos *restrict sp, move m);

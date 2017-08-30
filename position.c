@@ -70,11 +70,6 @@ size_t ZOBRIST_ENPASSANT_FILE_INDEX(int file) {
     assert(index < 64*12+1+16+8);
     return index;
 }
-#if 0
-static uint64_t ZOBRIST_ENPASSANT_FILE(int file) {
-    return zobrist_values[ZOBRIST_ENPASSANT_FILE_INDEX(file)];
-}
-#endif
 
 int zobrist_compare(const zobrist_hash *h1, const zobrist_hash *h2) {
 #define V(x) ((x)?"ON":"OFF")
@@ -134,6 +129,24 @@ int zobrist_compare(const zobrist_hash *h1, const zobrist_hash *h2) {
             result = 1;
         }
     }
+
+    for (int sq = A3; sq <= H3; ++sq) {
+        v1 = h1->hash[ZOBRIST_ENPASSANT_INDEX(sq)];
+        v2 = h2->hash[ZOBRIST_ENPASSANT_INDEX(sq)];
+        if (v1 != v2) {
+            fprintf(stderr, "Disagree on enpassant sq: %d, v1=%s, v2=%s\n", sq, V(v1), V(v2));
+            result = 1;
+        }
+    }
+    for (int sq = A6; sq <= H6; ++sq) {
+        v1 = h1->hash[ZOBRIST_ENPASSANT_INDEX(sq)];
+        v2 = h2->hash[ZOBRIST_ENPASSANT_INDEX(sq)];
+        if (v1 != v2) {
+            fprintf(stderr, "Disagree on enpassant sq: %d, v1=%s, v2=%s\n", sq, V(v1), V(v2));
+            result = 1;
+        }
+    }
+
     return result;
 #undef V
 }
@@ -145,6 +158,16 @@ void zobrist_hash_module_init() {
     for (int i = 0; i < ZOBRISTSZ; ++i) {
         zobrist_values[i] = ((uint64_t)rand() << 32) | (uint64_t)rand();
     }
+#ifndef NDEBUG
+    for (int i = 0; i < ZOBRISTSZ; ++i) {
+        for (int j = i + 1; j < ZOBRISTSZ; ++j) {
+            if (zobrist_values[i] == zobrist_values[j]) {
+                fprintf(stderr, "BAD %d %d\n", i, j);
+                exit(1);
+            }
+        }
+    }
+#endif
 }
 
 void zobrist_hash_init(zobrist_hash *zh) {
@@ -445,6 +468,52 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
     return 0;
 }
 
+void position_to_fen(const struct position *restrict const pos) {
+    const uint8_t *s2p = &pos->sqtopc[0];
+    for (int rank = 7; rank >= 0; --rank) {
+        int empty = 0;
+        for (int file = 0; file < 8; ++file) {
+            const int sq = SQUARE(file, rank);
+            if (s2p[sq] != EMPTY) {
+                if (empty > 0) {
+                    printf("%d", empty);
+                    empty = 0;
+                }
+                printf("%c", visual_pcs[s2p[sq]]);
+            } else {
+                ++empty;
+            }
+        }
+        if (empty > 0) {
+            printf("%d", empty);
+        }
+        if (rank != 0) {
+            printf("/");
+        }
+    }
+
+    printf(" %c ", pos->wtm == WHITE ? 'w' : 'b');
+
+    if (pos->castle == CSL_NONE) {
+        printf("-");
+    } else {
+        if (pos->castle & CSL_WKSIDE) {
+            printf("K");
+        }
+        if (pos->castle & CSL_WQSIDE) {
+            printf("K");
+        }
+        if (pos->castle & CSL_BKSIDE) {
+            printf("k");
+        }
+        if (pos->castle & CSL_BQSIDE) {
+            printf("q");
+        }
+    }
+    printf(" %s ", pos->enpassant == EP_NONE ? "-" : sq_to_str[pos->enpassant]);
+    printf("%d %d\n", pos->halfmoves, pos->nmoves);
+}
+
 void position_print(FILE *os, const struct position *restrict const pos) {
     fprintf(os, "+---+---+---+---+---+---+---+---+\n");
     for (int rank = RANK_8; rank >= RANK_1; --rank) {
@@ -704,7 +773,6 @@ void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, mo
                     *castle &= ~CSL_SIDE(BLACK);
                 }
             }
-            // TODO: piece = pc?
             zh->hash[ZOBRIST_BOARD_SQ_INDEX(s2p[fromsq], fromsq)] ^= 1;
             h^= ZOBRIST_BOARD_SQ(s2p[fromsq], fromsq);
             s2p[fromsq] = EMPTY;
@@ -741,6 +809,7 @@ void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, mo
             }
             break;
         case FLG_EP:
+			printf("FLG_EP case\n");
             assert(pc == PIECE(side, PAWN) && topc == EMPTY);
             sp->was_ep = 1;
             *pcs &= ~from;

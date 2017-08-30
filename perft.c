@@ -59,7 +59,21 @@ static uint64_t perft(int depth,
             make_move_ex(pos, &sp, moves[i], &new_z, &new_zobrist_hash);
             zobrist_hash_from_position(pos, &z, &zh);
             assert(zobrist_compare(&new_zobrist_hash, &zh) == 0);
-            assert(new_z == z);
+            if (new_z != z) {
+                printf("new_z: %" PRIu64 "\n", new_z);
+                printf("z: %" PRIu64 "\n", z);
+
+                printf("Position:\n");
+                position_print(stdout, pos);
+
+                printf("Orig Position:\n");
+                position_print(stdout, &tmp);
+
+                position_to_fen(&tmp);
+
+                move_print(stdout, moves[i]);
+                assert(new_z == z);
+            }
             if (new_z == orig_z) {
                 fprintf(stderr, "%" PRIu64 "\n", new_z);
                 assert(new_z != orig_z);
