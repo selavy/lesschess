@@ -170,78 +170,9 @@ static void replay_file(const char *filename) {
     }
 }
 
-static void zobrist_test() {
-    int result;
-    struct position pos;
-    struct savepos sp;
-    move m;
-
-    result = position_from_fen(&pos, g_starting_position_fen);
-    if (result != 0) {
-        fprintf(stderr, "position_from_fen");
-        exit(EXIT_FAILURE);
-    }
-
-    zobrist_hash zh;
-    uint64_t z;
-    zobrist_hash_module_init();
-    zobrist_hash_init(&zh);
-    zobrist_hash_from_position(&pos, &z, &zh);
-    zobrist_hash_description(stdout, &zh);
-
-    m = MOVE(E2, E4);
-    make_move(&pos, &sp, m);
-    zobrist_hash_from_position(&pos, &z, &zh);
-    zobrist_hash_description(stdout, &zh);
-}
-
 
 int main(int argc, char **argv) {
     zobrist_hash_module_init();
-//#define TESTING
-#ifdef TESTING
-	const char *fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/Pp2P3/2N2Q1p/1PPBBPPP/R3K2R b KKkq a3 0 1";
-	struct position pos;
-    zobrist_hash org_zobrist_hash;
-    zobrist_hash new_zobrist_hash;
-    zobrist_hash tmp_zobrist_hash;
-    uint64_t org_zh;
-    uint64_t new_zh;
-    uint64_t tmp_zh;
-
-    if (position_from_fen(&pos, fen) != 0) {
-        fprintf(stderr, "Bad FEN: %s\n", fen);
-        exit(0);
-    }
-	position_print(stdout, &pos);
-
-    printf("zobrist_hash_from_position(org_zobrist_hash)\n");
-    zobrist_hash_from_position(&pos, &org_zh, &org_zobrist_hash);
-    printf("zobrist_hash_from_position(new_zobrist_hash)\n");
-    zobrist_hash_from_position(&pos, &new_zh, &new_zobrist_hash);
-    assert(zobrist_compare(&org_zobrist_hash, &new_zobrist_hash) == 0);
-    assert(org_zh == new_zh);
-
-    const move m = EP_CAPTURE(B4, A3);
-    printf("Move: %s\n", xboard_move_print(m));
-
-    struct savepos sp;
-    printf("make_move\n");
-    make_move_ex(&pos, &sp, m, &new_zh, &new_zobrist_hash);
-    printf("zobrist_hash_from_position(tmp_zobrist_hash)\n");
-    zobrist_hash_from_position(&pos, &tmp_zh, &tmp_zobrist_hash);
-
-    assert(zobrist_compare(&new_zobrist_hash, &tmp_zobrist_hash) == 0);
-    assert(zobrist_compare(&tmp_zobrist_hash, &org_zobrist_hash) != 0);
-    assert(new_zh != org_zh);
-    assert(tmp_zh != org_zh);
-    assert(new_zh == tmp_zh);
-
-    undo_move_ex(&pos, &sp, m, &new_zh, &new_zobrist_hash);
-    assert(zobrist_compare(&new_zobrist_hash, &org_zobrist_hash) == 0);
-    assert(new_zh != tmp_zh);
-    assert(new_zh == org_zh);
-#else
     if (argc < 2) {
        xboard_uci_main();
     } else {
@@ -259,11 +190,9 @@ int main(int argc, char **argv) {
             } else {
                 fprintf(stderr, "Usage: ./lesschess replay <FILE>\n");
             }
-        } else if (strcmp(argv[1], "zobrist") == 0) {
-            zobrist_test();
+        } else {
+            fprintf(stderr, "Unrecognized command: %s\n", argv[1]);
         }
     }
-#endif
-
     return 0;
 }

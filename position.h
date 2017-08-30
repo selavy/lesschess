@@ -33,37 +33,17 @@ struct savepos {
     uint8_t captured_pc; // EMPTY if no capture
 };
 
-// square x piece (8x8)x(6x2)
-// white to move  (1)
-// castle rights  (16)
-// enpassant file (8)
-#define ZOBRISTSZ ((8*8*6*2) + 1 + 16 + 8)
-struct zobrist_hash {
-    uint8_t hash[ZOBRISTSZ];
-};
-typedef struct zobrist_hash zobrist_hash;
-
-extern size_t ZOBRIST_BOARD_INDEX(int pc, int file, int rank);
-extern size_t ZOBRIST_BOARD_SQ_INDEX(int pc, int sq);
-extern size_t ZOBRIST_SIDE_TO_MOVE_INDEX();
-extern size_t ZOBRIST_CASTLE_RIGHTS_INDEX(uint8_t castle_flag);
-extern size_t ZOBRIST_ENPASSANT_INDEX(int sq);
-extern size_t ZOBRIST_ENPASSANT_FILE_INDEX(int file);
-extern int zobrist_compare(const zobrist_hash *h1, const zobrist_hash *h2);
-
 extern void zobrist_hash_module_init();
-extern void zobrist_hash_init(zobrist_hash *zh);
-extern void zobrist_hash_from_position(const struct position *const pos, uint64_t *hash, zobrist_hash *zh);
-extern void zobrist_hash_description(FILE *fp, const zobrist_hash *zh);
+extern void zobrist_hash_from_position(const struct position *const pos, uint64_t *hash);
 
 extern int position_from_fen(struct position *restrict pos, const char *fen);
 extern void position_to_fen(const struct position *restrict const pos);
 extern void position_print(FILE *os, const struct position *restrict const pos);
 extern int validate_position(struct position *restrict const pos);
 extern void make_move(struct position *restrict pos, struct savepos *restrict sp, move m);
-extern void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, move m, uint64_t *hash, zobrist_hash *zh);
+extern void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, move m, uint64_t *hash);
 extern void undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m);
-extern void undo_move_ex(struct position *restrict pos, const struct savepos *restrict sp, move m, uint64_t *hash, zobrist_hash *zh);
+extern void undo_move_ex(struct position *restrict pos, const struct savepos *restrict sp, move m, uint64_t *hash);
 extern move parse_xboard_move(struct position *restrict const pos, const char *line, int len);
 
 #endif // POSITION__H_
