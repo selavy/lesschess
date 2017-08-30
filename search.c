@@ -29,9 +29,9 @@ int alphabeta(struct position *restrict pos, int depth, int alpha, int beta, int
     if (maximizing) {
         best = NEG_INFINITI;
         for (i = 0; i < nmoves; ++i) {
-            make_move(pos, &sp, moves[i]);
+            make_move(pos, &sp, moves[i], 0);
             value = alphabeta(pos, depth - 1, alpha, beta, 0, moves[i]);
-            undo_move(pos, &sp, moves[i]);
+            undo_move(pos, &sp, moves[i], 0);
             best = MAX(best, value);
             alpha = MAX(alpha, best);
             if (beta <= alpha) {
@@ -41,9 +41,9 @@ int alphabeta(struct position *restrict pos, int depth, int alpha, int beta, int
     } else {
         best = INFINITI;
         for (i = 0; i < nmoves; ++i) {
-            make_move(pos, &sp, moves[i]);
+            make_move(pos, &sp, moves[i], 0);
             value = alphabeta(pos, depth - 1, alpha, beta, 1, moves[i]);
-            undo_move(pos, &sp, moves[i]);
+            undo_move(pos, &sp, moves[i], 0);
             best = MIN(best, value);
             beta = MIN(beta, best);
             if (beta <= alpha) {
@@ -74,23 +74,23 @@ move search(const struct position *restrict const position) {
 
     if (pos.wtm == WHITE) {
         for (i = 0; i < nmoves; ++i) {
-            make_move(&pos, &sp, moves[i]);
+            make_move(&pos, &sp, moves[i], 0);
             value = alphabeta(&pos, depth, NEG_INFINITI, INFINITI, 0, moves[i]);
             if (value > best) {
                 bestmoveno = i;
                 best = value;
             }
-            undo_move(&pos, &sp, moves[i]);
+            undo_move(&pos, &sp, moves[i], 0);
         }
     } else {
         for (i = 0; i < nmoves; ++i) {
-            make_move(&pos, &sp, moves[i]);
+            make_move(&pos, &sp, moves[i], 0);
             value = alphabeta(&pos, depth, NEG_INFINITI, INFINITI, 1, moves[i]);
             if (value < best) {
                 bestmoveno = i;
                 best = value;
             }
-            undo_move(&pos, &sp, moves[i]);
+            undo_move(&pos, &sp, moves[i], 0);
         }
     }
 

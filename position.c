@@ -575,12 +575,7 @@ uint8_t rook_square_to_castle_flag(uint8_t sq) {
     return result;
 }
 
-void make_move(struct position *restrict pos, struct savepos *restrict sp, move m) {
-    uint64_t h;
-    make_move_ex(pos, sp, m, &h);
-}
-
-void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, move m, uint64_t *hash) {
+uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, move m, uint64_t hash) {
     const uint8_t side = pos->wtm;
     const uint8_t contra = FLIP(side);
     const uint32_t tosq = TO(m);
@@ -599,7 +594,8 @@ void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, mo
     int ksq;
     int rsq;
     uint8_t castle_flag;
-    uint64_t h = *hash;
+    // TODO: just use `hash' instead of `h'
+    uint64_t h = hash;
 
     assert(tosq != fromsq);
     assert(topc != PIECE(WHITE, KING) && topc != PIECE(BLACK, KING));
@@ -761,15 +757,10 @@ void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, mo
     assert(pos->enpassant == EP_NONE || pc == PIECE(side,PAWN));
     assert(validate_position(pos) == 0);
 
-    *hash = h;
+    return h;
 }
 
-void undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m) {
-    uint64_t h;
-    undo_move_ex(pos, sp, m, &h);
-}
-
-void undo_move_ex(struct position *restrict pos, const struct savepos *restrict sp, move m, uint64_t *hash) {
+uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m, uint64_t hash) {
     const uint8_t side = FLIP(pos->wtm);
     const uint8_t contra = pos->wtm;
     const uint32_t fromsq = FROM(m);
@@ -789,7 +780,8 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
     uint64_t *restrict contrabb = &pos->side[contra];
     int ksq;
     int rsq;
-    uint64_t h = *hash;
+    // TODO: just use `hash' instead of `h'
+    uint64_t h = hash;
 
     assert(validate_position(pos) == 0);
     assert(fromsq >= A1 && fromsq <= H8);
@@ -909,7 +901,7 @@ void undo_move_ex(struct position *restrict pos, const struct savepos *restrict 
     }
 
     assert(validate_position(pos) == 0);
-    *hash = h;
+    return h;
 }
 
 move parse_xboard_move(struct position *restrict const pos, const char *line, int len) {

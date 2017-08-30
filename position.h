@@ -40,10 +40,8 @@ extern int position_from_fen(struct position *restrict pos, const char *fen);
 extern void position_to_fen(const struct position *restrict const pos);
 extern void position_print(FILE *os, const struct position *restrict const pos);
 extern int validate_position(struct position *restrict const pos);
-extern void make_move(struct position *restrict pos, struct savepos *restrict sp, move m);
-extern void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, move m, uint64_t *hash);
-extern void undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m);
-extern void undo_move_ex(struct position *restrict pos, const struct savepos *restrict sp, move m, uint64_t *hash);
+extern uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, move m, uint64_t hash);
+extern uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m, uint64_t hash);
 extern move parse_xboard_move(struct position *restrict const pos, const char *line, int len);
 
 #endif // POSITION__H_

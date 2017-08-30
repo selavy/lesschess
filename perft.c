@@ -52,12 +52,12 @@ static uint64_t perft(int depth,
 
     if (depth > 1) {
         for (i = 0; i < nmoves; ++i) {
-            make_move_ex(pos, &sp, moves[i], &new_z);
+            new_z = make_move(pos, &sp, moves[i], new_z);
             zobrist_hash_from_position(pos, &z);
             assert(new_z == z);
             assert(new_z != orig_z);
             nodes += perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
-            undo_move_ex(pos, &sp, moves[i], &new_z);
+            new_z = undo_move(pos, &sp, moves[i], new_z);
             assert(new_z == orig_z);
 
 #ifndef NDEBUG
@@ -86,9 +86,9 @@ static uint64_t perft(int depth,
             }
 
 #ifdef COUNT_CHECKS_AND_MATES
-            make_move(pos, &sp, moves[i]);
+            make_move(pos, &sp, moves[i], 0);
             perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
-            undo_move(pos, &sp, moves[i]);
+            undo_move(pos, &sp, moves[i], 0);
             #ifndef NDEBUG
             assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);
             #endif
@@ -131,9 +131,9 @@ uint64_t perft_speed(struct position *restrict pos, int depth) {
         nodes = nmoves;
     } else {
         for (i = 0; i < nmoves; ++i) {
-            make_move(pos, &sp, moves[i]);
-            nodes += perft_speed(pos, depth - 1);	    
-            undo_move(pos, &sp, moves[i]);
+            make_move(pos, &sp, moves[i], 0);
+            nodes += perft_speed(pos, depth - 1);
+            undo_move(pos, &sp, moves[i], 0);
         }
     }
     return nodes;
@@ -153,9 +153,9 @@ static uint64_t perft_text_tree_helper(struct position *restrict pos, int depth)
         nodes = nmoves;
     } else {
         for (i = 0; i < nmoves; ++i) {
-            make_move(pos, &sp, moves[i]);
+            make_move(pos, &sp, moves[i], 0);
             nodes += perft_text_tree_helper(pos, depth - 1);
-            undo_move(pos, &sp, moves[i]);
+            undo_move(pos, &sp, moves[i], 0);
         }
     }
     return nodes;
@@ -171,10 +171,10 @@ void perft_text_tree(struct position *restrict pos, int depth) {
     depth = depth > 0 ? depth : 1;
     nmoves = generate_legal_moves(pos, &moves[0]);
     for (i = 0; i < nmoves; ++i) {
-        make_move(pos, &sp, moves[i]);
+        make_move(pos, &sp, moves[i], 0);
         nodes = perft_text_tree_helper(pos, depth - 1);
         total_nodes += nodes;
-        undo_move(pos, &sp, moves[i]);
+        undo_move(pos, &sp, moves[i], 0);
         move_print_short(moves[i]); printf(": %" PRIu64 "\n", nodes);
     }
     printf("Total nodes at depth %d: %" PRIu64 "\n", depth, total_nodes);

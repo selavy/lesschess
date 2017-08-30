@@ -71,7 +71,7 @@ static void run_text_gui() {
             break;
         }
         get_move(&pos, &m);
-        make_move(&pos, &sp, m);
+        make_move(&pos, &sp, m, 0);
         position_print(stdout, &pos);
         m = search(&pos);
         if (m == MATED) {
@@ -79,7 +79,7 @@ static void run_text_gui() {
             break;
         }
         printf("Computer move: %s\n", xboard_move_print(m));
-        make_move(&pos, &sp, m);
+        make_move(&pos, &sp, m, 0);
     }
 }
 
@@ -149,7 +149,7 @@ static void replay_file(const char *filename) {
             fprintf(stderr, "Invalid move! '%.*s'\n", (int)read - 1, line);
             exit(EXIT_FAILURE);
         }
-        make_move(&pos, &sp, m);
+        make_move(&pos, &sp, m, 0);
         if (validate_position(&pos) != 0) {
             fprintf(stderr, "validate_position failed\n");
             exit(EXIT_FAILURE);

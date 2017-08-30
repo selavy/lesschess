@@ -124,7 +124,7 @@ static void xboard_make_move()
     if (m == MATED) {
         xbdebug("lesschess has been mated\n");
     }
-    make_move(&g_pos, &g_sp, m);
+    make_move(&g_pos, &g_sp, m, 0);
     xbwrite("move %s\n", xboard_move_print(m));
 }
 
@@ -169,7 +169,7 @@ void handle_playing(const char *line, int len)
             xbwrite("Illegal move: %.*s", len, line);
             return;
         }
-        make_move(&g_pos, &g_sp, m);
+        make_move(&g_pos, &g_sp, m, 0);
     }
     xboard_make_move();
 }
