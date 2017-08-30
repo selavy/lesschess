@@ -594,8 +594,6 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
     int ksq;
     int rsq;
     uint8_t castle_flag;
-    // TODO: just use `hash' instead of `h'
-    uint64_t h = hash;
 
     assert(tosq != fromsq);
     assert(topc != PIECE(WHITE, KING) && topc != PIECE(BLACK, KING));
@@ -604,9 +602,9 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
     sp->enpassant = pos->enpassant;
     sp->castle = *castle;
     sp->captured_pc = topc;
-    h ^= ZOBRIST_SIDE_TO_MOVE();
+    hash ^= ZOBRIST_SIDE_TO_MOVE();
     if (pos->enpassant != EP_NONE) {
-        h ^= ZOBRIST_ENPASSANT(pos->enpassant);
+        hash ^= ZOBRIST_ENPASSANT(pos->enpassant);
         pos->enpassant = EP_NONE;
     }
     switch (flags) {
@@ -619,40 +617,40 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
                 KSQ(*pos, side) = tosq;
                 if (side == WHITE) {
                     if ((*castle & CSL_WKSIDE) != 0) {
-                        h ^= ZOBRIST_CASTLE_RIGHTS(CSL_WKSIDE);
+                        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WKSIDE);
                     }
                     if ((*castle & CSL_WQSIDE) != 0) {
-                        h ^= ZOBRIST_CASTLE_RIGHTS(CSL_WQSIDE);
+                        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WQSIDE);
                     }
                     *castle &= ~CSL_SIDE(WHITE);
                 } else {
                     if ((*castle & CSL_BKSIDE) != 0) {
-                        h ^= ZOBRIST_CASTLE_RIGHTS(CSL_BKSIDE);
+                        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BKSIDE);
                     }
                     if ((*castle & CSL_BQSIDE) != 0) {
-                        h ^= ZOBRIST_CASTLE_RIGHTS(CSL_BQSIDE);
+                        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BQSIDE);
                     }
                     *castle &= ~CSL_SIDE(BLACK);
                 }
             }
-            h ^= ZOBRIST_BOARD_SQ(s2p[fromsq], fromsq);
+            hash ^= ZOBRIST_BOARD_SQ(s2p[fromsq], fromsq);
             s2p[fromsq] = EMPTY;
-            h ^= ZOBRIST_BOARD_SQ(pc, tosq);
+            hash ^= ZOBRIST_BOARD_SQ(pc, tosq);
             s2p[tosq] = pc;
             pos->side[side] &= ~from;
             pos->side[side] |= to;
             if (topc != EMPTY) {
-                h ^= ZOBRIST_BOARD_SQ(topc, tosq);
+                hash ^= ZOBRIST_BOARD_SQ(topc, tosq);
                 pos->brd[topc] &= ~to;
                 pos->side[contra] &= ~to;
                 castle_flag = rook_square_to_castle_flag(tosq);
                 if (castle_flag && (*castle & castle_flag) != 0) {
                     *castle &= ~castle_flag;
-                    h ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
+                    hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
                 }
             } else if (pc == PIECE(side, PAWN) && (from & RANK2(side)) && (to & EP_SQUARES(side))) {
                 pos->enpassant = epsq;
-                h ^= ZOBRIST_ENPASSANT(epsq);
+                hash ^= ZOBRIST_ENPASSANT(epsq);
                 assert((pos->enpassant >= A3 && pos->enpassant <= H3) ||
                         (pos->enpassant >= A6 && pos->enpassant <= H6));
             }
@@ -660,15 +658,15 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
                 castle_flag = rook_square_to_castle_flag(fromsq);
                 if (castle_flag && (*castle & castle_flag) != 0) {
                     *castle &= ~castle_flag;
-                    h ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
+                    hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
                 }
             }
             break;
         case FLG_EP:
             assert(pc == PIECE(side, PAWN) && topc == EMPTY);
-            h ^= ZOBRIST_BOARD_SQ(pc, fromsq);
-            h ^= ZOBRIST_BOARD_SQ(pc, tosq);
-            h ^= ZOBRIST_BOARD_SQ(PIECE(contra, PAWN), epsq);
+            hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
+            hash ^= ZOBRIST_BOARD_SQ(pc, tosq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(contra, PAWN), epsq);
 
             *pcs &= ~from;
             *pcs |= to;
@@ -684,20 +682,20 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
             assert(pc == PIECE(side, PAWN));
             *pcs &= ~from;
             pos->brd[promopc] |= to;
-            h ^= ZOBRIST_BOARD_SQ(promopc, tosq);
+            hash ^= ZOBRIST_BOARD_SQ(promopc, tosq);
             s2p[tosq] = promopc;
-            h ^= ZOBRIST_BOARD_SQ(pc, fromsq);
+            hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
             s2p[fromsq] = EMPTY;
             pos->side[side] &= ~from;
             pos->side[side] |= to;
             if (topc != EMPTY) {
-                h ^= ZOBRIST_BOARD_SQ(topc, tosq);
+                hash ^= ZOBRIST_BOARD_SQ(topc, tosq);
                 pos->brd[topc] &= ~to;
                 pos->side[contra] &= ~to;
                 castle_flag = rook_square_to_castle_flag(tosq);
                 if (castle_flag && (*castle & castle_flag) != 0) {
                     *castle &= ~castle_flag;
-                    h ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
+                    hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
                 }
             }
             break;
@@ -713,11 +711,11 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
             KSQ(*pos, side) = ksq;
             *rooks &= ~MASK(tosq);
             *rooks |= MASK(rsq);
-            h ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), fromsq);
-            h ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), ksq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), fromsq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), ksq);
 
-            h ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), tosq);
-            h ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), rsq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), tosq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), rsq);
 
             s2p[fromsq] = s2p[tosq] = EMPTY;
             s2p[ksq] = PIECE(side, KING);
@@ -726,18 +724,18 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
             pos->side[side] |= MASK(ksq) | MASK(rsq);
             if (side == WHITE) {
                 if ((*castle & CSL_WKSIDE) != 0) {
-                    h ^= ZOBRIST_CASTLE_RIGHTS(CSL_WKSIDE);
+                    hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WKSIDE);
                 }
                 if ((*castle & CSL_WQSIDE) != 0) {
-                    h ^= ZOBRIST_CASTLE_RIGHTS(CSL_WQSIDE);
+                    hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WQSIDE);
                 }
                 *castle &= ~CSL_SIDE(WHITE);
             } else {
                 if ((*castle & CSL_BKSIDE) != 0) {
-                    h ^= ZOBRIST_CASTLE_RIGHTS(CSL_BKSIDE);
+                    hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BKSIDE);
                 }
                 if ((*castle & CSL_BQSIDE) != 0) {
-                    h ^= ZOBRIST_CASTLE_RIGHTS(CSL_BQSIDE);
+                    hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BQSIDE);
                 }
                 *castle &= ~CSL_SIDE(BLACK);
             }
@@ -757,7 +755,7 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
     assert(pos->enpassant == EP_NONE || pc == PIECE(side,PAWN));
     assert(validate_position(pos) == 0);
 
-    return h;
+    return hash;
 }
 
 uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m, uint64_t hash) {
@@ -780,8 +778,6 @@ uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict
     uint64_t *restrict contrabb = &pos->side[contra];
     int ksq;
     int rsq;
-    // TODO: just use `hash' instead of `h'
-    uint64_t h = hash;
 
     assert(validate_position(pos) == 0);
     assert(fromsq >= A1 && fromsq <= H8);
@@ -795,38 +791,38 @@ uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict
 
     // reset enpassant flag
     if (pos->enpassant != EP_NONE) {
-        h ^= ZOBRIST_ENPASSANT(pos->enpassant);
+        hash ^= ZOBRIST_ENPASSANT(pos->enpassant);
     }
     pos->enpassant = sp->enpassant;
     if (pos->enpassant != EP_NONE) {
-        h ^= ZOBRIST_ENPASSANT(pos->enpassant);
+        hash ^= ZOBRIST_ENPASSANT(pos->enpassant);
     }
 
     if ((pos->castle & CSL_WKSIDE) != (sp->castle & CSL_WKSIDE)) {
-        h ^= ZOBRIST_CASTLE_RIGHTS(CSL_WKSIDE);
+        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WKSIDE);
     }
     if ((pos->castle & CSL_WQSIDE) != (sp->castle & CSL_WQSIDE)) {
-        h ^= ZOBRIST_CASTLE_RIGHTS(CSL_WQSIDE);
+        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WQSIDE);
     }
     if ((pos->castle & CSL_BKSIDE) != (sp->castle & CSL_BKSIDE)) {
-        h ^= ZOBRIST_CASTLE_RIGHTS(CSL_BKSIDE);
+        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BKSIDE);
     }
     if ((pos->castle & CSL_BQSIDE) != (sp->castle & CSL_BQSIDE)) {
-        h ^= ZOBRIST_CASTLE_RIGHTS(CSL_BQSIDE);
+        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BQSIDE);
     }
     // reset castling flags
     pos->castle = sp->castle;
 
     // reset side to move
     pos->wtm = side;
-    h ^= ZOBRIST_SIDE_TO_MOVE();
+    hash ^= ZOBRIST_SIDE_TO_MOVE();
 
     --pos->nmoves;
 
     switch (flags) {
         case FLG_NONE:
-            h ^= ZOBRIST_BOARD_SQ(s2p[tosq], tosq);
-            h ^= ZOBRIST_BOARD_SQ(pc, fromsq);
+            hash ^= ZOBRIST_BOARD_SQ(s2p[tosq], tosq);
+            hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
             s2p[fromsq] = pc;
             if (pcs) {
                 *pcs |= from;
@@ -838,22 +834,22 @@ uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict
             *sidebb &= ~to;
             s2p[tosq] = cappc;
             if (cappc != EMPTY) {
-                h ^= ZOBRIST_BOARD_SQ(cappc, tosq);
+                hash ^= ZOBRIST_BOARD_SQ(cappc, tosq);
                 pos->brd[cappc] |= to;
                 *contrabb |= to;
             }
             break;
         case FLG_EP:
-            h ^= ZOBRIST_BOARD_SQ(pc, fromsq);
+            hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
             s2p[fromsq] = pc;
             *pcs |= from;
             *pcs &= ~to;
             *sidebb |= from;
             *sidebb &= ~to;
             *contrabb |= MASK(epsq);
-            h ^= ZOBRIST_BOARD_SQ(pc, tosq);
+            hash ^= ZOBRIST_BOARD_SQ(pc, tosq);
             s2p[tosq] = EMPTY;
-            h ^= ZOBRIST_BOARD_SQ(PIECE(contra, PAWN), epsq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(contra, PAWN), epsq);
             assert((side == WHITE && epsq == (tosq - 8)) || (side == BLACK && epsq == (tosq + 8)));
             s2p[epsq] = PIECE(contra, PAWN);
             pos->brd[PIECE(contra, PAWN)] |= MASK(epsq);
@@ -863,12 +859,12 @@ uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict
             pos->brd[promopc] &= ~to;
             s2p[tosq] = cappc;
             s2p[fromsq] = PIECE(side, PAWN);
-            h ^= ZOBRIST_BOARD_SQ(PIECE(side, PAWN), fromsq);
-            h ^= ZOBRIST_BOARD_SQ(promopc, tosq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, PAWN), fromsq);
+            hash ^= ZOBRIST_BOARD_SQ(promopc, tosq);
             *sidebb |= from;
             *sidebb &= ~to;
             if (cappc != EMPTY) {
-                h ^= ZOBRIST_BOARD_SQ(cappc, tosq);
+                hash ^= ZOBRIST_BOARD_SQ(cappc, tosq);
                 pos->brd[cappc] |= to;
                 *contrabb |= to;
             }
@@ -882,12 +878,12 @@ uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict
                 case H8: ksq = G8; rsq = F8; break;
                 default: unreachable(); break;
             }
-            h ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), fromsq);
-            h ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), tosq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), fromsq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), tosq);
             s2p[fromsq] = PIECE(side, KING);
             s2p[tosq] = PIECE(side, ROOK);
-            h ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), ksq);
-            h ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), rsq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), ksq);
+            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), rsq);
             s2p[ksq] = EMPTY;
             s2p[rsq] = EMPTY;
             *sidebb |= to | from;
@@ -901,7 +897,7 @@ uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict
     }
 
     assert(validate_position(pos) == 0);
-    return h;
+    return hash;
 }
 
 move parse_xboard_move(struct position *restrict const pos, const char *line, int len) {
