@@ -734,7 +734,6 @@ void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, mo
     sp->halfmoves = pos->halfmoves;
     sp->enpassant = pos->enpassant;
     sp->castle = *castle;
-    sp->was_ep = 0;
     sp->captured_pc = topc;
     zh->hash[ZOBRIST_SIDE_TO_MOVE_INDEX()] ^= 1;
     h ^= ZOBRIST_SIDE_TO_MOVE();
@@ -774,7 +773,7 @@ void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, mo
                 }
             }
             zh->hash[ZOBRIST_BOARD_SQ_INDEX(s2p[fromsq], fromsq)] ^= 1;
-            h^= ZOBRIST_BOARD_SQ(s2p[fromsq], fromsq);
+            h ^= ZOBRIST_BOARD_SQ(s2p[fromsq], fromsq);
             s2p[fromsq] = EMPTY;
             zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, tosq)] ^= 1;
             h ^= ZOBRIST_BOARD_SQ(pc, tosq);
@@ -809,9 +808,14 @@ void make_move_ex(struct position *restrict pos, struct savepos *restrict sp, mo
             }
             break;
         case FLG_EP:
-			printf("FLG_EP case\n");
             assert(pc == PIECE(side, PAWN) && topc == EMPTY);
-            sp->was_ep = 1;
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, fromsq)] ^= 1;
+            h ^= ZOBRIST_BOARD_SQ(pc, fromsq);
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(pc, tosq)] ^= 1;
+            h ^= ZOBRIST_BOARD_SQ(pc, tosq);
+            zh->hash[ZOBRIST_BOARD_SQ_INDEX(PIECE(contra, PAWN), epsq)] ^= 1;
+            h ^= ZOBRIST_BOARD_SQ(PIECE(contra, PAWN), epsq);
+
             *pcs &= ~from;
             *pcs |= to;
             pos->brd[PIECE(contra, PAWN)] &= ~MASK(epsq);

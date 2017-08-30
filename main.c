@@ -198,7 +198,7 @@ static void zobrist_test() {
 
 int main(int argc, char **argv) {
     zobrist_hash_module_init();
-#define TESTING
+//#define TESTING
 #ifdef TESTING
 	const char *fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/Pp2P3/2N2Q1p/1PPBBPPP/R3K2R b KKkq a3 0 1";
 	struct position pos;
@@ -215,7 +215,9 @@ int main(int argc, char **argv) {
     }
 	position_print(stdout, &pos);
 
+    printf("zobrist_hash_from_position(org_zobrist_hash)\n");
     zobrist_hash_from_position(&pos, &org_zh, &org_zobrist_hash);
+    printf("zobrist_hash_from_position(new_zobrist_hash)\n");
     zobrist_hash_from_position(&pos, &new_zh, &new_zobrist_hash);
     assert(zobrist_compare(&org_zobrist_hash, &new_zobrist_hash) == 0);
     assert(org_zh == new_zh);
@@ -224,7 +226,9 @@ int main(int argc, char **argv) {
     printf("Move: %s\n", xboard_move_print(m));
 
     struct savepos sp;
+    printf("make_move\n");
     make_move_ex(&pos, &sp, m, &new_zh, &new_zobrist_hash);
+    printf("zobrist_hash_from_position(tmp_zobrist_hash)\n");
     zobrist_hash_from_position(&pos, &tmp_zh, &tmp_zobrist_hash);
 
     assert(zobrist_compare(&new_zobrist_hash, &tmp_zobrist_hash) == 0);
@@ -233,6 +237,10 @@ int main(int argc, char **argv) {
     assert(tmp_zh != org_zh);
     assert(new_zh == tmp_zh);
 
+    undo_move_ex(&pos, &sp, m, &new_zh, &new_zobrist_hash);
+    assert(zobrist_compare(&new_zobrist_hash, &org_zobrist_hash) == 0);
+    assert(new_zh != tmp_zh);
+    assert(new_zh == org_zh);
 #else
     if (argc < 2) {
        xboard_uci_main();

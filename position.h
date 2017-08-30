@@ -30,7 +30,6 @@ struct savepos {
     uint8_t halfmoves;
     uint8_t enpassant;
     uint8_t castle;
-    uint8_t was_ep;
     uint8_t captured_pc; // EMPTY if no capture
 };
 
