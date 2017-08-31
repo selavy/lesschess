@@ -3,6 +3,8 @@
 
 #include "move.h"
 
+extern void transposition_table_init();
+
 struct position;
 extern move search(const struct position *restrict const pos);
 

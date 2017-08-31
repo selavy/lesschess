@@ -173,6 +173,8 @@ static void replay_file(const char *filename) {
 
 int main(int argc, char **argv) {
     zobrist_hash_module_init();
+    transposition_table_init();
+
     if (argc < 2) {
        xboard_uci_main();
     } else {
