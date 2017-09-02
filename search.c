@@ -1,6 +1,8 @@
 #include "search.h"
 #include <assert.h>
 #include <string.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include "position.h"
 #include "movegen.h"
 #include "eval.h"
@@ -17,11 +19,12 @@ struct tt_entry {
     // from a deeper position should overwrite shallower values?
 };
 
-#define TTSZ (1 << 20)
+//#define TTSZ (1 << 20)
+// smallest prime above 1 << 20
+#define TTSZ 1048583
 struct tt_entry tt_tbl[TTSZ];
 
 void transposition_table_init() {
-    //memset(&tt_tbl[0], 0, sizeof(tt_tbl) * sizeof(tt_tbl[0]));
     assert(__builtin_popcount(TTSZ) == 0);
     for (int i = 0; i < TTSZ; ++i) {
         tt_tbl[i].h = 0;
@@ -34,7 +37,7 @@ size_t tt_index(uint64_t h) {
 }
 
 int tt_occupied(size_t idx) {
-    return !(tt_tbl[idx].h == 0 && tt_tbl[idx].v == 0);
+    return tt_tbl[idx].h != 0 && tt_tbl[idx].v != 0;
 }
 
 int tt_value(size_t idx) {
@@ -42,8 +45,8 @@ int tt_value(size_t idx) {
     return tt_tbl[idx].v;
 }
 
-void tt_set_value(uint64_t h, int v) {
-    const size_t idx = tt_index(h);
+void tt_set_value(size_t idx, uint64_t h, int v) {
+    // const size_t idx = tt_index(h);
     tt_tbl[idx].h = h;
     tt_tbl[idx].v = v;
 }
@@ -60,11 +63,13 @@ int alphabeta(struct position *restrict pos, uint64_t zhash, int depth, int alph
     // that is going to exit back immediately to save to function call overhead.
     const size_t idx = tt_index(zhash);
     if (tt_occupied(idx)) {
+        fprintf(stdout, "# [LessChess] TT hit on %" PRIu64 "\n", zhash);
         return tt_value(idx);
     }
 
     if (depth == 0) {
         value = eval(pos);
+        tt_set_value(idx, zhash, value);
         return value;
     }
 
@@ -101,7 +106,7 @@ int alphabeta(struct position *restrict pos, uint64_t zhash, int depth, int alph
         }
     }
 
-    tt_set_value(zhash, best);
+    // tt_set_value(zhash, best);
 
     return best;
 }

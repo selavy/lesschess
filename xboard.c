@@ -97,6 +97,7 @@ void handle_begin_state(const char *line, int len)
         xbwrite("feature analyze=0");
         xbwrite("feature time=0");
         xbwrite("feature done=1");
+        xbwrite("feature debug=1");
         g_xbstate = XB_FEATURES_SENT;
     } else {
         xberror("unrecognized command: '%.*s'", len, line);

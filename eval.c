@@ -24,6 +24,8 @@ int eval(struct position *restrict const pos) {
     const int white_squares_attacked = popcountll(white_attacked);
     const int black_squares_attacked = popcountll(black_attacked);
 
+    // returns 0 if is 50 move rule draw
+    const int not_fifty_move_rule_draw = pos->halfmoves < 50 ? 1 : 0;
 
     white_score =
           100*white_pawns
@@ -43,6 +45,7 @@ int eval(struct position *restrict const pos) {
         + black_squares_attacked
         ;
 
-    return white_score - black_score;
+
+    return (white_score - black_score)*not_fifty_move_rule_draw;
 }
 
