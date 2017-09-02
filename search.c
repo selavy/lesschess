@@ -51,7 +51,7 @@ void tt_set_value(size_t idx, uint64_t h, int v) {
     tt_tbl[idx].v = v;
 }
 
-int alphabeta(struct position *restrict pos, uint64_t zhash, int depth, int alpha, int beta, int maximizing) {
+int alphabeta_helper(struct position *restrict pos, uint64_t zhash, int depth, int alpha, int beta, int maximizing) {
     int best;
     int nmoves;
     int i;
@@ -59,17 +59,8 @@ int alphabeta(struct position *restrict pos, uint64_t zhash, int depth, int alph
     move moves[MAX_MOVES];
     struct savepos sp;
 
-    // TODO(plesslie): make sense to move this code into the loop _before_ calling alphabeta on a branch
-    // that is going to exit back immediately to save to function call overhead.
-    const size_t idx = tt_index(zhash);
-    if (tt_occupied(idx)) {
-        fprintf(stdout, "# [LessChess] TT hit on %" PRIu64 "\n", zhash);
-        return tt_value(idx);
-    }
-
     if (depth == 0) {
         value = eval(pos);
-        tt_set_value(idx, zhash, value);
         return value;
     }
 
@@ -78,13 +69,13 @@ int alphabeta(struct position *restrict pos, uint64_t zhash, int depth, int alph
         return pos->wtm ? WHITE_WIN : BLACK_WIN;
     }
 
-    // TODO(plesslie): do undo_move() actually need to recalculate the zobrist hash?
+    // TODO(plesslie): does undo_move() actually need to recalculate the zobrist hash?
     // could just save it off before calling make_move
     if (maximizing) {
         best = NEG_INFINITI;
         for (i = 0; i < nmoves; ++i) {
             zhash = make_move(pos, &sp, moves[i], zhash);
-            value = alphabeta(pos, zhash, depth - 1, alpha, beta, 0);
+            value = alphabeta_helper(pos, zhash, depth - 1, alpha, beta, 0);
             zhash = undo_move(pos, &sp, moves[i], zhash);
             best = MAX(best, value);
             alpha = MAX(alpha, best);
@@ -96,7 +87,7 @@ int alphabeta(struct position *restrict pos, uint64_t zhash, int depth, int alph
         best = INFINITI;
         for (i = 0; i < nmoves; ++i) {
             zhash = make_move(pos, &sp, moves[i], zhash);
-            value = alphabeta(pos, zhash, depth - 1, alpha, beta, 1);
+            value = alphabeta_helper(pos, zhash, depth - 1, alpha, beta, 1);
             zhash = undo_move(pos, &sp, moves[i], zhash);
             best = MIN(best, value);
             beta = MIN(beta, best);
@@ -106,53 +97,66 @@ int alphabeta(struct position *restrict pos, uint64_t zhash, int depth, int alph
         }
     }
 
-    // tt_set_value(zhash, best);
-
     return best;
 }
 
-move search(const struct position *restrict const position) {
+int alphabeta(struct position *restrict pos, const move *restrict moves, int nmoves, uint64_t zhash, int depth, int *score) {
     struct savepos sp;
+    int best = pos->wtm == WHITE ? NEG_INFINITI - 1 : INFINITI + 1;
+    int bestmoveno = -1;
+    int value;
+    int i;
+
+    if (pos->wtm == WHITE) {
+        for (i = 0; i < nmoves; ++i) {
+            make_move(pos, &sp, moves[i], 0);
+            value = alphabeta_helper(pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
+            if (value > best) {
+                bestmoveno = i;
+                best = value;
+            }
+            undo_move(pos, &sp, moves[i], 0);
+        }
+    } else {
+        for (i = 0; i < nmoves; ++i) {
+            make_move(pos, &sp, moves[i], 0);
+            value = alphabeta_helper(pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
+            if (value < best) {
+                bestmoveno = i;
+                best = value;
+            }
+            undo_move(pos, &sp, moves[i], 0);
+        }
+    }
+
+    assert(bestmoveno > -1);
+    *score = best;
+    return bestmoveno;
+}
+
+move search(const struct position *restrict const p) {
     struct position pos;
     move moves[MAX_MOVES];
     int nmoves;
-    int i;
-    int best = position->wtm == WHITE ? NEG_INFINITI - 1 : INFINITI + 1;
-    int value;
-    int bestmoveno = -1;
-    const int depth = 5;
+    const int max_depth = 5;
     uint64_t zhash;
+    int moveno;
+    int score;
+    int depth;
 
-    memcpy(&pos, position, sizeof(pos));
+    memcpy(&pos, p, sizeof(pos));
     nmoves = generate_legal_moves(&pos, &moves[0]);
     if (nmoves == 0) {
         return MATED;
     }
     zobrist_hash_from_position(&pos, &zhash);
 
-    if (pos.wtm == WHITE) {
-        for (i = 0; i < nmoves; ++i) {
-            make_move(&pos, &sp, moves[i], 0);
-            value = alphabeta(&pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
-            if (value > best) {
-                bestmoveno = i;
-                best = value;
-            }
-            undo_move(&pos, &sp, moves[i], 0);
-        }
-    } else {
-        for (i = 0; i < nmoves; ++i) {
-            make_move(&pos, &sp, moves[i], 0);
-            value = alphabeta(&pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
-            if (value < best) {
-                bestmoveno = i;
-                best = value;
-            }
-            undo_move(&pos, &sp, moves[i], 0);
-        }
+    for (depth = 2; depth <= max_depth; ++depth) {
+        moveno = alphabeta(&pos, &moves[0], nmoves, zhash, depth, &score);
+        printf("Depth: %d, Move: %s, Score: %d\n", depth, xboard_move_print(moves[moveno]), score);
     }
 
-    assert(bestmoveno > -1);
-    return moves[bestmoveno];
+    assert(moveno >= 0 && moveno < nmoves);
+    return moves[moveno];
 }
 
