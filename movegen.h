@@ -7,8 +7,6 @@
 
 // Move Generation code heavily inspired/taken from Stockfish
 
-extern int is_legal(const struct position *const restrict pos, uint64_t pinned,
-                    move m);
 extern uint64_t generate_checkers(const struct position *const restrict pos,
                                   uint8_t side);
 extern uint64_t generate_attacked(const struct position *const restrict pos,
@@ -24,8 +22,6 @@ extern move *generate_non_evasions(const struct position *const restrict pos,
 extern int generate_legal_moves(const struct position *const restrict pos,
                                 move *restrict moves);
 extern int in_check(const struct position *const restrict pos, uint8_t side);
-extern int is_legal_move_FIXME(const struct position *restrict const pos,
-                               move m);
-extern int is_mate_FIXME(const struct position *restrict const pos);
+extern int is_legal_move(const struct position *restrict const pos, move m);
 
 #endif // MOVEGEN__H_

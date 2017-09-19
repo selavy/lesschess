@@ -154,7 +154,7 @@ void handle_playing(const char *line, int len) {
             xbwrite("Illegal move (invalid rank or file): %.*s", len, line);
             return;
         }
-        if (!is_legal_move_FIXME(&g_pos, m)) {
+        if (!is_legal_move(&g_pos, m)) {
             xbwrite("Illegal move: %.*s", len, line);
             return;
         }

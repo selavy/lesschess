@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int is_legal_move_FIXME(const struct position *restrict const pos, move m) {
+int is_legal_move(const struct position *restrict const pos, move m) {
     int nmoves;
     int result = 0;
     move moves[MAX_MOVES];
@@ -19,12 +19,6 @@ int is_legal_move_FIXME(const struct position *restrict const pos, move m) {
     }
 
     return result;
-}
-
-int is_mate_FIXME(const struct position *restrict const pos) {
-    move moves[MAX_MOVES];
-    int nmoves = generate_legal_moves(pos, &moves[0]);
-    return nmoves == 0;
 }
 
 int in_check(const struct position *const restrict pos, uint8_t side) {
@@ -148,8 +142,8 @@ static move *generate_castling(const struct position *const restrict pos,
     return moves;
 }
 
-int is_legal(const struct position *const restrict pos, const uint64_t pinned,
-             const move m) {
+static int is_legal(const struct position *const restrict pos,
+                    const uint64_t pinned, const move m) {
     const int side = pos->wtm;
     const int contra = FLIP(pos->wtm);
     const int tosq = TO(m);
