@@ -339,7 +339,7 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
     }
     pos->nmoves = nmoves;
 
-    return 0;
+    return validate_position(pos);
 }
 
 void position_to_fen(const struct position *restrict const pos) {

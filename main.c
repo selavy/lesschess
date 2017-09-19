@@ -12,11 +12,10 @@
 #include "position.h"
 #include "movegen.h"
 #include "perft.h"
-#include "textgui.h"
 #include "search.h"
 #include "xboard.h"
 
-const char *const g_starting_position_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const char *const starting_position_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 static struct timespec timediff(struct timespec start, struct timespec end) {
     struct timespec result;
@@ -36,7 +35,7 @@ static void time_test(int depth) {
     struct timespec end;
     struct timespec dur;
     struct position pos;
-    const char *fen = g_starting_position_fen;
+    const char *fen = starting_position_fen;
     if (position_from_fen(&pos, fen) != 0) {
         fprintf(stderr, "position_from_fen failed\n");
         exit(EXIT_FAILURE);
@@ -53,36 +52,6 @@ static void time_test(int depth) {
             depth, nodes, dur.tv_sec, dur.tv_nsec / 1000000);
 }
 
-static void run_text_gui() {
-    int result;
-    move m;
-    struct position pos;
-    struct savepos sp;
-
-    result = position_from_fen(&pos, g_starting_position_fen);
-    if (result != 0) {
-        fprintf(stderr, "position_from_fen");
-        exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < 100; ++i) {
-        if (is_mate_FIXME(&pos)) {
-            printf("%s is mated.\n", pos.wtm==WHITE? "WHITE":"BLACK");
-            break;
-        }
-        get_move(&pos, &m);
-        make_move(&pos, &sp, m, 0);
-        position_print(stdout, &pos);
-        m = search(&pos);
-        if (m == MATED) {
-            printf("Game Over! Computer Lost\n");
-            break;
-        }
-        printf("Computer move: %s\n", xboard_move_print(m));
-        make_move(&pos, &sp, m, 0);
-    }
-}
-
 static void run_perft_test(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: ./lesschess perft <fen> <depth>\n");
@@ -96,27 +65,19 @@ static void run_perft_test(int argc, char **argv) {
     uint64_t promos;
     uint64_t checks;
     uint64_t mates;
-    int result;
     const char *fen = argv[0];
     const int depth = atoi(argv[1]);
-
-    result = position_from_fen(&pos, fen);
+    int result = position_from_fen(&pos, fen);
     if (result != 0) {
         fprintf(stderr, "Invalid FEN: %d\n", result);
         exit(EXIT_FAILURE);
     }
-    result = validate_position(&pos);
-    if (result != 0) {
-        fprintf(stderr, "Invalid position: %d\n", result);
-        exit(EXIT_FAILURE);
-    }
-    result = perft_test(&pos, depth, &nodes, &captures, &eps, &castles,
-            &promos, &checks, &mates);
+    result = perft_test(&pos, depth, &nodes, &captures,
+            &eps, &castles, &promos, &checks, &mates);
     if (result != 0) {
         fprintf(stderr, "perft_test failed\n");
         exit(EXIT_FAILURE);
     }
-
     printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n",
             nodes, captures, eps, castles, promos, checks, mates);
 }
@@ -135,7 +96,7 @@ static void replay_file(const char *filename) {
         fprintf(stderr, "Unable to open file: %s\n", filename);
         exit(EXIT_FAILURE);
     }
-    if (position_from_fen(&pos, g_starting_position_fen) != 0) {
+    if (position_from_fen(&pos, starting_position_fen) != 0) {
         fprintf(stderr, "position_from_fen failed\n");
         exit(EXIT_FAILURE);
     }
@@ -180,8 +141,6 @@ int main(int argc, char **argv) {
     } else {
         if (strcmp(argv[1], "perft") == 0) {
             run_perft_test(argc-2, argv+2);
-        } else if (strcmp(argv[1], "textgui") == 0) {
-            run_text_gui();
         } else if (strcmp(argv[1], "timetest") == 0) {
             for (int depth = 0; depth < 8; ++depth) {
                 time_test(depth);
@@ -196,5 +155,6 @@ int main(int argc, char **argv) {
             fprintf(stderr, "Unrecognized command: %s\n", argv[1]);
         }
     }
+
     return 0;
 }

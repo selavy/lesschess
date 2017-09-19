@@ -1,1 +1,18 @@
+Non-Engine Improvements
+=======================
 +syzygy tablebases
++opening book
+
+Engine Improvements
+===================
++Iterative Deepening Search + Time scheduling
++Move Ordering
++Transposition Table
++Incorporate piece placement into eval function
++Parallelize search
++3-move repetition draw (use TT table?)
+
+Testing
+========
++test harness for 1-3 move mate tactics
++test harness for perft

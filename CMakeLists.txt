@@ -21,7 +21,6 @@ add_executable(lesschess
     perft.c
     eval.c
     search.c
-    textgui.c
     xboard.c
     )
 target_link_libraries(lesschess rt)
