@@ -1,19 +1,14 @@
 #include "perft.h"
-#include <assert.h>
-#include <string.h>
-#include <inttypes.h>
 #include "movegen.h"
+#include <assert.h>
+#include <inttypes.h>
+#include <string.h>
 
 #define COUNT_CHECKS_AND_MATES
 
-static uint64_t perft(int depth,
-        struct position *restrict pos,
-        uint64_t *captures,
-        uint64_t *eps,
-        uint64_t *castles,
-        uint64_t *promos,
-        uint64_t *checks,
-        uint64_t *mates) {
+static uint64_t perft(int depth, struct position *restrict pos,
+                      uint64_t *captures, uint64_t *eps, uint64_t *castles,
+                      uint64_t *promos, uint64_t *checks, uint64_t *mates) {
     int i;
     int nmoves;
     uint64_t nodes = 0;
@@ -56,7 +51,8 @@ static uint64_t perft(int depth,
             zobrist_hash_from_position(pos, &z);
             assert(new_z == z);
             assert(new_z != orig_z);
-            nodes += perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
+            nodes += perft(depth - 1, pos, captures, eps, castles, promos,
+                           checks, mates);
             new_z = undo_move(pos, &sp, moves[i], new_z);
             assert(new_z == orig_z);
 
@@ -69,44 +65,46 @@ static uint64_t perft(int depth,
         for (i = 0; i < nmoves; ++i) {
             flags = FLAGS(moves[i]);
             switch (flags) {
-                case FLG_NONE:
-                    if (pos->sqtopc[TO(moves[i])] != EMPTY) {
-                        ++(*captures);
-                    }
-                    break;
-                case FLG_EP: ++(*eps); ++(*captures); break;
-                case FLG_PROMO:
-                    ++(*promos);
-                    if (pos->sqtopc[TO(moves[i])] != EMPTY) {
-                        ++(*captures);
-                    }
-                    break;
-                case FLG_CASTLE: ++(*castles); break;
-                default: break;
+            case FLG_NONE:
+                if (pos->sqtopc[TO(moves[i])] != EMPTY) {
+                    ++(*captures);
+                }
+                break;
+            case FLG_EP:
+                ++(*eps);
+                ++(*captures);
+                break;
+            case FLG_PROMO:
+                ++(*promos);
+                if (pos->sqtopc[TO(moves[i])] != EMPTY) {
+                    ++(*captures);
+                }
+                break;
+            case FLG_CASTLE:
+                ++(*castles);
+                break;
+            default:
+                break;
             }
 
 #ifdef COUNT_CHECKS_AND_MATES
             make_move(pos, &sp, moves[i], 0);
-            perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
+            perft(depth - 1, pos, captures, eps, castles, promos, checks,
+                  mates);
             undo_move(pos, &sp, moves[i], 0);
-            #ifndef NDEBUG
+#ifndef NDEBUG
             assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);
-            #endif
+#endif
 #endif
         }
     }
     return nodes;
 }
 
-int perft_test(const struct position *restrict position,
-        int depth,
-        uint64_t *nodes,
-        uint64_t *captures,
-        uint64_t *eps,
-        uint64_t *castles,
-        uint64_t *promos,
-        uint64_t *checks,
-        uint64_t *mates) {
+int perft_test(const struct position *restrict position, int depth,
+               uint64_t *nodes, uint64_t *captures, uint64_t *eps,
+               uint64_t *castles, uint64_t *promos, uint64_t *checks,
+               uint64_t *mates) {
     *nodes = *captures = *eps = *castles = *promos = *checks = *mates = 0;
     if (depth < 0) {
         return 1;
@@ -120,7 +118,7 @@ int perft_test(const struct position *restrict position,
 uint64_t perft_speed(struct position *restrict pos, int depth) {
     int i;
     int nmoves;
-    uint64_t nodes = 0;    
+    uint64_t nodes = 0;
     move moves[MAX_MOVES];
     struct savepos sp;
     if (depth == 0) {
@@ -139,7 +137,8 @@ uint64_t perft_speed(struct position *restrict pos, int depth) {
     return nodes;
 }
 
-static uint64_t perft_text_tree_helper(struct position *restrict pos, int depth) {
+static uint64_t perft_text_tree_helper(struct position *restrict pos,
+                                       int depth) {
     int i;
     int nmoves;
     move moves[MAX_MOVES];
@@ -175,7 +174,8 @@ void perft_text_tree(struct position *restrict pos, int depth) {
         nodes = perft_text_tree_helper(pos, depth - 1);
         total_nodes += nodes;
         undo_move(pos, &sp, moves[i], 0);
-        move_print_short(moves[i]); printf(": %" PRIu64 "\n", nodes);
+        move_print_short(moves[i]);
+        printf(": %" PRIu64 "\n", nodes);
     }
     printf("Total nodes at depth %d: %" PRIu64 "\n", depth, total_nodes);
 }

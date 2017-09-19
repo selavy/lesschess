@@ -1,22 +1,22 @@
 #include "position.h"
-#include <string.h>
 #include <assert.h>
 #include <inttypes.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <string.h>
 
 // square x piece (8x8)x(6x2)
 // white to move  (1)
 // castle rights  (16)
 // enpassant file (8)
-#define ZOBRISTSZ ((8*8*6*2) + 1 + 16 + 8)
+#define ZOBRISTSZ ((8 * 8 * 6 * 2) + 1 + 16 + 8)
 static uint64_t zobrist_values[ZOBRISTSZ];
 
 static size_t ZOBRIST_BOARD_SQ_INDEX(int pc, int sq) {
     const size_t npieces = 12;
-    const size_t index = npieces*sq + pc;
+    const size_t index = npieces * sq + pc;
     assert(pc >= 0 && pc <= npieces);
-    assert(index >= 0 && index < 64*12);
+    assert(index >= 0 && index < 64 * 12);
     return index;
 }
 
@@ -36,11 +36,11 @@ static uint64_t ZOBRIST_BOARD(int pc, int file, int rank) {
 }
 
 static size_t ZOBRIST_SIDE_TO_MOVE_INDEX() {
-    const size_t base = 64*12;
+    const size_t base = 64 * 12;
     const size_t off = 0;
     const size_t index = base + off;
-    assert(index >= 64*12);
-    assert(index <= 64*12);
+    assert(index >= 64 * 12);
+    assert(index <= 64 * 12);
     return index;
 }
 
@@ -49,22 +49,22 @@ static uint64_t ZOBRIST_SIDE_TO_MOVE() {
 }
 
 static size_t ZOBRIST_CASTLE_RIGHTS_INDEX(uint8_t castle_flag) {
-    const size_t base = 64*12 + 1;
+    const size_t base = 64 * 12 + 1;
     const size_t off = castle_flag;
-    assert(castle_flag == CSL_WQSIDE || castle_flag == CSL_WKSIDE
-            || castle_flag == CSL_BQSIDE || castle_flag == CSL_BKSIDE);
+    assert(castle_flag == CSL_WQSIDE || castle_flag == CSL_WKSIDE ||
+           castle_flag == CSL_BQSIDE || castle_flag == CSL_BKSIDE);
     const size_t index = base + off;
-    assert(index >= 64*12+1);
-    assert(index < 64*12+1+16);
+    assert(index >= 64 * 12 + 1);
+    assert(index < 64 * 12 + 1 + 16);
     return index;
 }
 
 static size_t ZOBRIST_ENPASSANT_FILE_INDEX(int file) {
-    const size_t base = 64*12 + 1 + 16;
+    const size_t base = 64 * 12 + 1 + 16;
     const size_t off = file;
     const size_t index = base + off;
-    assert(index >= 64*12+1+16);
-    assert(index < 64*12+1+16+8);
+    assert(index >= 64 * 12 + 1 + 16);
+    assert(index < 64 * 12 + 1 + 16 + 8);
     return index;
 }
 
@@ -98,7 +98,8 @@ void zobrist_hash_module_init() {
 #endif
 }
 
-void zobrist_hash_from_position(const struct position *const pos, uint64_t *zhash) {
+void zobrist_hash_from_position(const struct position *const pos,
+                                uint64_t *zhash) {
     uint64_t h = 0;
     int sq;
     int pc;
@@ -156,76 +157,78 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
         for (file = FILE_A; file <= FILE_H; ++file) {
             c = *fen++;
             switch (c) {
-                case 0:
-                    fprintf(stderr, "FEN string ended too early\n");
-                    return 1;
-                case 'P':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, PAWN);
-                    pos->brd[PIECE(WHITE, PAWN)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'N':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, KNIGHT);
-                    pos->brd[PIECE(WHITE, KNIGHT)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'B':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, BISHOP);
-                    pos->brd[PIECE(WHITE, BISHOP)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'R':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, ROOK);
-                    pos->brd[PIECE(WHITE, ROOK)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'Q':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, QUEEN);
-                    pos->brd[PIECE(WHITE, QUEEN)] |= MASK(SQUARE(file, rank));
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'K':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, KING);
-                    KSQ(*pos, WHITE) = SQUARE(file, rank);
-                    pos->side[WHITE] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'p':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, PAWN);
-                    pos->brd[PIECE(BLACK, PAWN)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'n':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, KNIGHT);
-                    pos->brd[PIECE(BLACK, KNIGHT)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'b':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, BISHOP);
-                    pos->brd[PIECE(BLACK, BISHOP)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'r':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, ROOK);
-                    pos->brd[PIECE(BLACK, ROOK)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'q':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, QUEEN);
-                    pos->brd[PIECE(BLACK, QUEEN)] |= MASK(SQUARE(file, rank));
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
-                    break;
-                case 'k':
-                    pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, KING);
-                    KSQ(*pos, BLACK) = SQUARE(file, rank);
-                    pos->side[BLACK] |= MASK(SQUARE(file, rank));
-                    break;
-                default:
-                    if (c >= '1' && c <= '8') {
-                        file += c - '0' - 1; // file will get incremented by for loop
-                    } else {
-                        fprintf(stderr, "Invalid empty file specification: %c\n", c);
-                        return 2;
-                    }
+            case 0:
+                fprintf(stderr, "FEN string ended too early\n");
+                return 1;
+            case 'P':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, PAWN);
+                pos->brd[PIECE(WHITE, PAWN)] |= MASK(SQUARE(file, rank));
+                pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                break;
+            case 'N':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, KNIGHT);
+                pos->brd[PIECE(WHITE, KNIGHT)] |= MASK(SQUARE(file, rank));
+                pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                break;
+            case 'B':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, BISHOP);
+                pos->brd[PIECE(WHITE, BISHOP)] |= MASK(SQUARE(file, rank));
+                pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                break;
+            case 'R':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, ROOK);
+                pos->brd[PIECE(WHITE, ROOK)] |= MASK(SQUARE(file, rank));
+                pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                break;
+            case 'Q':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, QUEEN);
+                pos->brd[PIECE(WHITE, QUEEN)] |= MASK(SQUARE(file, rank));
+                pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                break;
+            case 'K':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(WHITE, KING);
+                KSQ(*pos, WHITE) = SQUARE(file, rank);
+                pos->side[WHITE] |= MASK(SQUARE(file, rank));
+                break;
+            case 'p':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, PAWN);
+                pos->brd[PIECE(BLACK, PAWN)] |= MASK(SQUARE(file, rank));
+                pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                break;
+            case 'n':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, KNIGHT);
+                pos->brd[PIECE(BLACK, KNIGHT)] |= MASK(SQUARE(file, rank));
+                pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                break;
+            case 'b':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, BISHOP);
+                pos->brd[PIECE(BLACK, BISHOP)] |= MASK(SQUARE(file, rank));
+                pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                break;
+            case 'r':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, ROOK);
+                pos->brd[PIECE(BLACK, ROOK)] |= MASK(SQUARE(file, rank));
+                pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                break;
+            case 'q':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, QUEEN);
+                pos->brd[PIECE(BLACK, QUEEN)] |= MASK(SQUARE(file, rank));
+                pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                break;
+            case 'k':
+                pos->sqtopc[SQUARE(file, rank)] = PIECE(BLACK, KING);
+                KSQ(*pos, BLACK) = SQUARE(file, rank);
+                pos->side[BLACK] |= MASK(SQUARE(file, rank));
+                break;
+            default:
+                if (c >= '1' && c <= '8') {
+                    file +=
+                        c - '0' - 1; // file will get incremented by for loop
+                } else {
+                    fprintf(stderr, "Invalid empty file specification: %c\n",
+                            c);
+                    return 2;
+                }
             }
         }
         assert(rank == RANK_1 || *fen == '/');
@@ -236,44 +239,45 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
     // active color
     c = *fen++;
     switch (c) {
-        case 'w':
-            pos->wtm = WHITE;
-            break;
-        case 'b':
-            pos->wtm = BLACK;
-            break;
-        default:
-            fprintf(stderr, "Invalid color: %c\n", c);
-            return 3;
+    case 'w':
+        pos->wtm = WHITE;
+        break;
+    case 'b':
+        pos->wtm = BLACK;
+        break;
+    default:
+        fprintf(stderr, "Invalid color: %c\n", c);
+        return 3;
     }
 
     if (*fen++ != ' ') {
-        fprintf(stderr, "Expected space after color spec, instead %d\n", *(fen - 1));
+        fprintf(stderr, "Expected space after color spec, instead %d\n",
+                *(fen - 1));
         return 4;
     }
 
     // castling availability
     while ((c = *fen++) != ' ') {
         switch (c) {
-            case 0:
-                return 5;
-            case '-':
-                pos->castle = CSL_NONE;
-                break;
-            case 'K':
-                pos->castle |= CSL_WKSIDE;
-                break;
-            case 'Q':
-                pos->castle |= CSL_WQSIDE;
-                break;
-            case 'k':
-                pos->castle |= CSL_BKSIDE;
-                break;
-            case 'q':
-                pos->castle |= CSL_BQSIDE;
-                break;
-            default:
-                return 6;
+        case 0:
+            return 5;
+        case '-':
+            pos->castle = CSL_NONE;
+            break;
+        case 'K':
+            pos->castle |= CSL_WKSIDE;
+            break;
+        case 'Q':
+            pos->castle |= CSL_WQSIDE;
+            break;
+        case 'k':
+            pos->castle |= CSL_BKSIDE;
+            break;
+        case 'q':
+            pos->castle |= CSL_BQSIDE;
+            break;
+        default:
+            return 6;
         }
     }
 
@@ -303,8 +307,8 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
     }
 
     assert((pos->enpassant == EP_NONE) ||
-            (pos->enpassant >= A3 && pos->enpassant <= H3) ||
-            (pos->enpassant >= A6 && pos->enpassant <= H6));
+           (pos->enpassant >= A3 && pos->enpassant <= H3) ||
+           (pos->enpassant >= A6 && pos->enpassant <= H6));
 
     c = *fen++;
     if (c == 0) {
@@ -430,11 +434,15 @@ int validate_position(struct position *restrict const pos) {
     for (sq = A1; sq <= H8; ++sq) {
         if (pos->sqtopc[sq] == EMPTY) {
             if ((pos->side[WHITE] & MASK(sq)) != 0) {
-                fprintf(stderr, "\nvalidate_position: sqtopc empty on %s, but white full bitboard is not empty\n", sq_to_str[sq]);
+                fprintf(stderr, "\nvalidate_position: sqtopc empty on %s, but "
+                                "white full bitboard is not empty\n",
+                        sq_to_str[sq]);
                 return 1;
             }
             if ((pos->side[BLACK] & MASK(sq)) != 0) {
-                fprintf(stderr, "\nvalidate_position: sqtopc empty on %s, but black full bitboard is not empty\n", sq_to_str[sq]);
+                fprintf(stderr, "\nvalidate_position: sqtopc empty on %s, but "
+                                "black full bitboard is not empty\n",
+                        sq_to_str[sq]);
                 return 2;
             }
         } else {
@@ -445,7 +453,8 @@ int validate_position(struct position *restrict const pos) {
             // check full side bitboards
             if ((pos->side[color] & MASK(sq)) == 0) {
                 // full side board doesn't have this square occupied
-                fprintf(stderr, "\nvalidate_position: sqtopc has %c on %s, but %s (same) bitboard is empty\n",
+                fprintf(stderr, "\nvalidate_position: sqtopc has %c on %s, but "
+                                "%s (same) bitboard is empty\n",
                         visual_pcs[pc], sq_to_str[sq], COLORSTR(color));
                 fprintf(stderr, "\nsq = %d, pc = %d, pos->sqtopc[sq] = %d\n",
                         sq, pc, pos->sqtopc[sq]);
@@ -453,7 +462,8 @@ int validate_position(struct position *restrict const pos) {
             }
             if ((pos->side[contra] & MASK(sq)) != 0) {
                 // other side's full board has this square occupied
-                fprintf(stderr, "\nvalidate_position: sqtopc has %c on %s, but %s (contra) bitboard is not empty\n",
+                fprintf(stderr, "\nvalidate_position: sqtopc has %c on %s, but "
+                                "%s (contra) bitboard is not empty\n",
                         visual_pcs[pc], sq_to_str[sq], COLORSTR(color));
                 fprintf(stderr, "%" PRIu64 "\n", pos->side[contra]);
                 return 4;
@@ -462,18 +472,23 @@ int validate_position(struct position *restrict const pos) {
             // check piece bitboards
             if (pc == PIECE(WHITE, KING)) {
                 if (sq != KSQ(*pos, WHITE)) {
-                    fprintf(stderr, "\nvalidate_position: white king location incorrect. "
-                            "sqtopc[%d] = WHITE KING, KSQ(WHITE) = %d\n",
-                            sq, KSQ(*pos, WHITE));
+                    fprintf(
+                        stderr,
+                        "\nvalidate_position: white king location incorrect. "
+                        "sqtopc[%d] = WHITE KING, KSQ(WHITE) = %d\n",
+                        sq, KSQ(*pos, WHITE));
                     return 22;
                 }
             } else if (pc == PIECE(BLACK, KING)) {
                 if (sq != KSQ(*pos, BLACK)) {
-                    fprintf(stderr, "\nvalidate_position: black king location incorrect\n");
+                    fprintf(
+                        stderr,
+                        "\nvalidate_position: black king location incorrect\n");
                     return 23;
                 }
             } else if ((pos->brd[pc] & MASK(sq)) == 0) {
-                fprintf(stderr, "\nvalidate_position: sqtoc has %c on %s, but bitboard does not\n",
+                fprintf(stderr, "\nvalidate_position: sqtoc has %c on %s, but "
+                                "bitboard does not\n",
                         visual_pcs[pc], sq_to_str[sq]);
                 return 5;
             }
@@ -506,8 +521,10 @@ int validate_position(struct position *restrict const pos) {
         for (sq = A1; sq <= H8; ++sq) {
             if ((pos->brd[pc] & MASK(sq)) != 0) {
                 if (pos->sqtopc[sq] != pc) {
-                    fprintf(stderr, "\nvalidate_position: pos->brd[%c] has a piece on %s, sqtopc has %c\n",
-                            visual_pcs[pc], sq_to_str[sq], visual_pcs[pos->sqtopc[sq]]);
+                    fprintf(stderr, "\nvalidate_position: pos->brd[%c] has a "
+                                    "piece on %s, sqtopc has %c\n",
+                            visual_pcs[pc], sq_to_str[sq],
+                            visual_pcs[pos->sqtopc[sq]]);
                     return 6;
                 }
             }
@@ -515,20 +532,24 @@ int validate_position(struct position *restrict const pos) {
     }
 
     if (white_kings != 1) {
-        fprintf(stderr, "\nvalidate_position: %d white kings found!\n", white_kings);
+        fprintf(stderr, "\nvalidate_position: %d white kings found!\n",
+                white_kings);
         return 7;
     }
     if (black_kings != 1) {
-        fprintf(stderr, "\nvalidate_position: %d black kings found!\n", black_kings);	
+        fprintf(stderr, "\nvalidate_position: %d black kings found!\n",
+                black_kings);
         return 8;
     }
 
     for (sq = A1; sq <= H1; ++sq) {
         if (pos->sqtopc[sq] == PIECE(WHITE, PAWN)) {
-            fprintf(stderr, "\nvalidate_position: white pawn on %s\n", sq_to_str[sq]);
+            fprintf(stderr, "\nvalidate_position: white pawn on %s\n",
+                    sq_to_str[sq]);
             return 9;
         } else if (pos->sqtopc[sq] == PIECE(BLACK, PAWN)) {
-            fprintf(stderr, "\nvalidate_position: black pawn on %s\n", sq_to_str[sq]);
+            fprintf(stderr, "\nvalidate_position: black pawn on %s\n",
+                    sq_to_str[sq]);
             return 10;
         }
     }
@@ -566,16 +587,27 @@ uint8_t rook_square_to_castle_flag(uint8_t sq) {
     // TODO(plesslie): make 64 entry lookup table
     uint8_t result;
     switch (sq) {
-        case A8: result = CSL_BQSIDE; break;
-        case H8: result = CSL_BKSIDE; break;
-        case A1: result = CSL_WQSIDE; break;
-        case H1: result = CSL_WKSIDE; break;
-        default: result = 0;          break;
+    case A8:
+        result = CSL_BQSIDE;
+        break;
+    case H8:
+        result = CSL_BKSIDE;
+        break;
+    case A1:
+        result = CSL_WQSIDE;
+        break;
+    case H1:
+        result = CSL_WKSIDE;
+        break;
+    default:
+        result = 0;
+        break;
     }
     return result;
 }
 
-uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, move m, uint64_t hash) {
+uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp,
+                   move m, uint64_t hash) {
     const uint8_t side = pos->wtm;
     const uint8_t contra = FLIP(side);
     const uint32_t tosq = TO(m);
@@ -608,120 +640,14 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
         pos->enpassant = EP_NONE;
     }
     switch (flags) {
-        case FLG_NONE:
-            assert(((pcs != 0) && pc != PIECE(side, KING)) || ((pcs == 0) && pc == PIECE(side, KING)));
-            if (pcs) {
-                *pcs &= ~from;
-                *pcs |= to;
-            } else {
-                KSQ(*pos, side) = tosq;
-                if (side == WHITE) {
-                    if ((*castle & CSL_WKSIDE) != 0) {
-                        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WKSIDE);
-                    }
-                    if ((*castle & CSL_WQSIDE) != 0) {
-                        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WQSIDE);
-                    }
-                    *castle &= ~CSL_SIDE(WHITE);
-                } else {
-                    if ((*castle & CSL_BKSIDE) != 0) {
-                        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BKSIDE);
-                    }
-                    if ((*castle & CSL_BQSIDE) != 0) {
-                        hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BQSIDE);
-                    }
-                    *castle &= ~CSL_SIDE(BLACK);
-                }
-            }
-            hash ^= ZOBRIST_BOARD_SQ(s2p[fromsq], fromsq);
-            s2p[fromsq] = EMPTY;
-            hash ^= ZOBRIST_BOARD_SQ(pc, tosq);
-            s2p[tosq] = pc;
-            pos->side[side] &= ~from;
-            pos->side[side] |= to;
-            if (topc != EMPTY) {
-                hash ^= ZOBRIST_BOARD_SQ(topc, tosq);
-                pos->brd[topc] &= ~to;
-                pos->side[contra] &= ~to;
-                castle_flag = rook_square_to_castle_flag(tosq);
-                if (castle_flag && (*castle & castle_flag) != 0) {
-                    *castle &= ~castle_flag;
-                    hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
-                }
-            } else if (pc == PIECE(side, PAWN) && (from & RANK2(side)) && (to & EP_SQUARES(side))) {
-                pos->enpassant = epsq;
-                hash ^= ZOBRIST_ENPASSANT(epsq);
-                assert((pos->enpassant >= A3 && pos->enpassant <= H3) ||
-                        (pos->enpassant >= A6 && pos->enpassant <= H6));
-            }
-            if (pc == PIECE(side, ROOK)) {
-                castle_flag = rook_square_to_castle_flag(fromsq);
-                if (castle_flag && (*castle & castle_flag) != 0) {
-                    *castle &= ~castle_flag;
-                    hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
-                }
-            }
-            break;
-        case FLG_EP:
-            assert(pc == PIECE(side, PAWN) && topc == EMPTY);
-            hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
-            hash ^= ZOBRIST_BOARD_SQ(pc, tosq);
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(contra, PAWN), epsq);
-
+    case FLG_NONE:
+        assert(((pcs != 0) && pc != PIECE(side, KING)) ||
+               ((pcs == 0) && pc == PIECE(side, KING)));
+        if (pcs) {
             *pcs &= ~from;
             *pcs |= to;
-            pos->brd[PIECE(contra, PAWN)] &= ~MASK(epsq);
-            s2p[epsq] = EMPTY;
-            s2p[fromsq] = EMPTY;
-            s2p[tosq] = PIECE(side, PAWN);
-            pos->side[side] &= ~from;
-            pos->side[side] |= to;
-            pos->side[contra] &= ~MASK(epsq);
-            break;
-        case FLG_PROMO:
-            assert(pc == PIECE(side, PAWN));
-            *pcs &= ~from;
-            pos->brd[promopc] |= to;
-            hash ^= ZOBRIST_BOARD_SQ(promopc, tosq);
-            s2p[tosq] = promopc;
-            hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
-            s2p[fromsq] = EMPTY;
-            pos->side[side] &= ~from;
-            pos->side[side] |= to;
-            if (topc != EMPTY) {
-                hash ^= ZOBRIST_BOARD_SQ(topc, tosq);
-                pos->brd[topc] &= ~to;
-                pos->side[contra] &= ~to;
-                castle_flag = rook_square_to_castle_flag(tosq);
-                if (castle_flag && (*castle & castle_flag) != 0) {
-                    *castle &= ~castle_flag;
-                    hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
-                }
-            }
-            break;
-        case FLG_CASTLE:
-            assert(pc == PIECE(side, KING));
-            switch (tosq) {
-                case H1: ksq = G1; rsq = F1; break;
-                case A1: ksq = C1; rsq = D1; break;
-                case H8: ksq = G8; rsq = F8; break;
-                case A8: ksq = C8; rsq = D8; break;
-                default: unreachable();
-            }
-            KSQ(*pos, side) = ksq;
-            *rooks &= ~MASK(tosq);
-            *rooks |= MASK(rsq);
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), fromsq);
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), ksq);
-
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), tosq);
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), rsq);
-
-            s2p[fromsq] = s2p[tosq] = EMPTY;
-            s2p[ksq] = PIECE(side, KING);
-            s2p[rsq] = PIECE(side, ROOK);
-            pos->side[side] &= ~(to | from);
-            pos->side[side] |= MASK(ksq) | MASK(rsq);
+        } else {
+            KSQ(*pos, side) = tosq;
             if (side == WHITE) {
                 if ((*castle & CSL_WKSIDE) != 0) {
                     hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WKSIDE);
@@ -739,9 +665,130 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
                 }
                 *castle &= ~CSL_SIDE(BLACK);
             }
+        }
+        hash ^= ZOBRIST_BOARD_SQ(s2p[fromsq], fromsq);
+        s2p[fromsq] = EMPTY;
+        hash ^= ZOBRIST_BOARD_SQ(pc, tosq);
+        s2p[tosq] = pc;
+        pos->side[side] &= ~from;
+        pos->side[side] |= to;
+        if (topc != EMPTY) {
+            hash ^= ZOBRIST_BOARD_SQ(topc, tosq);
+            pos->brd[topc] &= ~to;
+            pos->side[contra] &= ~to;
+            castle_flag = rook_square_to_castle_flag(tosq);
+            if (castle_flag && (*castle & castle_flag) != 0) {
+                *castle &= ~castle_flag;
+                hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
+            }
+        } else if (pc == PIECE(side, PAWN) && (from & RANK2(side)) &&
+                   (to & EP_SQUARES(side))) {
+            pos->enpassant = epsq;
+            hash ^= ZOBRIST_ENPASSANT(epsq);
+            assert((pos->enpassant >= A3 && pos->enpassant <= H3) ||
+                   (pos->enpassant >= A6 && pos->enpassant <= H6));
+        }
+        if (pc == PIECE(side, ROOK)) {
+            castle_flag = rook_square_to_castle_flag(fromsq);
+            if (castle_flag && (*castle & castle_flag) != 0) {
+                *castle &= ~castle_flag;
+                hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
+            }
+        }
+        break;
+    case FLG_EP:
+        assert(pc == PIECE(side, PAWN) && topc == EMPTY);
+        hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
+        hash ^= ZOBRIST_BOARD_SQ(pc, tosq);
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(contra, PAWN), epsq);
+
+        *pcs &= ~from;
+        *pcs |= to;
+        pos->brd[PIECE(contra, PAWN)] &= ~MASK(epsq);
+        s2p[epsq] = EMPTY;
+        s2p[fromsq] = EMPTY;
+        s2p[tosq] = PIECE(side, PAWN);
+        pos->side[side] &= ~from;
+        pos->side[side] |= to;
+        pos->side[contra] &= ~MASK(epsq);
+        break;
+    case FLG_PROMO:
+        assert(pc == PIECE(side, PAWN));
+        *pcs &= ~from;
+        pos->brd[promopc] |= to;
+        hash ^= ZOBRIST_BOARD_SQ(promopc, tosq);
+        s2p[tosq] = promopc;
+        hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
+        s2p[fromsq] = EMPTY;
+        pos->side[side] &= ~from;
+        pos->side[side] |= to;
+        if (topc != EMPTY) {
+            hash ^= ZOBRIST_BOARD_SQ(topc, tosq);
+            pos->brd[topc] &= ~to;
+            pos->side[contra] &= ~to;
+            castle_flag = rook_square_to_castle_flag(tosq);
+            if (castle_flag && (*castle & castle_flag) != 0) {
+                *castle &= ~castle_flag;
+                hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
+            }
+        }
+        break;
+    case FLG_CASTLE:
+        assert(pc == PIECE(side, KING));
+        switch (tosq) {
+        case H1:
+            ksq = G1;
+            rsq = F1;
+            break;
+        case A1:
+            ksq = C1;
+            rsq = D1;
+            break;
+        case H8:
+            ksq = G8;
+            rsq = F8;
+            break;
+        case A8:
+            ksq = C8;
+            rsq = D8;
             break;
         default:
             unreachable();
+        }
+        KSQ(*pos, side) = ksq;
+        *rooks &= ~MASK(tosq);
+        *rooks |= MASK(rsq);
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), fromsq);
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), ksq);
+
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), tosq);
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), rsq);
+
+        s2p[fromsq] = s2p[tosq] = EMPTY;
+        s2p[ksq] = PIECE(side, KING);
+        s2p[rsq] = PIECE(side, ROOK);
+        pos->side[side] &= ~(to | from);
+        pos->side[side] |= MASK(ksq) | MASK(rsq);
+        if (side == WHITE) {
+            if ((*castle & CSL_WKSIDE) != 0) {
+                hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WKSIDE);
+            }
+            if ((*castle & CSL_WQSIDE) != 0) {
+                hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_WQSIDE);
+            }
+            *castle &= ~CSL_SIDE(WHITE);
+        } else {
+            if ((*castle & CSL_BKSIDE) != 0) {
+                hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BKSIDE);
+            }
+            if ((*castle & CSL_BQSIDE) != 0) {
+                hash ^= ZOBRIST_CASTLE_RIGHTS(CSL_BQSIDE);
+            }
+            *castle &= ~CSL_SIDE(BLACK);
+        }
+        break;
+    default:
+        unreachable();
     }
 
     pos->wtm = contra;
@@ -752,13 +799,14 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp, m
     }
     ++pos->nmoves;
 
-    assert(pos->enpassant == EP_NONE || pc == PIECE(side,PAWN));
+    assert(pos->enpassant == EP_NONE || pc == PIECE(side, PAWN));
     assert(validate_position(pos) == 0);
 
     return hash;
 }
 
-uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m, uint64_t hash) {
+uint64_t undo_move(struct position *restrict pos,
+                   const struct savepos *restrict sp, move m, uint64_t hash) {
     const uint8_t side = FLIP(pos->wtm);
     const uint8_t contra = pos->wtm;
     const uint32_t fromsq = FROM(m);
@@ -769,7 +817,8 @@ uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict
     const uint32_t pc = pos->sqtopc[tosq];
     const uint32_t cappc = sp->captured_pc;
     const uint64_t from = MASK(fromsq);
-    const uint64_t to = MASK(tosq); // REVISIT: all uses of `to' are `~to' so just calculate that?
+    const uint64_t to = MASK(
+        tosq); // REVISIT: all uses of `to' are `~to' so just calculate that?
     const uint32_t epsq = side == WHITE ? tosq - 8 : tosq + 8;
     uint64_t *restrict pcs = pc != PIECE(side, KING) ? &pos->brd[pc] : 0;
     uint8_t *restrict s2p = pos->sqtopc;
@@ -781,11 +830,14 @@ uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict
 
     assert(validate_position(pos) == 0);
     assert(fromsq >= A1 && fromsq <= H8);
-    assert(tosq   >= A1 && tosq   <= H8);
+    assert(tosq >= A1 && tosq <= H8);
     assert(side == WHITE || side == BLACK);
-    assert(flags == FLG_NONE || flags == FLG_EP || flags == FLG_PROMO || flags == FLG_CASTLE);
-    assert(cappc == EMPTY || (cappc >= PIECE(WHITE, KNIGHT) && cappc <= PIECE(BLACK, KING)));
-    assert(flags != FLG_PROMO || (promopc >= PIECE(side, KNIGHT) && promopc <= PIECE(side, KING)));
+    assert(flags == FLG_NONE || flags == FLG_EP || flags == FLG_PROMO ||
+           flags == FLG_CASTLE);
+    assert(cappc == EMPTY ||
+           (cappc >= PIECE(WHITE, KNIGHT) && cappc <= PIECE(BLACK, KING)));
+    assert(flags != FLG_PROMO ||
+           (promopc >= PIECE(side, KNIGHT) && promopc <= PIECE(side, KING)));
 
     pos->halfmoves = sp->halfmoves;
 
@@ -820,87 +872,103 @@ uint64_t undo_move(struct position *restrict pos, const struct savepos *restrict
     --pos->nmoves;
 
     switch (flags) {
-        case FLG_NONE:
-            hash ^= ZOBRIST_BOARD_SQ(s2p[tosq], tosq);
-            hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
-            s2p[fromsq] = pc;
-            if (pcs) {
-                *pcs |= from;
-                *pcs &= ~to;
-            } else {
-                KSQ(*pos, side) = fromsq;
-            }
-            *sidebb |= from;
-            *sidebb &= ~to;
-            s2p[tosq] = cappc;
-            if (cappc != EMPTY) {
-                hash ^= ZOBRIST_BOARD_SQ(cappc, tosq);
-                pos->brd[cappc] |= to;
-                *contrabb |= to;
-            }
-            break;
-        case FLG_EP:
-            hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
-            s2p[fromsq] = pc;
+    case FLG_NONE:
+        hash ^= ZOBRIST_BOARD_SQ(s2p[tosq], tosq);
+        hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
+        s2p[fromsq] = pc;
+        if (pcs) {
             *pcs |= from;
             *pcs &= ~to;
-            *sidebb |= from;
-            *sidebb &= ~to;
-            *contrabb |= MASK(epsq);
-            hash ^= ZOBRIST_BOARD_SQ(pc, tosq);
-            s2p[tosq] = EMPTY;
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(contra, PAWN), epsq);
-            assert((side == WHITE && epsq == (tosq - 8)) || (side == BLACK && epsq == (tosq + 8)));
-            s2p[epsq] = PIECE(contra, PAWN);
-            pos->brd[PIECE(contra, PAWN)] |= MASK(epsq);
-            break;
-        case FLG_PROMO:
-            pos->brd[PIECE(side,PAWN)] |= from;
-            pos->brd[promopc] &= ~to;
-            s2p[tosq] = cappc;
-            s2p[fromsq] = PIECE(side, PAWN);
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, PAWN), fromsq);
-            hash ^= ZOBRIST_BOARD_SQ(promopc, tosq);
-            *sidebb |= from;
-            *sidebb &= ~to;
-            if (cappc != EMPTY) {
-                hash ^= ZOBRIST_BOARD_SQ(cappc, tosq);
-                pos->brd[cappc] |= to;
-                *contrabb |= to;
-            }
-            break;
-        case FLG_CASTLE:
-            assert(cappc == PIECE(side,ROOK));
-            switch (tosq) {
-                case A1: ksq = C1; rsq = D1; break;
-                case H1: ksq = G1; rsq = F1; break;
-                case A8: ksq = C8; rsq = D8; break;
-                case H8: ksq = G8; rsq = F8; break;
-                default: unreachable(); break;
-            }
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), fromsq);
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), tosq);
-            s2p[fromsq] = PIECE(side, KING);
-            s2p[tosq] = PIECE(side, ROOK);
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), ksq);
-            hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), rsq);
-            s2p[ksq] = EMPTY;
-            s2p[rsq] = EMPTY;
-            *sidebb |= to | from;
-            *sidebb &= ~(MASK(ksq) | MASK(rsq));
-            *rooks &= ~MASK(rsq);
-            *rooks |= to;
+        } else {
             KSQ(*pos, side) = fromsq;
+        }
+        *sidebb |= from;
+        *sidebb &= ~to;
+        s2p[tosq] = cappc;
+        if (cappc != EMPTY) {
+            hash ^= ZOBRIST_BOARD_SQ(cappc, tosq);
+            pos->brd[cappc] |= to;
+            *contrabb |= to;
+        }
+        break;
+    case FLG_EP:
+        hash ^= ZOBRIST_BOARD_SQ(pc, fromsq);
+        s2p[fromsq] = pc;
+        *pcs |= from;
+        *pcs &= ~to;
+        *sidebb |= from;
+        *sidebb &= ~to;
+        *contrabb |= MASK(epsq);
+        hash ^= ZOBRIST_BOARD_SQ(pc, tosq);
+        s2p[tosq] = EMPTY;
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(contra, PAWN), epsq);
+        assert((side == WHITE && epsq == (tosq - 8)) ||
+               (side == BLACK && epsq == (tosq + 8)));
+        s2p[epsq] = PIECE(contra, PAWN);
+        pos->brd[PIECE(contra, PAWN)] |= MASK(epsq);
+        break;
+    case FLG_PROMO:
+        pos->brd[PIECE(side, PAWN)] |= from;
+        pos->brd[promopc] &= ~to;
+        s2p[tosq] = cappc;
+        s2p[fromsq] = PIECE(side, PAWN);
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(side, PAWN), fromsq);
+        hash ^= ZOBRIST_BOARD_SQ(promopc, tosq);
+        *sidebb |= from;
+        *sidebb &= ~to;
+        if (cappc != EMPTY) {
+            hash ^= ZOBRIST_BOARD_SQ(cappc, tosq);
+            pos->brd[cappc] |= to;
+            *contrabb |= to;
+        }
+        break;
+    case FLG_CASTLE:
+        assert(cappc == PIECE(side, ROOK));
+        switch (tosq) {
+        case A1:
+            ksq = C1;
+            rsq = D1;
+            break;
+        case H1:
+            ksq = G1;
+            rsq = F1;
+            break;
+        case A8:
+            ksq = C8;
+            rsq = D8;
+            break;
+        case H8:
+            ksq = G8;
+            rsq = F8;
             break;
         default:
             unreachable();
+            break;
+        }
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), fromsq);
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), tosq);
+        s2p[fromsq] = PIECE(side, KING);
+        s2p[tosq] = PIECE(side, ROOK);
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(side, KING), ksq);
+        hash ^= ZOBRIST_BOARD_SQ(PIECE(side, ROOK), rsq);
+        s2p[ksq] = EMPTY;
+        s2p[rsq] = EMPTY;
+        *sidebb |= to | from;
+        *sidebb &= ~(MASK(ksq) | MASK(rsq));
+        *rooks &= ~MASK(rsq);
+        *rooks |= to;
+        KSQ(*pos, side) = fromsq;
+        break;
+    default:
+        unreachable();
     }
 
     assert(validate_position(pos) == 0);
     return hash;
 }
 
-move parse_xboard_move(struct position *restrict const pos, const char *line, int len) {
+move parse_xboard_move(struct position *restrict const pos, const char *line,
+                       int len) {
     if (len < 4 || len > 5) {
         return INVALID_MOVE;
     }
@@ -923,8 +991,9 @@ move parse_xboard_move(struct position *restrict const pos, const char *line, in
             } else {
                 unreachable();
             }
-            //return CASTLE(from, to);
-        } else if (from == E8 && KSQ(*pos, BLACK) == E8 && (to == C8 || to == G8)) {
+            // return CASTLE(from, to);
+        } else if (from == E8 && KSQ(*pos, BLACK) == E8 &&
+                   (to == C8 || to == G8)) {
             if (to == C8) {
                 return CASTLE(E8, A8);
             } else if (to == G8) {
@@ -932,8 +1001,9 @@ move parse_xboard_move(struct position *restrict const pos, const char *line, in
             } else {
                 unreachable();
             }
-            //return CASTLE(from, to);
-        } else if (to == pos->enpassant && pos->sqtopc[from] == PIECE(pos->wtm, PAWN)) {
+            // return CASTLE(from, to);
+        } else if (to == pos->enpassant &&
+                   pos->sqtopc[from] == PIECE(pos->wtm, PAWN)) {
             return EP_CAPTURE(from, to);
         } else {
             return MOVE(from, to);
@@ -946,4 +1016,3 @@ move parse_xboard_move(struct position *restrict const pos, const char *line, in
         return INVALID_MOVE;
     }
 }
-

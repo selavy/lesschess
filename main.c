@@ -1,21 +1,22 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <assert.h>
-#include <string.h>
-#include <time.h>
-#include <ctype.h>
-#include <regex.h>
 #include "magic_tables.h"
 #include "move.h"
-#include "position.h"
 #include "movegen.h"
 #include "perft.h"
+#include "position.h"
 #include "search.h"
 #include "xboard.h"
+#include <assert.h>
+#include <ctype.h>
+#include <inttypes.h>
+#include <regex.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
-const char *const starting_position_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const char *const starting_position_fen =
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 static struct timespec timediff(struct timespec start, struct timespec end) {
     struct timespec result;
@@ -48,8 +49,8 @@ static void time_test(int depth) {
     nodes = perft_speed(&pos, depth);
     clock_gettime(CLOCK_MONOTONIC_RAW, &end);
     dur = timediff(begin, end);
-    printf("Depth %d, nodes = %" PRIu64 " took %ld seconds %ld millis\n",
-            depth, nodes, dur.tv_sec, dur.tv_nsec / 1000000);
+    printf("Depth %d, nodes = %" PRIu64 " took %ld seconds %ld millis\n", depth,
+           nodes, dur.tv_sec, dur.tv_nsec / 1000000);
 }
 
 static void run_perft_test(int argc, char **argv) {
@@ -72,14 +73,15 @@ static void run_perft_test(int argc, char **argv) {
         fprintf(stderr, "Invalid FEN: %d\n", result);
         exit(EXIT_FAILURE);
     }
-    result = perft_test(&pos, depth, &nodes, &captures,
-            &eps, &castles, &promos, &checks, &mates);
+    result = perft_test(&pos, depth, &nodes, &captures, &eps, &castles, &promos,
+                        &checks, &mates);
     if (result != 0) {
         fprintf(stderr, "perft_test failed\n");
         exit(EXIT_FAILURE);
     }
-    printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n",
-            nodes, captures, eps, castles, promos, checks, mates);
+    printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64
+           " %" PRIu64 " %" PRIu64 "\n",
+           nodes, captures, eps, castles, promos, checks, mates);
 }
 
 static void replay_file(const char *filename) {
@@ -131,16 +133,15 @@ static void replay_file(const char *filename) {
     }
 }
 
-
 int main(int argc, char **argv) {
     zobrist_hash_module_init();
     transposition_table_init();
 
     if (argc < 2) {
-       xboard_uci_main();
+        xboard_uci_main();
     } else {
         if (strcmp(argv[1], "perft") == 0) {
-            run_perft_test(argc-2, argv+2);
+            run_perft_test(argc - 2, argv + 2);
         } else if (strcmp(argv[1], "timetest") == 0) {
             for (int depth = 0; depth < 8; ++depth) {
                 time_test(depth);

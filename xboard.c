@@ -1,14 +1,14 @@
 #include "xboard.h"
+#include "move.h"
+#include "movegen.h"
+#include "position.h"
+#include "search.h"
+#include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdarg.h>
-#include <signal.h>
-#include "move.h"
-#include "position.h"
-#include "movegen.h"
-#include "search.h"
 
 enum xboard_state {
     XB_NONE,
@@ -23,21 +23,20 @@ static FILE *g_debug_stream;
 static struct position g_pos;
 static struct savepos g_sp;
 
-static const char *statestr()
-{
+static const char *statestr() {
     switch (g_xbstate) {
-        case XB_NONE:
-            return "None";
-        case XB_BEGIN:
-            return "Begin";
-        case XB_FEATURES_SENT:
-            return "FeaturesSent";
-        case XB_SETUP:
-            return "Setup";
-        case XB_PLAYING:
-            return "Playing";
-        default:
-            return "Unknown";
+    case XB_NONE:
+        return "None";
+    case XB_BEGIN:
+        return "Begin";
+    case XB_FEATURES_SENT:
+        return "FeaturesSent";
+    case XB_SETUP:
+        return "Setup";
+    case XB_PLAYING:
+        return "Playing";
+    default:
+        return "Unknown";
     }
 }
 
@@ -51,43 +50,36 @@ static void handle_features_sent(const char *line, int len);
 static void handle_setup(const char *line, int len);
 static void handle_playing(const char *line, int len);
 
-static int strictcmp(const char *a, const char *b)
-{
+static int strictcmp(const char *a, const char *b) {
     return strncmp(a, b, strlen(b)) == 0;
 }
 
-static void sigh(int nsig)
-{
-    xbdebug("received signal: %d", nsig);
-}
+static void sigh(int nsig) { xbdebug("received signal: %d", nsig); }
 
-
-void handle_input(const char *line, int len)
-{
+void handle_input(const char *line, int len) {
     if (strictcmp(line, "quit")) {
         xbdebug("Bye.\n");
         exit(EXIT_SUCCESS);
     } else {
         switch (g_xbstate) {
-            case XB_BEGIN:
-                handle_begin_state(line, len);
-                break;
-            case XB_FEATURES_SENT:
-                handle_features_sent(line, len);
-                break;
-            case XB_SETUP:
-                handle_setup(line, len);
-                break;
-            case XB_PLAYING:
-                return handle_playing(line, len);
-            default:
-                xberror("unknown xboard state.");
+        case XB_BEGIN:
+            handle_begin_state(line, len);
+            break;
+        case XB_FEATURES_SENT:
+            handle_features_sent(line, len);
+            break;
+        case XB_SETUP:
+            handle_setup(line, len);
+            break;
+        case XB_PLAYING:
+            return handle_playing(line, len);
+        default:
+            xberror("unknown xboard state.");
         }
     }
 }
 
-void handle_begin_state(const char *line, int len) 
-{
+void handle_begin_state(const char *line, int len) {
     if (strictcmp(line, "protover")) {
         if (len < 10 || line[9] != '2') {
             xberror("Unknown protocol version: %c", len < 10 ? '?' : line[9]);
@@ -104,8 +96,7 @@ void handle_begin_state(const char *line, int len)
     }
 }
 
-void handle_features_sent(const char *line, int len)
-{
+void handle_features_sent(const char *line, int len) {
     if (strictcmp(line, "accepted")) {
         // TODO: keep bitfield of features that have been accepted.
         // verify that everything requested is accepted
@@ -119,8 +110,7 @@ void handle_features_sent(const char *line, int len)
     }
 }
 
-static void xboard_make_move()
-{
+static void xboard_make_move() {
     const move m = search(&g_pos);
     if (m == MATED) {
         xbdebug("lesschess has been mated\n");
@@ -129,8 +119,7 @@ static void xboard_make_move()
     xbwrite("move %s\n", xboard_move_print(m));
 }
 
-void handle_setup(const char *line, int len)
-{
+void handle_setup(const char *line, int len) {
     xbdebug("handle_setup: %.*s", len, line);
     if (strictcmp(line, "random")) {
         // nop
@@ -158,8 +147,7 @@ void handle_setup(const char *line, int len)
     xbdebug("hit end of handle_setup");
 }
 
-void handle_playing(const char *line, int len)
-{
+void handle_playing(const char *line, int len) {
     if (!strictcmp(line, "go")) {
         move m = parse_xboard_move(&g_pos, line, len);
         if (m == INVALID_MOVE) {
@@ -175,8 +163,7 @@ void handle_playing(const char *line, int len)
     xboard_make_move();
 }
 
-void xberror(const char *fmt, ...)
-{
+void xberror(const char *fmt, ...) {
     fprintf(g_debug_stream, "LessChess ERROR(%s): ", statestr());
     va_list args;
     va_start(args, fmt);
@@ -187,8 +174,7 @@ void xberror(const char *fmt, ...)
     exit(EXIT_FAILURE);
 }
 
-void xbdebug(const char *fmt, ...)
-{
+void xbdebug(const char *fmt, ...) {
     fprintf(g_debug_stream, "LessChess INFO(%s): ", statestr());
     va_list args;
     va_start(args, fmt);
@@ -197,8 +183,7 @@ void xbdebug(const char *fmt, ...)
     fprintf(g_debug_stream, "\n");
 }
 
-void xbwrite(const char *fmt, ...)
-{
+void xbwrite(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     vfprintf(stdout, fmt, args);
@@ -206,10 +191,10 @@ void xbwrite(const char *fmt, ...)
     fprintf(stdout, "\n");
 }
 
-void xbstate_init()
-{
+void xbstate_init() {
     int retcode;
-    const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    const char *fen =
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     retcode = position_from_fen(&g_pos, fen);
     if (retcode != 0) {
         xberror("position_from_fen failed: %d", retcode);
@@ -221,8 +206,7 @@ void xbstate_init()
     }
 }
 
-void xboard_uci_main()
-{
+void xboard_uci_main() {
     FILE *istream;
     char *line = 0;
     size_t len = 0;
@@ -261,4 +245,3 @@ void xboard_uci_main()
         }
     }
 }
-

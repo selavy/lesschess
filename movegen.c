@@ -1,9 +1,9 @@
 #include "movegen.h"
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include <inttypes.h>
 #include "magic_tables.h"
+#include <assert.h>
+#include <inttypes.h>
+#include <stdlib.h>
+#include <string.h>
 
 int is_legal_move_FIXME(const struct position *restrict const pos, move m) {
     int nmoves;
@@ -27,11 +27,12 @@ int is_mate_FIXME(const struct position *restrict const pos) {
     return nmoves == 0;
 }
 
-int in_check(const struct position * const restrict pos, uint8_t side) {
+int in_check(const struct position *const restrict pos, uint8_t side) {
     return attacks(pos, FLIP(side), KSQ(*pos, side));
 }
 
-static move *generate_knight_moves(uint64_t knights, const uint64_t targets, move *moves) {
+static move *generate_knight_moves(uint64_t knights, const uint64_t targets,
+                                   move *moves) {
     int from;
     int to;
     uint64_t posmoves;
@@ -48,7 +49,8 @@ static move *generate_knight_moves(uint64_t knights, const uint64_t targets, mov
     return moves;
 }
 
-static move *generate_bishop_moves(uint64_t bishops, const uint64_t occupied, const uint64_t targets, move *moves) {
+static move *generate_bishop_moves(uint64_t bishops, const uint64_t occupied,
+                                   const uint64_t targets, move *moves) {
     int from;
     int to;
     uint64_t posmoves;
@@ -65,7 +67,8 @@ static move *generate_bishop_moves(uint64_t bishops, const uint64_t occupied, co
     return moves;
 }
 
-static move *generate_rook_moves(uint64_t rooks, const uint64_t occupied, const uint64_t targets, move *moves) {
+static move *generate_rook_moves(uint64_t rooks, const uint64_t occupied,
+                                 const uint64_t targets, move *moves) {
     int from;
     int to;
     uint64_t posmoves;
@@ -82,7 +85,8 @@ static move *generate_rook_moves(uint64_t rooks, const uint64_t occupied, const 
     return moves;
 }
 
-static move *generate_king_moves(const int ksq, const uint64_t targets, move *moves) {
+static move *generate_king_moves(const int ksq, const uint64_t targets,
+                                 move *moves) {
     int to;
     uint64_t posmoves = king_attacks(ksq) & targets;
     while (posmoves) {
@@ -96,55 +100,47 @@ static move *generate_king_moves(const int ksq, const uint64_t targets, move *mo
 // REVISIT: maybe instead of generating all attacked squares, make a new
 // "generate_attacked_ex(const struct position*, u8 side, u64 targets)" then
 // get attack mask with targets = E1 | F1 | G1 | D1 | C1
-static move *generate_castling(const struct position *const restrict pos, const uint8_t side, const int from, move *moves) {
+static move *generate_castling(const struct position *const restrict pos,
+                               const uint8_t side, const int from,
+                               move *moves) {
     const uint8_t castle = pos->castle;
     const uint8_t contraside = FLIP(side);
 
     if (side == WHITE) {
-        if ((castle & CSL_WKSIDE) != 0 &&
-                (from == E1)               &&
-                (pos->sqtopc[F1] == EMPTY) &&
-                (pos->sqtopc[G1] == EMPTY) &&
-                (attacks(pos, contraside, E1) == 0) &&
-                (attacks(pos, contraside, F1) == 0) &&
-                (attacks(pos, contraside, G1) == 0)) {
-            if (pos->sqtopc[H1] != PIECE(WHITE,ROOK)) {
+        if ((castle & CSL_WKSIDE) != 0 && (from == E1) &&
+            (pos->sqtopc[F1] == EMPTY) && (pos->sqtopc[G1] == EMPTY) &&
+            (attacks(pos, contraside, E1) == 0) &&
+            (attacks(pos, contraside, F1) == 0) &&
+            (attacks(pos, contraside, G1) == 0)) {
+            if (pos->sqtopc[H1] != PIECE(WHITE, ROOK)) {
                 position_print(stderr, pos);
             }
-            assert(pos->sqtopc[H1] == PIECE(WHITE,ROOK));
+            assert(pos->sqtopc[H1] == PIECE(WHITE, ROOK));
             *moves++ = CASTLE(E1, H1);
         }
-        if ((castle & CSL_WQSIDE) != 0 &&
-                (from == E1)               &&
-                (pos->sqtopc[D1] == EMPTY) &&
-                (pos->sqtopc[C1] == EMPTY) &&
-                (pos->sqtopc[B1] == EMPTY) &&
-                (attacks(pos, contraside, E1) == 0) &&
-                (attacks(pos, contraside, D1) == 0) &&
-                (attacks(pos, contraside, C1) == 0)) {
-            assert(pos->sqtopc[A1] == PIECE(WHITE,ROOK));
+        if ((castle & CSL_WQSIDE) != 0 && (from == E1) &&
+            (pos->sqtopc[D1] == EMPTY) && (pos->sqtopc[C1] == EMPTY) &&
+            (pos->sqtopc[B1] == EMPTY) && (attacks(pos, contraside, E1) == 0) &&
+            (attacks(pos, contraside, D1) == 0) &&
+            (attacks(pos, contraside, C1) == 0)) {
+            assert(pos->sqtopc[A1] == PIECE(WHITE, ROOK));
             *moves++ = CASTLE(E1, A1);
         }
     } else {
-        if ((castle & CSL_BKSIDE) != 0 &&
-                (from == E8)               &&
-                (pos->sqtopc[F8] == EMPTY) &&
-                (pos->sqtopc[G8] == EMPTY) &&
-                (attacks(pos, contraside, E8) == 0) &&
-                (attacks(pos, contraside, F8) == 0) &&
-                (attacks(pos, contraside, G8) == 0)) {
-            assert(pos->sqtopc[H8] == PIECE(BLACK,ROOK));
+        if ((castle & CSL_BKSIDE) != 0 && (from == E8) &&
+            (pos->sqtopc[F8] == EMPTY) && (pos->sqtopc[G8] == EMPTY) &&
+            (attacks(pos, contraside, E8) == 0) &&
+            (attacks(pos, contraside, F8) == 0) &&
+            (attacks(pos, contraside, G8) == 0)) {
+            assert(pos->sqtopc[H8] == PIECE(BLACK, ROOK));
             *moves++ = CASTLE(E8, H8);
         }
-        if ((castle & CSL_BQSIDE) != 0 &&
-                (from == E8)               &&
-                (pos->sqtopc[D8] == EMPTY) &&
-                (pos->sqtopc[C8] == EMPTY) &&
-                (pos->sqtopc[B8] == EMPTY) &&
-                (attacks(pos, contraside, E8) == 0) &&
-                (attacks(pos, contraside, D8) == 0) &&
-                (attacks(pos, contraside, C8) == 0)) {
-            assert(pos->sqtopc[A8] == PIECE(BLACK,ROOK));
+        if ((castle & CSL_BQSIDE) != 0 && (from == E8) &&
+            (pos->sqtopc[D8] == EMPTY) && (pos->sqtopc[C8] == EMPTY) &&
+            (pos->sqtopc[B8] == EMPTY) && (attacks(pos, contraside, E8) == 0) &&
+            (attacks(pos, contraside, D8) == 0) &&
+            (attacks(pos, contraside, C8) == 0)) {
+            assert(pos->sqtopc[A8] == PIECE(BLACK, ROOK));
             *moves++ = CASTLE(E8, A8);
         }
     }
@@ -152,7 +148,8 @@ static move *generate_castling(const struct position *const restrict pos, const 
     return moves;
 }
 
-int is_legal(const struct position *const restrict pos, const uint64_t pinned, const move m) {
+int is_legal(const struct position *const restrict pos, const uint64_t pinned,
+             const move m) {
     const int side = pos->wtm;
     const int contra = FLIP(pos->wtm);
     const int tosq = TO(m);
@@ -165,12 +162,12 @@ int is_legal(const struct position *const restrict pos, const uint64_t pinned, c
     if (flags == FLG_CASTLE) {
         return 1;
     } else if (flags == FLG_EP) {
-        // REVISIT(plesslie): `FAST_VERSION' may not actually be that fast after all...
-        // I'm getting better perft times using the "stupid" method
-#define FAST_VERSION
-#ifdef FAST_VERSION
-        // The only way en passant can expose check if via uncovering a queen, rook, or bishop
-        // so only need to check sliding pieces	
+// REVISIT(plesslie): `FAST_VERSION' may not actually be that fast after all...
+// I'm getting better perft times using the "stupid" method
+#if 1
+        // The only way en passant can expose check if via uncovering a queen,
+        // rook, or bishop
+        // so only need to check sliding pieces
         const uint64_t to = MASK(tosq);
         const int capsq = side == WHITE ? tosq - 8 : tosq + 8;
         const uint64_t pieces = pos->side[WHITE] | pos->side[BLACK];
@@ -179,7 +176,7 @@ int is_legal(const struct position *const restrict pos, const uint64_t pinned, c
         const uint64_t bishops = PIECES(*pos, contra, BISHOP);
         const uint64_t occ = (pieces ^ from ^ MASK(capsq)) | to;
         return !(rook_attacks(ksq, occ) & (queens | rooks)) &&
-            !(bishop_attacks(ksq, occ) & (queens | bishops));
+               !(bishop_attacks(ksq, occ) & (queens | bishops));
 #else
         // "naive" method: just make the move and see if we are in check
         struct position tmp;
@@ -195,15 +192,18 @@ int is_legal(const struct position *const restrict pos, const uint64_t pinned, c
         const uint64_t attacked = attacks(pos, contra, tosq);
         return !attacked;
     } else {
-        // TODO(plesslie): need to test that "flags==FLG_PROMO" case is working correctly
+        // TODO(plesslie): need to test that "flags==FLG_PROMO" case is working
+        // correctly
 
-        // legal if not pinned or moving on the same ray as the king (i.e. pinned piece
+        // legal if not pinned or moving on the same ray as the king (i.e.
+        // pinned piece
         // will still be blocking are moving)
         return !pinned || !(pinned & from) || lined_up(fromsq, tosq, ksq);
     }
 }
 
-uint64_t generate_checkers(const struct position *const restrict pos, uint8_t side) {
+uint64_t generate_checkers(const struct position *const restrict pos,
+                           uint8_t side) {
     const int ksq = KSQ(*pos, side);
     const uint8_t contra = FLIP(side);
     const uint64_t occupied = pos->side[side] | pos->side[contra];
@@ -223,7 +223,8 @@ uint64_t generate_checkers(const struct position *const restrict pos, uint8_t si
     return rval;
 }
 
-uint64_t generate_attacked(const struct position *const restrict pos, const uint8_t side) {
+uint64_t generate_attacked(const struct position *const restrict pos,
+                           const uint8_t side) {
     uint64_t rval = 0;
     uint64_t pcs;
     uint32_t from;
@@ -275,7 +276,8 @@ uint64_t generate_attacked(const struct position *const restrict pos, const uint
     return rval;
 }
 
-int attacks(const struct position * const restrict pos, uint8_t side, int square) {
+int attacks(const struct position *const restrict pos, uint8_t side,
+            int square) {
     uint64_t pcs;
     const uint8_t contra = FLIP(side);
     const uint64_t occupied = pos->side[side] | pos->side[contra];
@@ -303,8 +305,10 @@ int attacks(const struct position * const restrict pos, uint8_t side, int square
 }
 
 // pieces from `side' that are blocking check on `kingcolor's king
-uint64_t generate_pinned(const struct position *const restrict pos, uint8_t side, uint8_t kingcolor) {
-    // REVISIT: make new macros for pseudo attacks that don't need occupied bitboard.
+uint64_t generate_pinned(const struct position *const restrict pos,
+                         uint8_t side, uint8_t kingcolor) {
+    // REVISIT: make new macros for pseudo attacks that don't need occupied
+    // bitboard.
     //          not sure if that will be faster because LUT will be smaller.
     int sq;
     uint64_t bb;
@@ -316,29 +320,31 @@ uint64_t generate_pinned(const struct position *const restrict pos, uint8_t side
     const uint64_t rooks = PIECES(*pos, contraking, ROOK);
     const uint64_t queens = PIECES(*pos, contraking, QUEEN);
     const uint64_t bishops = PIECES(*pos, contraking, BISHOP);
-    uint64_t pinners = ((rooks | queens) & rook_attacks(ksq, 0))
-	| ((bishops | queens) & bishop_attacks(ksq, 0));
-    #define more_than_one_piece_between(b) more_than_one_piece(b)
+    uint64_t pinners = ((rooks | queens) & rook_attacks(ksq, 0)) |
+                       ((bishops | queens) & bishop_attacks(ksq, 0));
+#define more_than_one_piece_between(b) more_than_one_piece(b)
     while (pinners) {
-	sq = lsb(pinners);
-	bb = between_sqs(sq, ksq) & allpieces;
-	if (!more_than_one_piece_between(bb)) {
-	    ret |= bb & pieces;
-	}
-	clear_lsb(pinners);
+        sq = lsb(pinners);
+        bb = between_sqs(sq, ksq) & allpieces;
+        if (!more_than_one_piece_between(bb)) {
+            ret |= bb & pieces;
+        }
+        clear_lsb(pinners);
     }
 
     return ret;
-    #undef more_than_one_piece_between
+#undef more_than_one_piece_between
 }
 
-move *generate_evasions(const struct position *const restrict pos, const uint64_t checkers, move *restrict moves) {
+move *generate_evasions(const struct position *const restrict pos,
+                        const uint64_t checkers, move *restrict moves) {
     uint32_t to;
     uint32_t from;
     uint64_t pcs;
     uint64_t posmoves;
     const uint8_t side = pos->wtm;
-    const uint8_t contra = FLIP(side); // TODO: does this create a data dependency on `side'?
+    const uint8_t contra =
+        FLIP(side); // TODO: does this create a data dependency on `side'?
     const uint64_t attacked = generate_attacked(pos, contra);
     const uint64_t safe = ~(pos->side[side]) & ~attacked;
     // REVISIT(plesslie): check that these loads are scheduled well
@@ -372,13 +378,13 @@ move *generate_evasions(const struct position *const restrict pos, const uint64_
                 if (epsq == checksq) {
                     assert(pos->sqtopc[epsq] == PIECE(contra, PAWN));
                     assert((side == WHITE && to >= A6 && to <= H6) ||
-                            (side == BLACK && to >= A3 && to <= H3));
+                           (side == BLACK && to >= A3 && to <= H3));
                     assert(pos->sqtopc[to] == EMPTY);
                     // capture left
                     if (to != H6 && to != H3) {
                         from = side == WHITE ? to - 7 : to + 9;
                         assert((side == WHITE && from >= A5 && from <= H5) ||
-                                (side == BLACK && from >= A4 && from <= H4));
+                               (side == BLACK && from >= A4 && from <= H4));
                         if (pos->sqtopc[from] == PIECE(side, PAWN)) {
                             *moves++ = EP_CAPTURE(from, to);
                         }
@@ -388,7 +394,7 @@ move *generate_evasions(const struct position *const restrict pos, const uint64_
                     if (to != A6 && to != A3) {
                         from = side == WHITE ? to - 9 : to + 7;
                         assert((side == WHITE && from >= A5 && from <= H5) ||
-                                (side == BLACK && from >= A4 && from <= H4));
+                               (side == BLACK && from >= A4 && from <= H4));
                         if (pos->sqtopc[from] == PIECE(side, PAWN)) {
                             *moves++ = EP_CAPTURE(from, to);
                         }
@@ -434,7 +440,8 @@ move *generate_evasions(const struct position *const restrict pos, const uint64_
         }
 
         moves = generate_knight_moves(knights, targets, moves);
-        moves = generate_bishop_moves(bishops | queens, occupied, targets, moves);
+        moves =
+            generate_bishop_moves(bishops | queens, occupied, targets, moves);
         moves = generate_rook_moves(rooks | queens, occupied, targets, moves);
 
         // capture left
@@ -473,15 +480,16 @@ move *generate_evasions(const struct position *const restrict pos, const uint64_
             clear_lsb(posmoves);
         }
 
-    } // else more than 1 checker, and can't block or capture to get out of check
+    } // else more than 1 checker, and can't block or capture to get out of
+      // check
 
     return moves;
 }
 
-
-move *generate_non_evasions(const struct position *const restrict pos, move *restrict moves) {
+move *generate_non_evasions(const struct position *const restrict pos,
+                            move *restrict moves) {
     const uint8_t side = pos->wtm;
-    const uint8_t contraside = FLIP(side); // TODO: does this create a data dependency on `side'?
+    const uint8_t contraside = FLIP(pos->wtm);
     const uint64_t same = pos->side[side];
     const uint64_t contra = pos->side[contraside];
     const uint64_t occupied = same | contra;
@@ -496,10 +504,13 @@ move *generate_non_evasions(const struct position *const restrict pos, move *res
     uint32_t from;
     uint32_t to;
 
-#define TOSQ_NOT_KING(sq) assert(sq != KSQ(*pos, WHITE)); assert(sq != KSQ(*pos, BLACK));
+#define TOSQ_NOT_KING(sq)                                                      \
+    assert(sq != KSQ(*pos, WHITE));                                            \
+    assert(sq != KSQ(*pos, BLACK));
 
     moves = generate_knight_moves(knights, opp_or_empty, moves);
-    moves = generate_bishop_moves(bishops | queens, occupied, opp_or_empty, moves);
+    moves =
+        generate_bishop_moves(bishops | queens, occupied, opp_or_empty, moves);
     moves = generate_rook_moves(rooks | queens, occupied, opp_or_empty, moves);
     moves = generate_king_moves(ksq, opp_or_empty, moves);
     moves = generate_castling(pos, side, ksq, moves);
@@ -511,7 +522,7 @@ move *generate_non_evasions(const struct position *const restrict pos, move *res
     while (posmoves) {
         to = lsb(posmoves);
         from = side == WHITE ? to - 8 : to + 8;
-        assert(pos->sqtopc[from] == PIECE(side,PAWN));
+        assert(pos->sqtopc[from] == PIECE(side, PAWN));
         if (to >= A8 || to <= H1) { // promotion
             TOSQ_NOT_KING(to);
             *moves++ = PROMOTION(from, to, KNIGHT);
@@ -532,14 +543,14 @@ move *generate_non_evasions(const struct position *const restrict pos, move *res
     while (posmoves) {
         to = lsb(posmoves);
         from = side == WHITE ? to - 16 : to + 16;
-        assert(pos->sqtopc[from] == PIECE(side,PAWN));
+        assert(pos->sqtopc[from] == PIECE(side, PAWN));
         // TODO(plesslie): do this with bitmasks?
         // make sure we aren't jumping over another piece
         if (pos->sqtopc[side == WHITE ? to - 8 : to + 8] == EMPTY) {
             TOSQ_NOT_KING(to);
             *moves++ = MOVE(from, to);
         }
-	clear_lsb(posmoves);
+        clear_lsb(posmoves);
     }
 
     // pawn moves - capture left
@@ -549,7 +560,7 @@ move *generate_non_evasions(const struct position *const restrict pos, move *res
     while (posmoves) {
         to = lsb(posmoves);
         from = side == WHITE ? to - 7 : to + 9;
-        assert(pos->sqtopc[from] == PIECE(side,PAWN));
+        assert(pos->sqtopc[from] == PIECE(side, PAWN));
         assert(pos->sqtopc[to] != EMPTY);
         if (to >= A8 || to <= H1) { // last rank => promotion
             TOSQ_NOT_KING(to);
@@ -561,7 +572,7 @@ move *generate_non_evasions(const struct position *const restrict pos, move *res
             TOSQ_NOT_KING(to);
             *moves++ = MOVE(from, to);
         }
-	clear_lsb(posmoves);
+        clear_lsb(posmoves);
     }
 
     // pawn moves - capture right
@@ -571,7 +582,7 @@ move *generate_non_evasions(const struct position *const restrict pos, move *res
     while (posmoves) {
         to = lsb(posmoves);
         from = side == WHITE ? to - 9 : to + 7;
-        assert(pos->sqtopc[from] == PIECE(side,PAWN));
+        assert(pos->sqtopc[from] == PIECE(side, PAWN));
         assert(pos->sqtopc[to] != EMPTY);
         if (to >= A8 || to <= H1) { // last rank => promotion
             TOSQ_NOT_KING(to);
@@ -583,53 +594,56 @@ move *generate_non_evasions(const struct position *const restrict pos, move *res
             TOSQ_NOT_KING(to);
             *moves++ = MOVE(from, to);
         }
-	clear_lsb(posmoves);
+        clear_lsb(posmoves);
     }
 
     // TODO: branch on side earlier?
     // en passant
     if (pos->enpassant != EP_NONE) {
-	to = pos->enpassant;
-	assert((side == WHITE && to >= A6 && to <= H6) ||
-	       (side == BLACK && to >= A3 && to <= H3));
-	assert(pos->sqtopc[to] == EMPTY);
-	// capture left
-	if (to != H6 && to != H3) {
-	    from = side == WHITE ? to - 7 : to + 9;
-	    assert((side == WHITE && from >= A5 && from <= H5) ||
-		   (side == BLACK && from >= A4 && from <= H4));
-	    if (pos->sqtopc[from] == PIECE(side, PAWN)) {
-            TOSQ_NOT_KING(to);
-            *moves++ = EP_CAPTURE(from, to);
-	    }
-	}
+        to = pos->enpassant;
+        assert((side == WHITE && to >= A6 && to <= H6) ||
+               (side == BLACK && to >= A3 && to <= H3));
+        assert(pos->sqtopc[to] == EMPTY);
+        // capture left
+        if (to != H6 && to != H3) {
+            from = side == WHITE ? to - 7 : to + 9;
+            assert((side == WHITE && from >= A5 && from <= H5) ||
+                   (side == BLACK && from >= A4 && from <= H4));
+            if (pos->sqtopc[from] == PIECE(side, PAWN)) {
+                TOSQ_NOT_KING(to);
+                *moves++ = EP_CAPTURE(from, to);
+            }
+        }
 
-	// capture right
-	if (to != A6 && to != A3) {
-	    from = side == WHITE ? to - 9 : to + 7;
-	    assert((side == WHITE && from >= A5 && from <= H5) ||
-		   (side == BLACK && from >= A4 && from <= H4));
-	    if (pos->sqtopc[from] == PIECE(side, PAWN)) {
-            TOSQ_NOT_KING(to);
-            *moves++ = EP_CAPTURE(from, to);
-	    }
-	}
+        // capture right
+        if (to != A6 && to != A3) {
+            from = side == WHITE ? to - 9 : to + 7;
+            assert((side == WHITE && from >= A5 && from <= H5) ||
+                   (side == BLACK && from >= A4 && from <= H4));
+            if (pos->sqtopc[from] == PIECE(side, PAWN)) {
+                TOSQ_NOT_KING(to);
+                *moves++ = EP_CAPTURE(from, to);
+            }
+        }
     }
 
     return moves;
 #undef TOSQ_NOT_KING
 }
 
-int generate_legal_moves(const struct position *const restrict pos, move *restrict moves) {
+int generate_legal_moves(const struct position *const restrict pos,
+                         move *restrict moves) {
     const uint64_t checkers = generate_checkers(pos, pos->wtm);
     const uint8_t side = pos->wtm;
     const int ksq = KSQ(*pos, side);
     const uint64_t pinned = generate_pinned(pos, side, side);
     move *restrict cur = moves;
-    move *restrict end = checkers ? generate_evasions(pos, checkers, moves) : generate_non_evasions(pos, moves);
+    move *restrict end = checkers ? generate_evasions(pos, checkers, moves)
+                                  : generate_non_evasions(pos, moves);
 
     while (cur != end) {
-        if ((FROM(*cur) == ksq || pinned || FLAGS(*cur) == FLG_EP) && !is_legal(pos, pinned, *cur)) {
+        if ((FROM(*cur) == ksq || pinned || FLAGS(*cur) == FLG_EP) &&
+            !is_legal(pos, pinned, *cur)) {
             *cur = *(--end);
         } else {
             ++cur;

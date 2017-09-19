@@ -1,20 +1,20 @@
 #include "search.h"
-#include <assert.h>
-#include <string.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include "position.h"
-#include "movegen.h"
 #include "eval.h"
+#include "movegen.h"
+#include "position.h"
+#include <assert.h>
+#include <inttypes.h>
+#include <stdint.h>
+#include <string.h>
 
-#define MIN(a, b) (((a)<(b))?(a):(b))
-#define MAX(a, b) (((a)>(b))?(a):(b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 struct tt_entry {
     // TODO(plesslie): don't need to save entire hash, just
     // save bits not in the index
     uint64_t h;
-    int      v;
+    int v;
     // TODO(plesslie): probably need to save depth to?  score
     // from a deeper position should overwrite shallower values?
 };
@@ -32,13 +32,9 @@ void transposition_table_init() {
     }
 }
 
-size_t tt_index(uint64_t h) {
-    return h & (TTSZ - 1);
-}
+size_t tt_index(uint64_t h) { return h & (TTSZ - 1); }
 
-int tt_occupied(size_t idx) {
-    return tt_tbl[idx].h != 0 && tt_tbl[idx].v != 0;
-}
+int tt_occupied(size_t idx) { return tt_tbl[idx].h != 0 && tt_tbl[idx].v != 0; }
 
 int tt_value(size_t idx) {
     assert(tt_tbl[idx].h != 0 && tt_tbl[idx].v != 0);
@@ -51,7 +47,8 @@ void tt_set_value(size_t idx, uint64_t h, int v) {
     tt_tbl[idx].v = v;
 }
 
-int alphabeta_helper(struct position *restrict pos, uint64_t zhash, int depth, int alpha, int beta, int maximizing) {
+int alphabeta_helper(struct position *restrict pos, uint64_t zhash, int depth,
+                     int alpha, int beta, int maximizing) {
     int best;
     int nmoves;
     int i;
@@ -69,7 +66,8 @@ int alphabeta_helper(struct position *restrict pos, uint64_t zhash, int depth, i
         return pos->wtm ? WHITE_WIN : BLACK_WIN;
     }
 
-    // TODO(plesslie): does undo_move() actually need to recalculate the zobrist hash?
+    // TODO(plesslie): does undo_move() actually need to recalculate the zobrist
+    // hash?
     // could just save it off before calling make_move
     if (maximizing) {
         best = NEG_INFINITI;
@@ -100,7 +98,8 @@ int alphabeta_helper(struct position *restrict pos, uint64_t zhash, int depth, i
     return best;
 }
 
-int alphabeta(struct position *restrict pos, const move *restrict moves, int nmoves, uint64_t zhash, int depth, int *score) {
+int alphabeta(struct position *restrict pos, const move *restrict moves,
+              int nmoves, uint64_t zhash, int depth, int *score) {
     struct savepos sp;
     int best = pos->wtm == WHITE ? NEG_INFINITI - 1 : INFINITI + 1;
     int bestmoveno = -1;
@@ -110,7 +109,8 @@ int alphabeta(struct position *restrict pos, const move *restrict moves, int nmo
     if (pos->wtm == WHITE) {
         for (i = 0; i < nmoves; ++i) {
             make_move(pos, &sp, moves[i], 0);
-            value = alphabeta_helper(pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
+            value =
+                alphabeta_helper(pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
             if (value > best) {
                 bestmoveno = i;
                 best = value;
@@ -120,7 +120,8 @@ int alphabeta(struct position *restrict pos, const move *restrict moves, int nmo
     } else {
         for (i = 0; i < nmoves; ++i) {
             make_move(pos, &sp, moves[i], 0);
-            value = alphabeta_helper(pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
+            value =
+                alphabeta_helper(pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
             if (value < best) {
                 bestmoveno = i;
                 best = value;
@@ -153,10 +154,10 @@ move search(const struct position *restrict const p) {
 
     for (depth = 2; depth <= max_depth; ++depth) {
         moveno = alphabeta(&pos, &moves[0], nmoves, zhash, depth, &score);
-        printf("Depth: %d, Move: %s, Score: %d\n", depth, xboard_move_print(moves[moveno]), score);
+        printf("Depth: %d, Move: %s, Score: %d\n", depth,
+               xboard_move_print(moves[moveno]), score);
     }
 
     assert(moveno >= 0 && moveno < nmoves);
     return moves[moveno];
 }
-

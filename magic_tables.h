@@ -29,15 +29,18 @@ extern const uint64_t line_bb[64][64];
 #define between_sqs(from, to) _between_sqs[from][to]
 #define lined_up(sq1, sq2, sq3) line_bb[sq1][sq2] & ((uint64_t)1 << (sq3))
 #define knight_attacks(sq) _knight_attacks[sq]
-#define king_attacks(sq)   _king_attacks[sq]
-#define bishop_attacks(square, occ)                                     \
-    *(magic_bishop_indices[square] +                                    \
-      ((((occ) & magic_bishop_mask[square]) * magic_bishop[square])     \
-       >> magic_bishop_shift[square]))
-#define rook_attacks(square, occ) *(magic_rook_indices[square]+((((occ)&magic_rook_mask[square])*magic_rook[square])>>magic_rook_shift[square]))
-#define queen_attacks(square, occ) (bishop_attacks(square, occ) | rook_attacks(square, occ))
-#define pawn_attacks(side, square) ((side) == WHITE ? wpawn_attacks[square] : bpawn_attacks[square])
+#define king_attacks(sq) _king_attacks[sq]
+#define bishop_attacks(square, occ)                                            \
+    *(magic_bishop_indices[square] +                                           \
+      ((((occ)&magic_bishop_mask[square]) * magic_bishop[square]) >>           \
+       magic_bishop_shift[square]))
+#define rook_attacks(square, occ)                                              \
+    *(magic_rook_indices[square] +                                             \
+      ((((occ)&magic_rook_mask[square]) * magic_rook[square]) >>               \
+       magic_rook_shift[square]))
+#define queen_attacks(square, occ)                                             \
+    (bishop_attacks(square, occ) | rook_attacks(square, occ))
+#define pawn_attacks(side, square)                                             \
+    ((side) == WHITE ? wpawn_attacks[square] : bpawn_attacks[square])
 
 #endif // MAGIC_TABLES__H_
-
-
