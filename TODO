@@ -16,3 +16,7 @@ Testing
 ========
 +test harness for 1-3 move mate tactics
 +test harness for perft
+
+Misc
+====
++Cleanup xboard uci code
