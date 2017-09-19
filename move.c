@@ -19,32 +19,6 @@ const char *sq_to_str[64] = {
 
 const char *const visual_pcs = "NnBbRrQqPpKk ";
 
-#ifndef NDEBUG
-move MOVE(int from, int to) {
-    assert(from >= 0 && from <= 64);
-    assert(to >= 0 && to <= 64);
-    return _MOVE(from, to);
-}
-
-move EP_CAPTURE(int from, int to) {
-    assert(from >= 0 && from <= 64);
-    assert(to >= 0 && to <= 64);
-    return _EP_CAPTURE(from, to);
-}
-
-move PROMOTION(int from, int to, int prm) {
-    assert(from >= 0 && from <= 64);
-    assert(to >= 0 && to <= 64);
-    return _PROMOTION(from, to, prm);
-}
-
-move CASTLE(int from, int to) {
-    assert(from >= 0 && from <= 64);
-    assert(to >= 0 && to <= 64);
-    return _CASTLE(from, to);
-}
-#endif
-
 void move_print(FILE *fp, move mv) {
     const uint32_t to = TO(mv);
     const uint32_t from = FROM(mv);

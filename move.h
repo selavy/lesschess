@@ -67,11 +67,11 @@ enum {
 // 6 bits for `from'
 // 2 bits for `promo' - 0 = KNIGHT, 1 = BISHOP, 2 = ROOK, 3 = QUEEN
 // 2 bits for flags - NONE, EP, PROMO, CASTLE
-#define _MOVE(from, to) (((to) << 0) | ((from) << 6))
-#define _EP_CAPTURE(from, to) (((to) << 0) | ((from) << 6) | (1 << 14))
-#define _PROMOTION(from, to, prm)                                              \
+#define MOVE(from, to) (((to) << 0) | ((from) << 6))
+#define EP_CAPTURE(from, to) (((to) << 0) | ((from) << 6) | (1 << 14))
+#define PROMOTION(from, to, prm)                                               \
     (((to) << 0) | ((from) << 6) | ((prm) << 12) | (2 << 14))
-#define _CASTLE(from, to) (((to) << 0) | ((from) << 6) | (3 << 14))
+#define CASTLE(from, to) (((to) << 0) | ((from) << 6) | (3 << 14))
 
 #define MATED 0
 #define INVALID_MOVE 0xFFFF
@@ -102,18 +102,6 @@ extern const char *sq_to_str[64];
 extern const char *const visual_pcs;
 
 typedef uint16_t move;
-
-#ifndef NDEBUG
-extern move MOVE(int from, int to);
-extern move EP_CAPTURE(int from, int to);
-extern move PROMOTION(int from, int to, int prm);
-extern move CASTLE(int from, int to);
-#else
-#define MOVE _MOVE
-#define EP_CAPTURE _EP_CAPTURE
-#define PROMOTION _PROMOTION
-#define CASTLE _CASTLE
-#endif
 
 extern void move_print(FILE *fp, move m);
 extern void move_print_short(move m);
