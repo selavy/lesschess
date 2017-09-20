@@ -135,14 +135,14 @@ int alphabeta(struct position *restrict pos, const move *restrict moves,
     return bestmoveno;
 }
 
-move search(const struct position *restrict const p) {
+move search(const struct position *restrict const p, int *score) {
     struct position pos;
     move moves[MAX_MOVES];
     int nmoves;
     const int max_depth = 5;
     uint64_t zhash;
     int moveno;
-    int score;
+    //int score;
     int depth;
 
     memcpy(&pos, p, sizeof(pos));
@@ -153,9 +153,9 @@ move search(const struct position *restrict const p) {
     zobrist_hash_from_position(&pos, &zhash);
 
     for (depth = 2; depth <= max_depth; ++depth) {
-        moveno = alphabeta(&pos, &moves[0], nmoves, zhash, depth, &score);
-        printf("Depth: %d, Move: %s, Score: %d\n", depth,
-               xboard_move_print(moves[moveno]), score);
+        moveno = alphabeta(&pos, &moves[0], nmoves, zhash, depth, score);
+        // printf("Depth: %d, Move: %s, Score: %d\n", depth,
+        //        xboard_move_print(moves[moveno]), *score);
     }
 
     assert(moveno >= 0 && moveno < nmoves);

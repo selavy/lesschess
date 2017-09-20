@@ -6,6 +6,6 @@
 extern void transposition_table_init();
 
 struct position;
-extern move search(const struct position *restrict const pos);
+extern move search(const struct position *restrict const pos, int *score);
 
 #endif

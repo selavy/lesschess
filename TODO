@@ -6,11 +6,13 @@ Non-Engine Improvements
 Engine Improvements
 ===================
 +Iterative Deepening Search + Time scheduling
-+Move Ordering
++Move Ordering  - Killer Move Heuristic
 +Transposition Table
 +Incorporate piece placement into eval function
 +Parallelize search
 +3-move repetition draw (use TT table?)
++Principal Variation Search (PVS)
++Aspiration Window
 
 Testing
 ========

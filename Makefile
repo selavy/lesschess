@@ -4,8 +4,11 @@ test: build
 slow: build
 	python ./testsuite.py slow
 
-zobr: build
-	./build/lesschess zobrist
+perft: build
+	python ./testsuite.py perft
+
+tactics: build
+	python ./testsuite.py tactics
 
 .PHONY: build
 build:

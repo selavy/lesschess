@@ -5,7 +5,67 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int is_legal(const struct position *const restrict pos,
+                    const uint64_t pinned, const move m) {
+    const int side = pos->wtm;
+    const int contra = FLIP(pos->wtm);
+    const int tosq = TO(m);
+    const int fromsq = FROM(m);
+    const uint64_t from = MASK(fromsq);
+    const int pc = pos->sqtopc[fromsq];
+    const int flags = FLAGS(m);
+    const int ksq = KSQ(*pos, side);
+
+    if (flags == FLG_CASTLE) {
+        return 1;
+    } else if (flags == FLG_EP) {
+// REVISIT(plesslie): `FAST_VERSION' may not actually be that fast after all...
+// I'm getting better perft times using the "stupid" method
+#if 1
+        // The only way en passant can expose check if via uncovering a queen,
+        // rook, or bishop
+        // so only need to check sliding pieces
+        const uint64_t to = MASK(tosq);
+        const int capsq = side == WHITE ? tosq - 8 : tosq + 8;
+        const uint64_t pieces = pos->side[WHITE] | pos->side[BLACK];
+        const uint64_t queens = PIECES(*pos, contra, QUEEN);
+        const uint64_t rooks = PIECES(*pos, contra, ROOK);
+        const uint64_t bishops = PIECES(*pos, contra, BISHOP);
+        const uint64_t occ = (pieces ^ from ^ MASK(capsq)) | to;
+        return !(rook_attacks(ksq, occ) & (queens | rooks)) &&
+               !(bishop_attacks(ksq, occ) & (queens | bishops));
+#else
+        // "naive" method: just make the move and see if we are in check
+        struct position tmp;
+        struct savepos sp;
+        memcpy(&tmp, pos, sizeof(tmp));
+        make_move(&tmp, &sp, m);
+        return = !attacks(&tmp, contra, ksq);
+#endif
+    } else if (pc == PIECE(side, KING)) {
+        assert(flags == FLG_NONE);
+        // don't need to remove the king before checking this, because if
+        // the king was blocking a ray, then he would already be in check...
+        const uint64_t attacked = attacks(pos, contra, tosq);
+        return !attacked;
+    } else {
+        // TODO(plesslie): need to test that "flags==FLG_PROMO" case is working
+        // correctly
+
+        // legal if not pinned or moving on the same ray as the king (i.e.
+        // pinned piece
+        // will still be blocking are moving)
+        return !pinned || !(pinned & from) || lined_up(fromsq, tosq, ksq);
+    }
+}
+
 int is_legal_move(const struct position *restrict const pos, move m) {
+    const uint8_t side = pos->wtm;
+    const int ksq = pos->ksq[side];
+    const uint64_t pinned = generate_pinned(pos, side, side);
+    const int result = !((FROM(m) == ksq || pinned || FLAGS(m) == FLG_EP) && !is_legal(pos, pinned, m));
+
+#if 0
     int nmoves;
     int result = 0;
     move moves[MAX_MOVES];
@@ -17,6 +77,7 @@ int is_legal_move(const struct position *restrict const pos, move m) {
             break;
         }
     }
+#endif
 
     return result;
 }
@@ -140,60 +201,6 @@ static move *generate_castling(const struct position *const restrict pos,
     }
 
     return moves;
-}
-
-static int is_legal(const struct position *const restrict pos,
-                    const uint64_t pinned, const move m) {
-    const int side = pos->wtm;
-    const int contra = FLIP(pos->wtm);
-    const int tosq = TO(m);
-    const int fromsq = FROM(m);
-    const uint64_t from = MASK(fromsq);
-    const int pc = pos->sqtopc[fromsq];
-    const int flags = FLAGS(m);
-    const int ksq = KSQ(*pos, side);
-
-    if (flags == FLG_CASTLE) {
-        return 1;
-    } else if (flags == FLG_EP) {
-// REVISIT(plesslie): `FAST_VERSION' may not actually be that fast after all...
-// I'm getting better perft times using the "stupid" method
-#if 1
-        // The only way en passant can expose check if via uncovering a queen,
-        // rook, or bishop
-        // so only need to check sliding pieces
-        const uint64_t to = MASK(tosq);
-        const int capsq = side == WHITE ? tosq - 8 : tosq + 8;
-        const uint64_t pieces = pos->side[WHITE] | pos->side[BLACK];
-        const uint64_t queens = PIECES(*pos, contra, QUEEN);
-        const uint64_t rooks = PIECES(*pos, contra, ROOK);
-        const uint64_t bishops = PIECES(*pos, contra, BISHOP);
-        const uint64_t occ = (pieces ^ from ^ MASK(capsq)) | to;
-        return !(rook_attacks(ksq, occ) & (queens | rooks)) &&
-               !(bishop_attacks(ksq, occ) & (queens | bishops));
-#else
-        // "naive" method: just make the move and see if we are in check
-        struct position tmp;
-        struct savepos sp;
-        memcpy(&tmp, pos, sizeof(tmp));
-        make_move(&tmp, &sp, m);
-        return = !attacks(&tmp, contra, ksq);
-#endif
-    } else if (pc == PIECE(side, KING)) {
-        assert(flags == FLG_NONE);
-        // don't need to remove the king before checking this, because if
-        // the king was blocking a ray, then he would already be in check...
-        const uint64_t attacked = attacks(pos, contra, tosq);
-        return !attacked;
-    } else {
-        // TODO(plesslie): need to test that "flags==FLG_PROMO" case is working
-        // correctly
-
-        // legal if not pinned or moving on the same ray as the king (i.e.
-        // pinned piece
-        // will still be blocking are moving)
-        return !pinned || !(pinned & from) || lined_up(fromsq, tosq, ksq);
-    }
 }
 
 uint64_t generate_checkers(const struct position *const restrict pos,

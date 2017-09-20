@@ -5,8 +5,6 @@
 #include "position.h"
 #include <stdint.h>
 
-// Move Generation code heavily inspired/taken from Stockfish
-
 extern uint64_t generate_checkers(const struct position *const restrict pos,
                                   uint8_t side);
 extern uint64_t generate_attacked(const struct position *const restrict pos,

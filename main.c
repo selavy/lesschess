@@ -123,7 +123,8 @@ static void replay_file(const char *filename) {
     free(line);
     fclose(stream);
 
-    m = search(&pos);
+    int score;
+    m = search(&pos, &score);
     if (m == INVALID_MOVE) {
         printf("Search returned invalid move!\n");
     } else if (m == MATED) {
@@ -133,28 +134,53 @@ static void replay_file(const char *filename) {
     }
 }
 
+void run_tactics_test(int nargs, char **args) {
+    if (nargs != 1) {
+        fprintf(stderr, "Usage: ./lesschess tactics <fen>\n");
+        return;
+    }
+
+    struct position pos;
+    const char *fen = args[0];
+    const int result = position_from_fen(&pos, fen);
+    if (result != 0) {
+        fprintf(stderr, "Invalid FEN: %d\n", result);
+        exit(EXIT_FAILURE);
+    }
+
+    int score = 0;
+    const move m = search(&pos, &score);
+    if (m == MATED) {
+        printf("mated %d\n", score);
+    } else if (m == INVALID_MOVE) {
+        printf("none %d\n", score);
+    } else {
+        printf("%s %d\n", xboard_move_print(m), score);
+    }
+}
+
 int main(int argc, char **argv) {
     zobrist_hash_module_init();
     transposition_table_init();
 
     if (argc < 2) {
         xboard_uci_main();
-    } else {
-        if (strcmp(argv[1], "perft") == 0) {
-            run_perft_test(argc - 2, argv + 2);
-        } else if (strcmp(argv[1], "timetest") == 0) {
-            for (int depth = 0; depth < 8; ++depth) {
-                time_test(depth);
-            }
-        } else if (strcmp(argv[1], "replay") == 0) {
-            if (argc == 3) {
-                replay_file(argv[2]);
-            } else {
-                fprintf(stderr, "Usage: ./lesschess replay <FILE>\n");
-            }
-        } else {
-            fprintf(stderr, "Unrecognized command: %s\n", argv[1]);
+    } if (strcmp(argv[1], "perft") == 0) {
+        run_perft_test(argc - 2, argv + 2);
+    } else if (strcmp(argv[1], "timetest") == 0) {
+        for (int depth = 0; depth < 8; ++depth) {
+            time_test(depth);
         }
+    } else if (strcmp(argv[1], "tactics") == 0) {
+        run_tactics_test(argc - 2, argv + 2);
+    } else if (strcmp(argv[1], "replay") == 0) {
+        if (argc == 3) {
+            replay_file(argv[2]);
+        } else {
+            fprintf(stderr, "Usage: ./lesschess replay <FILE>\n");
+        }
+    } else {
+        fprintf(stderr, "Unrecognized command: %s\n", argv[1]);
     }
 
     return 0;

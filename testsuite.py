@@ -4,6 +4,7 @@ import subprocess
 from collections import namedtuple
 import os
 import sys
+import chess
 
 
 PerftResult = namedtuple("PerftResult", [
@@ -65,6 +66,37 @@ def run_perft_test_suite(name, fen, expected, max_depth=None,
             return
         iwrite('.')
     print "Passed."
+
+
+def run_tactics_test(name, fen, expected_move, expected_score=None):
+    print "Tactics Test: {}".format(name)
+    board = chess.Board(fen)
+    print "{!s}".format(board)
+    cmd = '{exe} tactics "{fen}"'.format(exe=target, fen=fen)
+    output = subprocess.check_output(cmd, shell=True)
+    actual_move, actual_score = output.split()
+    actual_score = int(actual_score)
+    if actual_move == "mated":
+        print "Failed!"
+        print "Engine thinks it is mated!"
+    elif actual_move == "none":
+        print "Failed!"
+        print "Engine thinks it has no legal moves!"
+    else:
+        actual_move_san = board.san(chess.Move.from_uci(actual_move))
+        expected_move_san = board.san(chess.Move.from_uci(expected_move))
+        if expected_score is None:
+            expected_score = actual_score
+        if actual_move != expected_move or expected_score != actual_score:
+            print "Failed!"
+            print "Expected Move : {} ({})".format(
+                expected_move_san, expected_move)
+            print "Actual Move   : {} ({})".format(
+                actual_move_san, actual_move)
+            print "Expected Score: {}".format(expected_score)
+            print "Actual Score  : {}".format(actual_score)
+        else:
+            print "Passed."
 
 
 def starting_position_perft_test(max_depth=None):
@@ -163,32 +195,74 @@ def position6_perft_test(max_depth=None):
     run_perft_test_suite("position6", fen, expected, max_depth, nodes_only=True)
 
 
+def tactics_froms_gambit_mate_in_1():
+    fen = "rnbqk1nr/ppp2p1p/3b4/6p1/8/5N1P/PPPPP1P1/RNBQKB1R b KQkq - 0 1"
+    run_tactics_test("From's Gambit Mate in 1", fen, "e2e4")
+
+
 if __name__ == '__main__':
+    # find_executable()
+    # tactics_from_gambit_mate_in_1()
+
     fast_mode = True
 
-    available_suites = {
-            "start": (starting_position_perft_test, 4),
-            "kiwi": (kiwipete_perft_test, 3),
-            "position3": (position3_perft_test, 5),
-            "white_position4": (position4_white_perft_test, 4),
-            "black_position4": (position4_black_perft_test, 4),
-            "talkchess": (talkchess_perft_test, 4),
-            "position6": (position6_perft_test, 4),
-            }
+    # available_suites = {
+    #         # Perft Tests
+    #         "start": (starting_position_perft_test, (4, )),
+    #         "kiwi": (kiwipete_perft_test, (3, )),
+    #         "position3": (position3_perft_test, (5, )),
+    #         "white_position4": (position4_white_perft_test, (4, )),
+    #         "black_position4": (position4_black_perft_test, (4, )),
+    #         "talkchess": (talkchess_perft_test, (4, )),
+    #         "position6": (position6_perft_test, (4, )),
 
-    suites = []
+    #         # Tactics Tests
+    #         "froms_gambit": (tactics_froms_gambit_mate_in_1, tuple()),
+    #         }
+
+    perft_suites = (
+        ("start", starting_position_perft_test, 4),
+        ("kiwi", kiwipete_perft_test, 3),
+        ("position3", position3_perft_test, 5),
+        ("white_position4", position4_white_perft_test, 4),
+        ("black_position4", position4_black_perft_test, 4),
+        ("talkchess", talkchess_perft_test, 4,),
+        ("position6", position6_perft_test, 4,),
+    )
+
+    tactics_suites = (
+        ("froms_gambit", tactics_froms_gambit_mate_in_1),
+    )
+
+    available_suites = {}
+    for name, suite, depth in perft_suites:
+        available_suites[name] = (suite, (depth, ))
+
+    for name, suite in tactics_suites:
+        available_suites[name] = (suite, tuple())
+
+    suites = set()
     fast_mode = True
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
             if arg == "slow":
                 fast_mode = False
+            elif arg == "tactics":
+                for s in tactics_suites:
+                    suites.add(available_suites[s[0]])
+            elif arg == "perft":
+                for s in perft_suites:
+                    suites.add(available_suites[s[0]])
             else:
-                suites.append(available_suites[arg])
+                suites.add(available_suites[arg])
+    suites = tuple(sorted(suites))
 
     if not suites:
-        suites = list(available_suites.itervalues())
+        suites = tuple(sorted(available_suites.itervalues()))
 
     find_executable()
-    for suite, fast_depth in suites:
-        depth = fast_depth if fast_mode else None
-        suite(depth)
+    for func, args in suites:
+        func(*args)
+    # for suite, fast_depth in suites:
+    #     depth = fast_depth if fast_mode else None
+    #     suite(depth)
