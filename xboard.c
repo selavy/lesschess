@@ -112,7 +112,8 @@ void handle_features_sent(const char *line, int len) {
 
 static void xboard_make_move() {
     int score;
-    const move m = search(&g_pos, &score);
+    int depth;
+    const move m = search(&g_pos, &score, &depth);
     if (m == MATED) {
         xbdebug("lesschess has been mated\n");
     }

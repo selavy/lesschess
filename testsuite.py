@@ -74,8 +74,9 @@ def run_tactics_test(name, fen, expected_move, expected_score=None):
     print "{!s}".format(board)
     cmd = '{exe} tactics "{fen}"'.format(exe=target, fen=fen)
     output = subprocess.check_output(cmd, shell=True)
-    actual_move, actual_score = output.split()
+    actual_move, actual_score, actual_depth = output.split()
     actual_score = int(actual_score)
+    actual_depth = int(actual_depth)
     if actual_move == "mated":
         print "Failed!"
         print "Engine thinks it is mated!"
@@ -95,7 +96,11 @@ def run_tactics_test(name, fen, expected_move, expected_score=None):
                 actual_move_san, actual_move)
             print "Expected Score: {}".format(expected_score)
             print "Actual Score  : {}".format(actual_score)
+            print "Actual Depth  : {}".format(actual_depth)
         else:
+            print "Move : {} ({})".format(actual_move_san, actual_move)
+            print "Score: {}".format(actual_score)
+            print "Depth: {}".format(actual_depth)
             print "Passed."
 
 
@@ -195,9 +200,33 @@ def position6_perft_test(max_depth=None):
     run_perft_test_suite("position6", fen, expected, max_depth, nodes_only=True)
 
 
-def tactics_froms_gambit_mate_in_1():
+def tactics_froms_gambit_mate():
     fen = "rnbqk1nr/ppp2p1p/3b4/6p1/8/5N1P/PPPPP1P1/RNBQKB1R b KQkq - 0 1"
     run_tactics_test("From's Gambit Mate in 1", fen, "d6g3")
+
+
+def tactics_knight_sack_mate():
+    fen = "rn3r1k/6pp/1pN2p2/p3N3/1P5q/PQ2PPp1/5n2/3R2K1 w - - 0 1"
+    run_tactics_test("Knight Sack Mate", fen, "e5f7")
+
+
+def tactics_queen_sack_mate():
+    fen = "rn3r1k/6pp/1pN2p2/p3N3/1P5q/PQ2PPp1/5n2/2R3K1 w - - 0 1"
+    run_tactics_test("Queen Sack Mate", fen, "b3g8")
+
+
+def tactics_double_check_mate():
+    fen = "rn2r1k1/5Npp/1pN2p2/p7/1P5q/PQ2PPp1/5n2/3R2K1 w - - 0 1"
+    run_tactics_test("Double Check For Mate", fen, "f7h6")
+
+def tactics_queen_sack_smothered_mate():
+    fen = "rn2r2k/6pp/1pN2p1N/p7/1P5q/PQ2PPp1/5n2/3R2K1 w - - 0 1"
+    run_tactics_test("Queen Sack Smothered Mate", fen, "b3g8")
+
+
+def tactics_caro_kann_mate():
+    fen = "rnb1kb1r/pp3ppp/2p5/4q3/4n3/3Q4/PPPB1PPP/2KR1BNR w kq - 0 1"
+    run_tactics_test("Caro Kann Mate", fen, "d3d8")
 
 
 if __name__ == '__main__':
@@ -214,7 +243,13 @@ if __name__ == '__main__':
     )
 
     tactics_suites = (
-        ("froms_gambit", tactics_froms_gambit_mate_in_1),
+        ("froms_gambit", tactics_froms_gambit_mate),
+        ("knight_sack", tactics_knight_sack_mate),
+        # Too hard right now
+        # ("queen_sack", tactics_queen_sack_mate),
+        ("double_check", tactics_double_check_mate),
+        ("queen_sack_smothered", tactics_queen_sack_smothered_mate),
+        ("caro_kann", tactics_caro_kann_mate),
     )
 
     available_suites = {}

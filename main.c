@@ -124,7 +124,8 @@ static void replay_file(const char *filename) {
     fclose(stream);
 
     int score;
-    m = search(&pos, &score);
+    int depth;
+    m = search(&pos, &score, &depth);
     if (m == INVALID_MOVE) {
         printf("Search returned invalid move!\n");
     } else if (m == MATED) {
@@ -149,13 +150,14 @@ void run_tactics_test(int nargs, char **args) {
     }
 
     int score = 0;
-    const move m = search(&pos, &score);
+    int depth = 0;
+    const move m = search(&pos, &score, &depth);
     if (m == MATED) {
-        printf("mated %d\n", score);
+        printf("mated %d %d\n", score, depth);
     } else if (m == INVALID_MOVE) {
-        printf("none %d\n", score);
+        printf("none %d %d\n", score, depth);
     } else {
-        printf("%s %d\n", xboard_move_print(m), score);
+        printf("%s %d %d\n", xboard_move_print(m), score, depth);
     }
 }
 
