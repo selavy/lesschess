@@ -228,6 +228,10 @@ def tactics_caro_kann_mate():
     fen = "rnb1kb1r/pp3ppp/2p5/4q3/4n3/3Q4/PPPB1PPP/2KR1BNR w kq - 0 1"
     run_tactics_test("Caro Kann Mate", fen, "d3d8")
 
+def tactics_win_queen():
+    fen = "rnbqk2r/ppp2ppp/3b4/8/2P1n3/5NP1/PP2PP1P/RNBQKB1R b KQkq - 0 1"
+    run_tactics_test("Early Game Win Queen", fen, "e4f2")
+
 
 if __name__ == '__main__':
     fast_mode = True
@@ -250,6 +254,7 @@ if __name__ == '__main__':
         ("double_check", tactics_double_check_mate),
         ("queen_sack_smothered", tactics_queen_sack_smothered_mate),
         ("caro_kann", tactics_caro_kann_mate),
+	("win_queen", tactics_win_queen),
     )
 
     available_suites = {}

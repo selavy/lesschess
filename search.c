@@ -139,7 +139,7 @@ move search(const struct position *restrict const p, int *score, int *searched_d
     struct position pos;
     move moves[MAX_MOVES];
     int nmoves;
-    const int max_depth = 7;
+    const int max_depth = 5;
     uint64_t zhash;
     int moveno;
     int depth;
