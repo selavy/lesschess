@@ -197,28 +197,11 @@ def position6_perft_test(max_depth=None):
 
 def tactics_froms_gambit_mate_in_1():
     fen = "rnbqk1nr/ppp2p1p/3b4/6p1/8/5N1P/PPPPP1P1/RNBQKB1R b KQkq - 0 1"
-    run_tactics_test("From's Gambit Mate in 1", fen, "e2e4")
+    run_tactics_test("From's Gambit Mate in 1", fen, "d6g3")
 
 
 if __name__ == '__main__':
-    # find_executable()
-    # tactics_from_gambit_mate_in_1()
-
     fast_mode = True
-
-    # available_suites = {
-    #         # Perft Tests
-    #         "start": (starting_position_perft_test, (4, )),
-    #         "kiwi": (kiwipete_perft_test, (3, )),
-    #         "position3": (position3_perft_test, (5, )),
-    #         "white_position4": (position4_white_perft_test, (4, )),
-    #         "black_position4": (position4_black_perft_test, (4, )),
-    #         "talkchess": (talkchess_perft_test, (4, )),
-    #         "position6": (position6_perft_test, (4, )),
-
-    #         # Tactics Tests
-    #         "froms_gambit": (tactics_froms_gambit_mate_in_1, tuple()),
-    #         }
 
     perft_suites = (
         ("start", starting_position_perft_test, 4),
@@ -263,6 +246,3 @@ if __name__ == '__main__':
     find_executable()
     for func, args in suites:
         func(*args)
-    # for suite, fast_depth in suites:
-    #     depth = fast_depth if fast_mode else None
-    #     suite(depth)
