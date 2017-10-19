@@ -67,15 +67,17 @@ def run_perft_test_suite(name, fen, expected, max_depth=None,
         iwrite('.')
     print "Passed."
 
-
+print_cmd = True
 def run_tactics_test(name, fen, expected_move, expected_score=None):
     import datetime
 
     print "Tactics Test: {}".format(name)
     board = chess.Board(fen)
     print "{!s}".format(board)
-    begin = datetime.datetime.now()
     cmd = '{exe} tactics "{fen}"'.format(exe=target, fen=fen)
+    if print_cmd:
+        print "Running command '{}'".format(cmd)
+    begin = datetime.datetime.now()
     output = subprocess.check_output(cmd, shell=True)
     end = datetime.datetime.now()
     print "Test took {}.".format(end - begin)

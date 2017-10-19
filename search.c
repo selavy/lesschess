@@ -14,8 +14,9 @@ struct tt_entry {
     // TODO(plesslie): don't need to save entire hash, just
     // save bits not in the index
     uint64_t hash;
-    int value;
+    int score;
     int depth;
+    move move;
     // TODO(plesslie): probably need to save depth to?  score
     // from a deeper position should overwrite shallower values?
 };
@@ -30,8 +31,9 @@ void transposition_table_init() {
     // must be a power of 2!");
     for (int i = 0; i < TTSZ; ++i) {
         tt_tbl[i].hash = 0;
-        tt_tbl[i].value = 0;
+        tt_tbl[i].score = 0;
         tt_tbl[i].depth = 0;
+        tt_tbl[i].move = 0;
     }
 }
 
@@ -109,13 +111,24 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
     return best;
 }
 
-move alphabeta_search(struct position *pos, struct savepos *sp,
-                      const move *moves, int nmoves, uint64_t zhash, int depth,
-                      int *score) {
+struct search_node {
+    struct position *pos;
+    struct savepos *sp;
+    const move *moves;
+    uint64_t zhash;
+    int nmoves;
+};
+
+move alphabeta_search(struct search_node *n, int depth, int *score) {
     int value;
     int i;
+    struct position *pos = n->pos;
+    struct savepos *sp = n->sp;
+    const move *moves = n->moves;
+    uint64_t zhash = n->zhash;
+    const int nmoves = n->nmoves;
     move bestmove = MATED;
-    int best = pos->wtm == WHITE ? NEG_INFINITI : INFINITI;
+    int bestscore = pos->wtm == WHITE ? NEG_INFINITI : INFINITI;
 
     assert(nmoves > 0);
 
@@ -123,9 +136,9 @@ move alphabeta_search(struct position *pos, struct savepos *sp,
         for (i = 0; i < nmoves; ++i) {
             make_move(pos, sp, moves[i], 0);
             value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
-            if (value > best) {
+            if (value > bestscore) {
                 bestmove = moves[i];
-                best = value;
+                bestscore = value;
             }
             undo_move(pos, sp, moves[i], 0);
         }
@@ -133,15 +146,15 @@ move alphabeta_search(struct position *pos, struct savepos *sp,
         for (i = 0; i < nmoves; ++i) {
             make_move(pos, sp, moves[i], 0);
             value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
-            if (value < best) {
+            if (value < bestscore) {
                 bestmove = moves[i];
-                best = value;
+                bestscore = value;
             }
             undo_move(pos, sp, moves[i], 0);
         }
     }
 
-    *score = best;
+    *score = bestscore;
     return bestmove;
 }
 
@@ -150,22 +163,23 @@ move search(const struct position *p, int *score, int *searched_depth) {
     struct position pos;
     struct savepos sp;
     move moves[MAX_MOVES];
-    int nmoves;
-    uint64_t zhash;
     int depth;
     move best_move;
+    struct search_node node;
 
     memcpy(&pos, p, sizeof(pos));
-    nmoves = generate_legal_moves(&pos, &moves[0]);
-    if (nmoves == 0) {
+    node.nmoves = generate_legal_moves(&pos, &moves[0]);
+    if (node.nmoves == 0) {
         return MATED;
     }
-    zobrist_hash_from_position(&pos, &zhash);
+    zobrist_hash_from_position(&pos, &node.zhash);
+    node.pos = &pos;
+    node.sp = &sp;
+    node.moves = &moves[0];
 
     for (depth = 2; depth <= max_depth; ++depth) {
         *searched_depth = depth;
-        best_move =
-            alphabeta_search(&pos, &sp, &moves[0], nmoves, zhash, depth, score);
+        best_move = alphabeta_search(&node, depth, score);
         if (*score == INFINITI || *score == NEG_INFINITI) {
             break;
         }
