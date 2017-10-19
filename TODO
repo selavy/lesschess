@@ -16,8 +16,8 @@ Engine Improvements
 
 Testing
 ========
-+test harness for 1-3 move mate tactics
-+test harness for perft
++test harness for 1-3 move mate tactics [DONE]
++test harness for perft [DONE]
 
 Misc
 ====
