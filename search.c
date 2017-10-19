@@ -10,13 +10,21 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+enum {
+    TT_NONE = 0,
+    TT_EXACT,
+    TT_ALPHA,
+    TT_BETA,
+};
+
 struct tt_entry {
     // TODO(plesslie): don't need to save entire hash, just
     // save bits not in the index
     uint64_t hash;
     int score;
-    int depth;
     move move;
+    uint8_t depth;
+    uint8_t flags;
     // TODO(plesslie): probably need to save depth to?  score
     // from a deeper position should overwrite shallower values?
 };
@@ -32,46 +40,25 @@ void transposition_table_init() {
     for (int i = 0; i < TTSZ; ++i) {
         tt_tbl[i].hash = 0;
         tt_tbl[i].score = 0;
+        tt_tbl[i].move = INVALID_MOVE;
         tt_tbl[i].depth = 0;
-        tt_tbl[i].move = 0;
+        tt_tbl[i].flags = TT_NONE;
     }
 }
 
 // int tt_index(uint64_t h) { return h & (TTSZ - 1); }
 int tt_index(uint64_t h) { return h % TTSZ; }
 
-// 01 function alphabeta(node, depth, α, β, maximizingPlayer)
-// 02      if depth = 0 or node is a terminal node
-// 03          return the heuristic value of node
-// 04      if maximizingPlayer
-// 05          v := -∞
-// 06          for each child of node
-// 07              v := max(v, alphabeta(child, depth – 1, α, β, FALSE))
-// 08              α := max(α, v)
-// 09              if β ≤ α
-// 10                  break (* β cut-off *)
-// 11          return v
-// 12      else
-// 13          v := +∞
-// 14          for each child of node
-// 15              v := min(v, alphabeta(child, depth – 1, α, β, TRUE))
-// 16              β := min(β, v)
-// 17              if β ≤ α
-// 18                  break (* α cut-off *)
-// 19          return v
-
-int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
-              int beta, int maximizing) {
-    int best;
+int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int beta, int maximizing) {
     int nmoves;
     int i;
     int value;
     move moves[MAX_MOVES];
     struct savepos sp;
+    int best;
 
     if (depth == 0) {
-        value = eval(pos);
-        return value;
+        return eval(pos);
     }
 
     nmoves = generate_legal_moves(pos, &moves[0]);
@@ -79,9 +66,6 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
         return pos->wtm ? WHITE_WIN : BLACK_WIN;
     }
 
-    // TODO(plesslie): does undo_move() actually need to recalculate the zobrist
-    // hash?
-    // could just save it off before calling make_move
     if (maximizing) {
         best = NEG_INFINITI;
         for (i = 0; i < nmoves; ++i) {
@@ -127,7 +111,7 @@ move alphabeta_search(struct search_node *n, int depth, int *score) {
     const move *moves = n->moves;
     uint64_t zhash = n->zhash;
     const int nmoves = n->nmoves;
-    move bestmove = MATED;
+    move bestmove = INVALID_MOVE;
     int bestscore = pos->wtm == WHITE ? NEG_INFINITI : INFINITI;
 
     assert(nmoves > 0);
@@ -136,24 +120,25 @@ move alphabeta_search(struct search_node *n, int depth, int *score) {
         for (i = 0; i < nmoves; ++i) {
             make_move(pos, sp, moves[i], 0);
             value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
+            undo_move(pos, sp, moves[i], 0);
             if (value > bestscore) {
                 bestmove = moves[i];
                 bestscore = value;
             }
-            undo_move(pos, sp, moves[i], 0);
         }
     } else {
         for (i = 0; i < nmoves; ++i) {
             make_move(pos, sp, moves[i], 0);
             value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
+            undo_move(pos, sp, moves[i], 0);
             if (value < bestscore) {
                 bestmove = moves[i];
                 bestscore = value;
             }
-            undo_move(pos, sp, moves[i], 0);
         }
     }
 
+    assert(bestmove != INVALID_MOVE);
     *score = bestscore;
     return bestmove;
 }
