@@ -26,7 +26,8 @@ struct tt_entry {
 struct tt_entry tt_tbl[TTSZ];
 
 void transposition_table_init() {
-    // static_assert(__builtin_popcount(TTSZ) == 0, "Transposition Table size must be a power of 2!");
+    // static_assert(__builtin_popcount(TTSZ) == 0, "Transposition Table size
+    // must be a power of 2!");
     for (int i = 0; i < TTSZ; ++i) {
         tt_tbl[i].hash = 0;
         tt_tbl[i].value = 0;
@@ -34,8 +35,8 @@ void transposition_table_init() {
     }
 }
 
-// size_t tt_index(uint64_t h) { return h & (TTSZ - 1); }
-size_t tt_index(uint64_t h) { return h % TTSZ; }
+// int tt_index(uint64_t h) { return h & (TTSZ - 1); }
+int tt_index(uint64_t h) { return h % TTSZ; }
 
 // 01 function alphabeta(node, depth, α, β, maximizingPlayer)
 // 02      if depth = 0 or node is a terminal node
@@ -57,8 +58,8 @@ size_t tt_index(uint64_t h) { return h % TTSZ; }
 // 18                  break (* α cut-off *)
 // 19          return v
 
-int alphabeta(struct position *restrict pos, uint64_t zhash, int depth,
-              int alpha, int beta, int maximizing) {
+int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
+              int beta, int maximizing) {
     int best;
     int nmoves;
     int i;
@@ -108,50 +109,51 @@ int alphabeta(struct position *restrict pos, uint64_t zhash, int depth,
     return best;
 }
 
-int alphabeta_search(struct position *restrict pos, const move *restrict moves,
-                     int nmoves, uint64_t zhash, int depth, int *score) {
-    struct savepos sp;
-    int best = pos->wtm == WHITE ? NEG_INFINITI : INFINITI;
-    int bestmoveno = -1;
+move alphabeta_search(struct position *pos, struct savepos *sp,
+                      const move *moves, int nmoves, uint64_t zhash, int depth,
+                      int *score) {
     int value;
     int i;
+    move bestmove = MATED;
+    int best = pos->wtm == WHITE ? NEG_INFINITI : INFINITI;
+
+    assert(nmoves > 0);
 
     if (pos->wtm == WHITE) {
         for (i = 0; i < nmoves; ++i) {
-            make_move(pos, &sp, moves[i], 0);
+            make_move(pos, sp, moves[i], 0);
             value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
             if (value > best) {
-                bestmoveno = i;
+                bestmove = moves[i];
                 best = value;
             }
-            undo_move(pos, &sp, moves[i], 0);
+            undo_move(pos, sp, moves[i], 0);
         }
     } else {
         for (i = 0; i < nmoves; ++i) {
-            make_move(pos, &sp, moves[i], 0);
+            make_move(pos, sp, moves[i], 0);
             value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
             if (value < best) {
-                bestmoveno = i;
+                bestmove = moves[i];
                 best = value;
             }
-            undo_move(pos, &sp, moves[i], 0);
+            undo_move(pos, sp, moves[i], 0);
         }
     }
 
-    assert(bestmoveno > -1);
     *score = best;
-    return bestmoveno;
+    return bestmove;
 }
 
-move search(const struct position *restrict const p, int *score,
-            int *searched_depth) {
+move search(const struct position *p, int *score, int *searched_depth) {
     const int max_depth = 5;
     struct position pos;
+    struct savepos sp;
     move moves[MAX_MOVES];
     int nmoves;
     uint64_t zhash;
-    int moveno;
     int depth;
+    move best_move;
 
     memcpy(&pos, p, sizeof(pos));
     nmoves = generate_legal_moves(&pos, &moves[0]);
@@ -162,12 +164,12 @@ move search(const struct position *restrict const p, int *score,
 
     for (depth = 2; depth <= max_depth; ++depth) {
         *searched_depth = depth;
-        moveno = alphabeta_search(&pos, &moves[0], nmoves, zhash, depth, score);
+        best_move =
+            alphabeta_search(&pos, &sp, &moves[0], nmoves, zhash, depth, score);
         if (*score == INFINITI || *score == NEG_INFINITI) {
             break;
         }
     }
 
-    assert(moveno >= 0 && moveno < nmoves);
-    return moves[moveno];
+    return best_move;
 }
