@@ -69,11 +69,16 @@ def run_perft_test_suite(name, fen, expected, max_depth=None,
 
 
 def run_tactics_test(name, fen, expected_move, expected_score=None):
+    import datetime
+
     print "Tactics Test: {}".format(name)
     board = chess.Board(fen)
     print "{!s}".format(board)
+    begin = datetime.datetime.now()
     cmd = '{exe} tactics "{fen}"'.format(exe=target, fen=fen)
     output = subprocess.check_output(cmd, shell=True)
+    end = datetime.datetime.now()
+    print "Test took {}.".format(end - begin)
     actual_move, actual_score, actual_depth = output.split()
     actual_score = int(actual_score)
     actual_depth = int(actual_depth)
@@ -102,6 +107,7 @@ def run_tactics_test(name, fen, expected_move, expected_score=None):
             print "Score: {}".format(actual_score)
             print "Depth: {}".format(actual_depth)
             print "Passed."
+    print ""
 
 
 def starting_position_perft_test(max_depth=None):

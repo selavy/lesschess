@@ -26,7 +26,7 @@ struct tt_entry {
 struct tt_entry tt_tbl[TTSZ];
 
 void transposition_table_init() {
-    assert(__builtin_popcount(TTSZ) == 0);
+    // static_assert(__builtin_popcount(TTSZ) == 0, "Transposition Table size must be a power of 2!");
     for (int i = 0; i < TTSZ; ++i) {
         tt_tbl[i].hash = 0;
         tt_tbl[i].value = 0;
@@ -111,7 +111,7 @@ int alphabeta(struct position *restrict pos, uint64_t zhash, int depth,
 int alphabeta_search(struct position *restrict pos, const move *restrict moves,
                      int nmoves, uint64_t zhash, int depth, int *score) {
     struct savepos sp;
-    int best = pos->wtm == WHITE ? NEG_INFINITI - 1 : INFINITI + 1;
+    int best = pos->wtm == WHITE ? NEG_INFINITI : INFINITI;
     int bestmoveno = -1;
     int value;
     int i;

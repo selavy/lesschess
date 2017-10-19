@@ -11,6 +11,9 @@
         assert(0);                                                             \
     } while (0)
 #define force_inline __attribute__((always_inline)) inline
+#ifndef static_assert
+#define static_assert _Static_assert
+#endif
 
 #define lsb(bb) __builtin_ctzll(bb)
 #define clear_lsb(bb) bb &= (bb - 1)
