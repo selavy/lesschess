@@ -109,7 +109,7 @@ int alphabeta(struct position *restrict pos, uint64_t zhash, int depth,
 }
 
 int alphabeta_search(struct position *restrict pos, const move *restrict moves,
-              int nmoves, uint64_t zhash, int depth, int *score) {
+                     int nmoves, uint64_t zhash, int depth, int *score) {
     struct savepos sp;
     int best = pos->wtm == WHITE ? NEG_INFINITI - 1 : INFINITI + 1;
     int bestmoveno = -1;
@@ -143,7 +143,8 @@ int alphabeta_search(struct position *restrict pos, const move *restrict moves,
     return bestmoveno;
 }
 
-move search(const struct position *restrict const p, int *score, int *searched_depth) {
+move search(const struct position *restrict const p, int *score,
+            int *searched_depth) {
     const int max_depth = 5;
     struct position pos;
     move moves[MAX_MOVES];
