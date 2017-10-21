@@ -1,5 +1,5 @@
 #include "search.h"
-#include "eval.h"
+#include "evaluate.h"
 #include "movegen.h"
 #include "position.h"
 #include <assert.h>
@@ -49,6 +49,14 @@ void transposition_table_init() {
 // int tt_index(uint64_t h) { return h & (TTSZ - 1); }
 int tt_index(uint64_t h) { return h % TTSZ; }
 
+struct search_node {
+    struct position *pos;
+    struct savepos *sp;
+    const move *moves;
+    uint64_t zhash;
+    int nmoves;
+};
+
 int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int beta, int maximizing) {
     int nmoves;
     int i;
@@ -58,7 +66,7 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
     int best;
 
     if (depth == 0) {
-        return eval(pos);
+        return evaluate(pos);
     }
 
     nmoves = generate_legal_moves(pos, &moves[0]);
@@ -72,8 +80,12 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
             zhash = make_move(pos, &sp, moves[i], zhash);
             value = alphabeta(pos, zhash, depth - 1, alpha, beta, 0);
             zhash = undo_move(pos, &sp, moves[i], zhash);
-            best = MAX(best, value);
-            alpha = MAX(alpha, best);
+            if (value > best) {
+                best = value;
+            }
+            if (best > alpha) {
+                alpha = best;
+            }
             if (beta <= alpha) {
                 break;
             }
@@ -84,8 +96,12 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
             zhash = make_move(pos, &sp, moves[i], zhash);
             value = alphabeta(pos, zhash, depth - 1, alpha, beta, 1);
             zhash = undo_move(pos, &sp, moves[i], zhash);
-            best = MIN(best, value);
-            beta = MIN(beta, best);
+            if (value < best) {
+                best = value;
+            }
+            if (best < beta) {
+                beta = best;
+            }
             if (beta <= alpha) {
                 break;
             }
@@ -95,13 +111,6 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
     return best;
 }
 
-struct search_node {
-    struct position *pos;
-    struct savepos *sp;
-    const move *moves;
-    uint64_t zhash;
-    int nmoves;
-};
 
 move alphabeta_search(struct search_node *n, int depth, int *score) {
     int value;
@@ -142,6 +151,13 @@ move alphabeta_search(struct search_node *n, int depth, int *score) {
     *score = bestscore;
     return bestmove;
 }
+
+
+// int alphabeta_max(struct search_node *n, int alpha, int beta, int depth_left) {
+//     if (depth_left == 0) {
+//         return eval
+//     }
+// }
 
 move search(const struct position *p, int *score, int *searched_depth) {
     const int max_depth = 5;

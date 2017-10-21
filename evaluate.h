@@ -1,5 +1,5 @@
-#ifndef EVAL__H_
-#define EVAL__H_
+#ifndef EVALUATE__H_
+#define EVALUATE__H_
 
 #define INFINITI 1000000
 #define NEG_INFINITI -1000000
@@ -7,6 +7,6 @@
 #define BLACK_WIN NEG_INFINITI
 
 struct position;
-int eval(struct position *restrict const pos);
+int evaluate(struct position *restrict const pos);
 
-#endif // EVAL__H_
+#endif // EVALUATE__H_

@@ -19,7 +19,7 @@ add_executable(lesschess
     position.c
     movegen.c
     perft.c
-    eval.c
+    evaluate.c
     search.c
     xboard.c
     )

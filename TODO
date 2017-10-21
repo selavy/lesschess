@@ -11,8 +11,12 @@ Engine Improvements
 +Incorporate piece placement into eval function
 +Parallelize search
 +3-move repetition draw (use TT table?)
-+Principal Variation Search (PVS)
 +Aspiration Window
+
+Search Algorithms
+====================
++Principal Variation Search (PVS)
++MTD(f)
 
 Testing
 ========

@@ -1,9 +1,9 @@
-#include "eval.h"
+#include "evaluate.h"
 #include "move.h"
 #include "movegen.h"
 #include "position.h"
 
-int eval(struct position *restrict const pos) {
+int evaluate(struct position *restrict const pos) {
     int white_score = 0;
     int black_score = 0;
 
