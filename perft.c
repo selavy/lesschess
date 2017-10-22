@@ -40,7 +40,7 @@ static uint64_t perft(int depth, struct position *restrict pos,
 #ifndef NDEBUG
     memcpy(&tmp, pos, sizeof(tmp));
 #endif
-    zobrist_hash_from_position(pos, &orig_z);
+    orig_z = zobrist_hash_from_position(pos);
     new_z = orig_z;
     assert(new_z != 0);
     nmoves = generate_legal_moves(pos, &moves[0]);
@@ -48,7 +48,7 @@ static uint64_t perft(int depth, struct position *restrict pos,
     if (depth > 1) {
         for (i = 0; i < nmoves; ++i) {
             new_z = make_move(pos, &sp, moves[i], new_z);
-            zobrist_hash_from_position(pos, &z);
+            z = zobrist_hash_from_position(pos);
             assert(new_z == z);
             assert(new_z != orig_z);
             nodes += perft(depth - 1, pos, captures, eps, castles, promos,

@@ -35,8 +35,7 @@ struct savepos {
 };
 
 extern void zobrist_hash_module_init();
-extern void zobrist_hash_from_position(const struct position *const pos,
-                                       uint64_t *hash);
+extern uint64_t zobrist_hash_from_position(const struct position *const pos);
 extern int position_from_fen(struct position *restrict pos, const char *fen);
 extern void position_to_fen(const struct position *restrict const pos);
 extern void position_print(FILE *os, const struct position *restrict const pos);

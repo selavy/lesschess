@@ -98,8 +98,7 @@ void zobrist_hash_module_init() {
 #endif
 }
 
-void zobrist_hash_from_position(const struct position *const pos,
-                                uint64_t *zhash) {
+uint64_t zobrist_hash_from_position(const struct position *const pos) {
     uint64_t h = 0;
     int sq;
     int pc;
@@ -130,7 +129,7 @@ void zobrist_hash_from_position(const struct position *const pos,
     if (pos->enpassant != EP_NONE) {
         h ^= ZOBRIST_ENPASSANT(pos->enpassant);
     }
-    *zhash = h;
+    return h;
 }
 
 int position_from_fen(struct position *restrict pos, const char *fen) {

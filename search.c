@@ -242,7 +242,7 @@ move search(const struct position *p, int *score, int *searched_depth) {
     if (nmoves == 0) {
         return MATED;
     }
-    zobrist_hash_from_position(&pos, &zhash);
+    zhash = zobrist_hash_from_position(&pos);
     const struct search_node node = {.pos = &pos,
                                      .sp = &sp,
                                      .moves = &moves[0],
