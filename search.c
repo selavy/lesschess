@@ -45,7 +45,6 @@ void transposition_table_init() {
         tt_tbl[i].flags = TT_NONE;
     }
 }
-
 // int tt_index(uint64_t h) { return h & (TTSZ - 1); }
 int tt_index(uint64_t h) { return h % TTSZ; }
 
@@ -57,28 +56,27 @@ struct search_node {
     int nmoves;
 };
 
-int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int beta, int maximizing) {
-    int nmoves;
-    int i;
-    int value;
-    move moves[MAX_MOVES];
-    struct savepos sp;
-    int best;
+#if 1
 
+int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int beta, int maximizing) {
     if (depth == 0) {
-        return evaluate(pos);
+        const int score = evaluate(pos);
+        return score;
     }
 
-    nmoves = generate_legal_moves(pos, &moves[0]);
+    move moves[MAX_MOVES];
+    const int nmoves = generate_legal_moves(pos, &moves[0]);
     if (nmoves == 0) {
         return pos->wtm ? WHITE_WIN : BLACK_WIN;
     }
 
+    int best;
+    struct savepos sp;
     if (maximizing) {
         best = NEG_INFINITI;
-        for (i = 0; i < nmoves; ++i) {
+        for (int i = 0; i < nmoves; ++i) {
             zhash = make_move(pos, &sp, moves[i], zhash);
-            value = alphabeta(pos, zhash, depth - 1, alpha, beta, 0);
+            const int value = alphabeta(pos, zhash, depth - 1, alpha, beta, 0);
             zhash = undo_move(pos, &sp, moves[i], zhash);
             if (value > best) {
                 best = value;
@@ -92,9 +90,9 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
         }
     } else {
         best = INFINITI;
-        for (i = 0; i < nmoves; ++i) {
+        for (int i = 0; i < nmoves; ++i) {
             zhash = make_move(pos, &sp, moves[i], zhash);
-            value = alphabeta(pos, zhash, depth - 1, alpha, beta, 1);
+            const int value = alphabeta(pos, zhash, depth - 1, alpha, beta, 1);
             zhash = undo_move(pos, &sp, moves[i], zhash);
             if (value < best) {
                 best = value;
@@ -119,29 +117,26 @@ move alphabeta_search(struct search_node *n, int depth, int *score) {
     const int nmoves = n->nmoves;
     move bestmove = INVALID_MOVE;
     int bestscore = pos->wtm == WHITE ? NEG_INFINITI : INFINITI;
-    int value;
-    int i;
     int zhash = orig_zhash;
 
     assert(nmoves > 0);
-
     if (pos->wtm == WHITE) {
-        for (i = 0; i < nmoves; ++i) {
+        for (int i = 0; i < nmoves; ++i) {
             zhash = make_move(pos, sp, moves[i], zhash);
-            value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
+            const int value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
             zhash = undo_move(pos, sp, moves[i], zhash);
-            assert(zhash == orig_zhash);
+            // assert(zhash == orig_zhash);
             if (value > bestscore) {
                 bestmove = moves[i];
                 bestscore = value;
             }
         }
     } else {
-        for (i = 0; i < nmoves; ++i) {
+        for (int i = 0; i < nmoves; ++i) {
             zhash = make_move(pos, sp, moves[i], zhash);
-            value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
+            const int value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
             zhash = undo_move(pos, sp, moves[i], zhash);
-            assert(zhash == orig_zhash);
+            // assert(zhash == orig_zhash);
             if (value < bestscore) {
                 bestmove = moves[i];
                 bestscore = value;
@@ -154,7 +149,10 @@ move alphabeta_search(struct search_node *n, int depth, int *score) {
     return bestmove;
 }
 
-#if 0
+#else
+
+static int alphabeta_max(struct position *pos, uint64_t orig_zhash, int depth_left, int alpha, int beta);
+static int alphabeta_min(struct position *pos, uint64_t orig_zhash, int depth_left, int alpha, int beta);
 
 int alphabeta_max(struct position *pos, uint64_t orig_zhash, int depth_left, int alpha, int beta) {
     if (depth_left == 0) {
@@ -166,7 +164,7 @@ int alphabeta_max(struct position *pos, uint64_t orig_zhash, int depth_left, int
     const int nmoves = generate_legal_moves(pos, &moves[0]);
     for (int i = 0; i < nmoves; ++i) {
         zhash = make_move(pos, &sp, moves[i], zhash);
-        const int score = alphabeta_min(pos, alpha, beta, depth_left - 1);
+        const int score = alphabeta_min(pos, zhash, alpha, beta, depth_left - 1);
         if (score >= beta) {
             return beta; // fail hard beta cutoff
         }
@@ -176,7 +174,6 @@ int alphabeta_max(struct position *pos, uint64_t orig_zhash, int depth_left, int
         zhash = undo_move(pos, &sp, moves[i], zhash);
         assert(zhash == orig_zhash);
     }
-
     return alpha;
 }
 
@@ -189,14 +186,20 @@ int alphabeta_min(struct position *pos, uint64_t orig_zhash, int depth_left, int
     struct savepos sp;
     const int nmoves = generate_legal_moves(pos, &moves[0]);
     for (int i = 0; i < nmoves; ++i) {
-        zhash = make_move(pos, &sp, moves[i], )
+        zhash = make_move(pos, &sp, moves[i], zhash);
+        const int score = alphabeta_max(pos, zhash, alpha, beta, depth_left - 1);
+        if (score <= alpha) {
+            return alpha; // fail hard alpha cutoff
+        }
+        if (score < beta) {
+            beta = score;
+        }
+        zhash = undo_move(pos, &sp, moves[i], zhash);
     }
-
+    return beta;
 }
 
 move alphabeta_search(struct search_node *n, int depth, int *score) {
-    int value;
-    int i;
     struct position *pos = n->pos;
     struct savepos *sp = n->sp;
     const move *moves = n->moves;
@@ -207,9 +210,9 @@ move alphabeta_search(struct search_node *n, int depth, int *score) {
     uint64_t zhash = orig_zhash;
 
     assert(nmoves > 0);
-    for (i = 0; i < nmoves; ++i) {
+    for (int i = 0; i < nmoves; ++i) {
         zhash = make_move(pos, sp, moves[i], zhash);
-        value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI);
+        const int value = alphabeta_max(pos, zhash, depth, NEG_INFINITI, INFINITI);
         zhash = undo_move(pos, sp, moves[i], zhash);
         assert(zhash == orig_zhash);
         if (value > bestscore) {
