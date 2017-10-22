@@ -62,6 +62,8 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
         const int score = evaluate(pos);
         return score;
     }
+    uint64_t cur_zhash = zobrist_hash_from_position(pos);
+    assert(zhash == cur_zhash);
 
     move moves[MAX_MOVES];
     const int nmoves = generate_legal_moves(pos, &moves[0]);
@@ -120,14 +122,17 @@ move alphabeta_search(const struct search_node *n, int depth, int *score) {
     const int nmoves = n->nmoves;
     move bestmove = INVALID_MOVE;
     int bestscore = pos->wtm == WHITE ? NEG_INFINITI : INFINITI;
-    int zhash = orig_zhash;
+    uint64_t zhash = orig_zhash;
 
+    assert(orig_zhash == zobrist_hash_from_position(pos));
     assert(nmoves > 0);
     if (pos->wtm == WHITE) {
         for (int i = 0; i < nmoves; ++i) {
             zhash = make_move(pos, sp, moves[i], zhash);
+            assert(zhash == zobrist_hash_from_position(pos));
             const int value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 0);
             zhash = undo_move(pos, sp, moves[i], zhash);
+            assert(zhash == zobrist_hash_from_position(pos));
             // assert(zhash == orig_zhash);
             if (value > bestscore) {
                 bestmove = moves[i];
@@ -137,8 +142,10 @@ move alphabeta_search(const struct search_node *n, int depth, int *score) {
     } else {
         for (int i = 0; i < nmoves; ++i) {
             zhash = make_move(pos, sp, moves[i], zhash);
+            assert(zhash == zobrist_hash_from_position(pos));
             const int value = alphabeta(pos, zhash, depth, NEG_INFINITI, INFINITI, 1);
             zhash = undo_move(pos, sp, moves[i], zhash);
+            assert(zhash == zobrist_hash_from_position(pos));
             // assert(zhash == orig_zhash);
             if (value < bestscore) {
                 bestmove = moves[i];
@@ -249,6 +256,7 @@ move search(const struct position *p, int *score, int *searched_depth) {
                                      .moves = &moves[0],
                                      .zhash = zhash,
                                      .nmoves = nmoves};
+    assert(node.zhash == zobrist_hash_from_position(&pos));
 
     for (depth = 2; depth <= max_depth; ++depth) {
         *searched_depth = depth;
