@@ -98,7 +98,7 @@ void zobrist_hash_module_init() {
 #endif
 }
 
-uint64_t zobrist_hash_from_position(const struct position *const pos) {
+uint64_t zobrist_hash_from_position(const struct position *pos) {
     uint64_t h = 0;
     int sq;
     int pc;
@@ -132,7 +132,7 @@ uint64_t zobrist_hash_from_position(const struct position *const pos) {
     return h;
 }
 
-int position_from_fen(struct position *restrict pos, const char *fen) {
+int position_from_fen(struct position *pos, const char *fen) {
     int rank;
     int file;
     char c;
@@ -345,7 +345,7 @@ int position_from_fen(struct position *restrict pos, const char *fen) {
     return validate_position(pos);
 }
 
-void position_to_fen(const struct position *restrict const pos) {
+void position_to_fen(const struct position *pos) {
     const uint8_t *s2p = &pos->sqtopc[0];
     for (int rank = 7; rank >= 0; --rank) {
         int empty = 0;
@@ -391,7 +391,7 @@ void position_to_fen(const struct position *restrict const pos) {
     printf("%d %d\n", pos->halfmoves, pos->nmoves);
 }
 
-void position_print(FILE *os, const struct position *restrict const pos) {
+void position_print(FILE *os, const struct position *pos) {
     fprintf(os, "+---+---+---+---+---+---+---+---+\n");
     for (int rank = RANK_8; rank >= RANK_1; --rank) {
         for (int file = FILE_A; file <= FILE_H; ++file) {
@@ -422,7 +422,7 @@ void position_print(FILE *os, const struct position *restrict const pos) {
     }
 }
 
-int validate_position(struct position *restrict const pos) {
+int validate_position(struct position *pos) {
     int pc;
     int color;
     int contra;
@@ -605,8 +605,7 @@ uint8_t rook_square_to_castle_flag(uint8_t sq) {
     return result;
 }
 
-uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp,
-                   move m, uint64_t hash) {
+uint64_t make_move(struct position *pos, struct savepos *sp, move m, uint64_t hash) {
     const uint8_t side = pos->wtm;
     const uint8_t contra = FLIP(side);
     const uint32_t tosq = TO(m);
@@ -804,8 +803,7 @@ uint64_t make_move(struct position *restrict pos, struct savepos *restrict sp,
     return hash;
 }
 
-void undo_move(struct position *restrict pos,
-                   const struct savepos *restrict sp, move m) {
+void undo_move(struct position *pos, const struct savepos *sp, move m) {
     const uint8_t side = FLIP(pos->wtm);
     const uint8_t contra = pos->wtm;
     const uint32_t fromsq = FROM(m);
@@ -931,8 +929,7 @@ void undo_move(struct position *restrict pos,
     assert(validate_position(pos) == 0);
 }
 
-move parse_xboard_move(struct position *restrict const pos, const char *line,
-                       int len) {
+move parse_xboard_move(struct position *pos, const char *line, int len) {
     if (len < 4 || len > 5) {
         return INVALID_MOVE;
     }
