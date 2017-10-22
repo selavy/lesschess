@@ -6,8 +6,7 @@
 
 #define COUNT_CHECKS_AND_MATES
 
-static uint64_t perft(int depth, struct position *restrict pos,
-                      uint64_t *captures, uint64_t *eps, uint64_t *castles,
+static uint64_t perft(int depth, struct position *restrict pos, uint64_t *captures, uint64_t *eps, uint64_t *castles,
                       uint64_t *promos, uint64_t *checks, uint64_t *mates) {
     int i;
     int nmoves;
@@ -52,8 +51,7 @@ static uint64_t perft(int depth, struct position *restrict pos,
             /* z = zobrist_hash_from_position(pos); */
             /* assert(new_z == z); */
             /* assert(new_z != orig_z); */
-            nodes += perft(depth - 1, pos, captures, eps, castles, promos,
-                           checks, mates);
+            nodes += perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
             undo_move(pos, &sp, moves[i]);
 #ifndef NDEBUG
             assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);
@@ -88,8 +86,7 @@ static uint64_t perft(int depth, struct position *restrict pos,
 
 #ifdef COUNT_CHECKS_AND_MATES
             make_move(pos, &sp, moves[i], 0);
-            perft(depth - 1, pos, captures, eps, castles, promos, checks,
-                  mates);
+            perft(depth - 1, pos, captures, eps, castles, promos, checks, mates);
             undo_move(pos, &sp, moves[i]);
 #ifndef NDEBUG
             assert(memcmp(pos, &tmp, sizeof(tmp)) == 0);
@@ -100,10 +97,8 @@ static uint64_t perft(int depth, struct position *restrict pos,
     return nodes;
 }
 
-int perft_test(const struct position *restrict position, int depth,
-               uint64_t *nodes, uint64_t *captures, uint64_t *eps,
-               uint64_t *castles, uint64_t *promos, uint64_t *checks,
-               uint64_t *mates) {
+int perft_test(const struct position *restrict position, int depth, uint64_t *nodes, uint64_t *captures, uint64_t *eps,
+               uint64_t *castles, uint64_t *promos, uint64_t *checks, uint64_t *mates) {
     *nodes = *captures = *eps = *castles = *promos = *checks = *mates = 0;
     if (depth < 0) {
         return 1;
@@ -136,8 +131,7 @@ uint64_t perft_speed(struct position *restrict pos, int depth) {
     return nodes;
 }
 
-static uint64_t perft_text_tree_helper(struct position *restrict pos,
-                                       int depth) {
+static uint64_t perft_text_tree_helper(struct position *restrict pos, int depth) {
     int i;
     int nmoves;
     move moves[MAX_MOVES];

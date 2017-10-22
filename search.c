@@ -54,8 +54,7 @@ struct search_node {
     int nmoves;
 };
 
-int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
-              int beta, int color) {
+int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int beta, int color) {
     if (depth == 0) {
         const int score = evaluate(pos);
         return score;
@@ -76,8 +75,7 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
         best = NEG_INF;
         for (int i = 0; i < nmoves; ++i) {
             new_zhash = make_move(pos, &sp, moves[i], zhash);
-            const int value =
-                alphabeta(pos, new_zhash, depth - 1, alpha, beta, WHITE);
+            const int value = alphabeta(pos, new_zhash, depth - 1, alpha, beta, WHITE);
             undo_move(pos, &sp, moves[i]);
             best = MAX(value, best);
             alpha = MAX(alpha, best);
@@ -89,8 +87,7 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
         best = INF;
         for (int i = 0; i < nmoves; ++i) {
             new_zhash = make_move(pos, &sp, moves[i], zhash);
-            const int value =
-                alphabeta(pos, new_zhash, depth - 1, alpha, beta, BLACK);
+            const int value = alphabeta(pos, new_zhash, depth - 1, alpha, beta, BLACK);
             undo_move(pos, &sp, moves[i]);
             best = MIN(best, value);
             beta = MIN(beta, best);
@@ -155,11 +152,7 @@ move search(struct position *pos, int *score, int *searched_depth) {
         return MATED;
     }
     const uint64_t zhash = zobrist_hash_from_position(pos);
-    const struct search_node node = {.pos = pos,
-                                     .sp = &sp,
-                                     .moves = &moves[0],
-                                     .zhash = zhash,
-                                     .nmoves = nmoves};
+    const struct search_node node = {.pos = pos, .sp = &sp, .moves = &moves[0], .zhash = zhash, .nmoves = nmoves};
     assert(node.zhash == zobrist_hash_from_position(pos));
 
     for (int depth = 2; depth <= max_depth; ++depth) {

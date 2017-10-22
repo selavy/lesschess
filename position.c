@@ -20,9 +20,7 @@ static size_t ZOBRIST_BOARD_SQ_INDEX(int pc, int sq) {
     return index;
 }
 
-static uint64_t ZOBRIST_BOARD_SQ(int pc, int sq) {
-    return zobrist_values[ZOBRIST_BOARD_SQ_INDEX(pc, sq)];
-}
+static uint64_t ZOBRIST_BOARD_SQ(int pc, int sq) { return zobrist_values[ZOBRIST_BOARD_SQ_INDEX(pc, sq)]; }
 
 static size_t ZOBRIST_BOARD_INDEX(int pc, int file, int rank) {
     assert(file >= 0 && file <= 7);
@@ -44,15 +42,13 @@ static size_t ZOBRIST_SIDE_TO_MOVE_INDEX() {
     return index;
 }
 
-static uint64_t ZOBRIST_SIDE_TO_MOVE() {
-    return zobrist_values[ZOBRIST_SIDE_TO_MOVE_INDEX()];
-}
+static uint64_t ZOBRIST_SIDE_TO_MOVE() { return zobrist_values[ZOBRIST_SIDE_TO_MOVE_INDEX()]; }
 
 static size_t ZOBRIST_CASTLE_RIGHTS_INDEX(uint8_t castle_flag) {
     const size_t base = 64 * 12 + 1;
     const size_t off = castle_flag;
-    assert(castle_flag == CSL_WQSIDE || castle_flag == CSL_WKSIDE ||
-           castle_flag == CSL_BQSIDE || castle_flag == CSL_BKSIDE);
+    assert(castle_flag == CSL_WQSIDE || castle_flag == CSL_WKSIDE || castle_flag == CSL_BQSIDE ||
+           castle_flag == CSL_BKSIDE);
     const size_t index = base + off;
     assert(index >= 64 * 12 + 1);
     assert(index < 64 * 12 + 1 + 16);
@@ -77,9 +73,7 @@ static size_t ZOBRIST_ENPASSANT_INDEX(int sq) {
     return ZOBRIST_ENPASSANT_FILE_INDEX(file);
 }
 
-static uint64_t ZOBRIST_ENPASSANT(int sq) {
-    return zobrist_values[ZOBRIST_ENPASSANT_INDEX(sq)];
-}
+static uint64_t ZOBRIST_ENPASSANT(int sq) { return zobrist_values[ZOBRIST_ENPASSANT_INDEX(sq)]; }
 
 void zobrist_hash_module_init() {
     srand(42);
@@ -221,11 +215,9 @@ int position_from_fen(struct position *pos, const char *fen) {
                 break;
             default:
                 if (c >= '1' && c <= '8') {
-                    file +=
-                        c - '0' - 1; // file will get incremented by for loop
+                    file += c - '0' - 1; // file will get incremented by for loop
                 } else {
-                    fprintf(stderr, "Invalid empty file specification: %c\n",
-                            c);
+                    fprintf(stderr, "Invalid empty file specification: %c\n", c);
                     return 2;
                 }
             }
@@ -250,8 +242,7 @@ int position_from_fen(struct position *pos, const char *fen) {
     }
 
     if (*fen++ != ' ') {
-        fprintf(stderr, "Expected space after color spec, instead %d\n",
-                *(fen - 1));
+        fprintf(stderr, "Expected space after color spec, instead %d\n", *(fen - 1));
         return 4;
     }
 
@@ -305,8 +296,7 @@ int position_from_fen(struct position *pos, const char *fen) {
         return 9;
     }
 
-    assert((pos->enpassant == EP_NONE) ||
-           (pos->enpassant >= A3 && pos->enpassant <= H3) ||
+    assert((pos->enpassant == EP_NONE) || (pos->enpassant >= A3 && pos->enpassant <= H3) ||
            (pos->enpassant >= A6 && pos->enpassant <= H6));
 
     c = *fen++;
@@ -455,8 +445,7 @@ int validate_position(struct position *pos) {
                 fprintf(stderr, "\nvalidate_position: sqtopc has %c on %s, but "
                                 "%s (same) bitboard is empty\n",
                         visual_pcs[pc], sq_to_str[sq], COLORSTR(color));
-                fprintf(stderr, "\nsq = %d, pc = %d, pos->sqtopc[sq] = %d\n",
-                        sq, pc, pos->sqtopc[sq]);
+                fprintf(stderr, "\nsq = %d, pc = %d, pos->sqtopc[sq] = %d\n", sq, pc, pos->sqtopc[sq]);
                 return 3;
             }
             if ((pos->side[contra] & MASK(sq)) != 0) {
@@ -471,18 +460,14 @@ int validate_position(struct position *pos) {
             // check piece bitboards
             if (pc == PIECE(WHITE, KING)) {
                 if (sq != KSQ(*pos, WHITE)) {
-                    fprintf(
-                        stderr,
-                        "\nvalidate_position: white king location incorrect. "
-                        "sqtopc[%d] = WHITE KING, KSQ(WHITE) = %d\n",
-                        sq, KSQ(*pos, WHITE));
+                    fprintf(stderr, "\nvalidate_position: white king location incorrect. "
+                                    "sqtopc[%d] = WHITE KING, KSQ(WHITE) = %d\n",
+                            sq, KSQ(*pos, WHITE));
                     return 22;
                 }
             } else if (pc == PIECE(BLACK, KING)) {
                 if (sq != KSQ(*pos, BLACK)) {
-                    fprintf(
-                        stderr,
-                        "\nvalidate_position: black king location incorrect\n");
+                    fprintf(stderr, "\nvalidate_position: black king location incorrect\n");
                     return 23;
                 }
             } else if ((pos->brd[pc] & MASK(sq)) == 0) {
@@ -522,8 +507,7 @@ int validate_position(struct position *pos) {
                 if (pos->sqtopc[sq] != pc) {
                     fprintf(stderr, "\nvalidate_position: pos->brd[%c] has a "
                                     "piece on %s, sqtopc has %c\n",
-                            visual_pcs[pc], sq_to_str[sq],
-                            visual_pcs[pos->sqtopc[sq]]);
+                            visual_pcs[pc], sq_to_str[sq], visual_pcs[pos->sqtopc[sq]]);
                     return 6;
                 }
             }
@@ -531,24 +515,20 @@ int validate_position(struct position *pos) {
     }
 
     if (white_kings != 1) {
-        fprintf(stderr, "\nvalidate_position: %d white kings found!\n",
-                white_kings);
+        fprintf(stderr, "\nvalidate_position: %d white kings found!\n", white_kings);
         return 7;
     }
     if (black_kings != 1) {
-        fprintf(stderr, "\nvalidate_position: %d black kings found!\n",
-                black_kings);
+        fprintf(stderr, "\nvalidate_position: %d black kings found!\n", black_kings);
         return 8;
     }
 
     for (sq = A1; sq <= H1; ++sq) {
         if (pos->sqtopc[sq] == PIECE(WHITE, PAWN)) {
-            fprintf(stderr, "\nvalidate_position: white pawn on %s\n",
-                    sq_to_str[sq]);
+            fprintf(stderr, "\nvalidate_position: white pawn on %s\n", sq_to_str[sq]);
             return 9;
         } else if (pos->sqtopc[sq] == PIECE(BLACK, PAWN)) {
-            fprintf(stderr, "\nvalidate_position: black pawn on %s\n",
-                    sq_to_str[sq]);
+            fprintf(stderr, "\nvalidate_position: black pawn on %s\n", sq_to_str[sq]);
             return 10;
         }
     }
@@ -639,8 +619,7 @@ uint64_t make_move(struct position *pos, struct savepos *sp, move m, uint64_t ha
     }
     switch (flags) {
     case FLG_NONE:
-        assert(((pcs != 0) && pc != PIECE(side, KING)) ||
-               ((pcs == 0) && pc == PIECE(side, KING)));
+        assert(((pcs != 0) && pc != PIECE(side, KING)) || ((pcs == 0) && pc == PIECE(side, KING)));
         if (pcs) {
             *pcs &= ~from;
             *pcs |= to;
@@ -679,12 +658,10 @@ uint64_t make_move(struct position *pos, struct savepos *sp, move m, uint64_t ha
                 *castle &= ~castle_flag;
                 hash ^= ZOBRIST_CASTLE_RIGHTS(castle_flag);
             }
-        } else if (pc == PIECE(side, PAWN) && (from & RANK2(side)) &&
-                   (to & EP_SQUARES(side))) {
+        } else if (pc == PIECE(side, PAWN) && (from & RANK2(side)) && (to & EP_SQUARES(side))) {
             pos->enpassant = epsq;
             hash ^= ZOBRIST_ENPASSANT(epsq);
-            assert((pos->enpassant >= A3 && pos->enpassant <= H3) ||
-                   (pos->enpassant >= A6 && pos->enpassant <= H6));
+            assert((pos->enpassant >= A3 && pos->enpassant <= H3) || (pos->enpassant >= A6 && pos->enpassant <= H6));
         }
         if (pc == PIECE(side, ROOK)) {
             castle_flag = rook_square_to_castle_flag(fromsq);
@@ -814,8 +791,7 @@ void undo_move(struct position *pos, const struct savepos *sp, move m) {
     const uint32_t pc = pos->sqtopc[tosq];
     const uint32_t cappc = sp->captured_pc;
     const uint64_t from = MASK(fromsq);
-    const uint64_t to = MASK(
-        tosq); // REVISIT: all uses of `to' are `~to' so just calculate that?
+    const uint64_t to = MASK(tosq); // REVISIT: all uses of `to' are `~to' so just calculate that?
     const uint32_t epsq = side == WHITE ? tosq - 8 : tosq + 8;
     uint64_t *restrict pcs = pc != PIECE(side, KING) ? &pos->brd[pc] : 0;
     uint8_t *restrict s2p = pos->sqtopc;
@@ -829,12 +805,9 @@ void undo_move(struct position *pos, const struct savepos *sp, move m) {
     assert(fromsq >= A1 && fromsq <= H8);
     assert(tosq >= A1 && tosq <= H8);
     assert(side == WHITE || side == BLACK);
-    assert(flags == FLG_NONE || flags == FLG_EP || flags == FLG_PROMO ||
-           flags == FLG_CASTLE);
-    assert(cappc == EMPTY ||
-           (cappc >= PIECE(WHITE, KNIGHT) && cappc <= PIECE(BLACK, KING)));
-    assert(flags != FLG_PROMO ||
-           (promopc >= PIECE(side, KNIGHT) && promopc <= PIECE(side, KING)));
+    assert(flags == FLG_NONE || flags == FLG_EP || flags == FLG_PROMO || flags == FLG_CASTLE);
+    assert(cappc == EMPTY || (cappc >= PIECE(WHITE, KNIGHT) && cappc <= PIECE(BLACK, KING)));
+    assert(flags != FLG_PROMO || (promopc >= PIECE(side, KNIGHT) && promopc <= PIECE(side, KING)));
 
     pos->halfmoves = sp->halfmoves;
 
@@ -872,8 +845,7 @@ void undo_move(struct position *pos, const struct savepos *sp, move m) {
         *sidebb &= ~to;
         *contrabb |= MASK(epsq);
         s2p[tosq] = EMPTY;
-        assert((side == WHITE && epsq == (tosq - 8)) ||
-               (side == BLACK && epsq == (tosq + 8)));
+        assert((side == WHITE && epsq == (tosq - 8)) || (side == BLACK && epsq == (tosq + 8)));
         s2p[epsq] = PIECE(contra, PAWN);
         pos->brd[PIECE(contra, PAWN)] |= MASK(epsq);
         break;
@@ -953,8 +925,7 @@ move parse_xboard_move(struct position *pos, const char *line, int len) {
                 unreachable();
             }
             // return CASTLE(from, to);
-        } else if (from == E8 && KSQ(*pos, BLACK) == E8 &&
-                   (to == C8 || to == G8)) {
+        } else if (from == E8 && KSQ(*pos, BLACK) == E8 && (to == C8 || to == G8)) {
             if (to == C8) {
                 return CASTLE(E8, A8);
             } else if (to == G8) {
@@ -963,8 +934,7 @@ move parse_xboard_move(struct position *pos, const char *line, int len) {
                 unreachable();
             }
             // return CASTLE(from, to);
-        } else if (to == pos->enpassant &&
-                   pos->sqtopc[from] == PIECE(pos->wtm, PAWN)) {
+        } else if (to == pos->enpassant && pos->sqtopc[from] == PIECE(pos->wtm, PAWN)) {
             return EP_CAPTURE(from, to);
         } else {
             return MOVE(from, to);

@@ -50,9 +50,7 @@ static void handle_features_sent(const char *line, int len);
 static void handle_setup(const char *line, int len);
 static void handle_playing(const char *line, int len);
 
-static int strictcmp(const char *a, const char *b) {
-    return strncmp(a, b, strlen(b)) == 0;
-}
+static int strictcmp(const char *a, const char *b) { return strncmp(a, b, strlen(b)) == 0; }
 
 static void sigh(int nsig) { xbdebug("received signal: %d", nsig); }
 
@@ -195,8 +193,7 @@ void xbwrite(const char *fmt, ...) {
 
 void xbstate_init() {
     int retcode;
-    const char *fen =
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     retcode = position_from_fen(&g_pos, fen);
     if (retcode != 0) {
         xberror("position_from_fen failed: %d", retcode);

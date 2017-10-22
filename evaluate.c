@@ -27,13 +27,11 @@ int evaluate(struct position *restrict const pos) {
     // returns 0 if is 50 move rule draw
     const int not_fifty_move_rule_draw = pos->halfmoves < 50 ? 1 : 0;
 
-    white_score = 100 * white_pawns + 295 * white_knights +
-                  300 * white_bishops + 500 * white_rooks + 800 * white_queens +
-                  white_squares_attacked;
+    white_score = 100 * white_pawns + 295 * white_knights + 300 * white_bishops + 500 * white_rooks +
+                  800 * white_queens + white_squares_attacked;
 
-    black_score = 100 * black_pawns + 295 * black_knights +
-                  300 * black_bishops + 500 * black_rooks + 800 * black_queens +
-                  black_squares_attacked;
+    black_score = 100 * black_pawns + 295 * black_knights + 300 * black_bishops + 500 * black_rooks +
+                  800 * black_queens + black_squares_attacked;
 
     return (white_score - black_score) * not_fifty_move_rule_draw;
 }

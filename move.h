@@ -5,10 +5,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define unreachable()                                                          \
-    do {                                                                       \
-        __builtin_unreachable();                                               \
-        assert(0);                                                             \
+#define unreachable()                                                                                                  \
+    do {                                                                                                               \
+        __builtin_unreachable();                                                                                       \
+        assert(0);                                                                                                     \
     } while (0)
 #define force_inline __attribute__((always_inline)) inline
 #ifndef static_assert
@@ -52,16 +52,7 @@ enum {
     A8, B8, C8, D8, E8, F8, G8, H8,
 };
 // clang-format on
-enum {
-    KNIGHT = 0,
-    BISHOP = 1,
-    ROOK = 2,
-    QUEEN = 3,
-    PAWN = 4,
-    KING = 5,
-    NPIECES = 6,
-    EMPTY = (NPIECES * 2)
-};
+enum { KNIGHT = 0, BISHOP = 1, ROOK = 2, QUEEN = 3, PAWN = 4, KING = 5, NPIECES = 6, EMPTY = (NPIECES * 2) };
 #define PIECE(color, type) (2 * (type) + (color))
 #define PIECECOLOR(pc) (((pc) % 2) == 0 ? WHITE : BLACK)
 
@@ -72,8 +63,7 @@ enum {
 // 2 bits for flags - NONE, EP, PROMO, CASTLE
 #define MOVE(from, to) (((to) << 0) | ((from) << 6))
 #define EP_CAPTURE(from, to) (((to) << 0) | ((from) << 6) | (1 << 14))
-#define PROMOTION(from, to, prm)                                               \
-    (((to) << 0) | ((from) << 6) | ((prm) << 12) | (2 << 14))
+#define PROMOTION(from, to, prm) (((to) << 0) | ((from) << 6) | ((prm) << 12) | (2 << 14))
 #define CASTLE(from, to) (((to) << 0) | ((from) << 6) | (3 << 14))
 
 #define MATED 0
@@ -98,8 +88,7 @@ enum {
 #define RANK3(side) ((side) == WHITE ? THIRD_RANK : SIXTH_RANK)
 #define WHITE_ENPASSANT_SQUARES 0x00000000ff000000
 #define BLACK_ENPASSANT_SQUARES 0x000000ff00000000
-#define EP_SQUARES(side)                                                       \
-    ((side) == WHITE ? WHITE_ENPASSANT_SQUARES : BLACK_ENPASSANT_SQUARES)
+#define EP_SQUARES(side) ((side) == WHITE ? WHITE_ENPASSANT_SQUARES : BLACK_ENPASSANT_SQUARES)
 
 extern const char *sq_to_str[64];
 extern const char *const visual_pcs;
