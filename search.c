@@ -109,7 +109,7 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
     return best;
 }
 
-move alphabeta_search(struct search_node *n, int depth, int *score) {
+move alphabeta_search(const struct search_node *n, int depth, int *score) {
     struct position *pos = n->pos;
     struct savepos *sp = n->sp;
     const move *moves = n->moves;
@@ -199,7 +199,7 @@ int alphabeta_min(struct position *pos, uint64_t orig_zhash, int depth_left, int
     return beta;
 }
 
-move alphabeta_search(struct search_node *n, int depth, int *score) {
+move alphabeta_search(const struct search_node *n, int depth, int *score) {
     struct position *pos = n->pos;
     struct savepos *sp = n->sp;
     const move *moves = n->moves;
@@ -235,17 +235,19 @@ move search(const struct position *p, int *score, int *searched_depth) {
     move moves[MAX_MOVES];
     int depth;
     move best_move;
-    struct search_node node;
+    uint64_t zhash;
 
     memcpy(&pos, p, sizeof(pos));
-    node.nmoves = generate_legal_moves(&pos, &moves[0]);
-    if (node.nmoves == 0) {
+    const int nmoves = generate_legal_moves(&pos, &moves[0]);
+    if (nmoves == 0) {
         return MATED;
     }
-    zobrist_hash_from_position(&pos, &node.zhash);
-    node.pos = &pos;
-    node.sp = &sp;
-    node.moves = &moves[0];
+    zobrist_hash_from_position(&pos, &zhash);
+    const struct search_node node = {.pos = &pos,
+                                     .sp = &sp,
+                                     .moves = &moves[0],
+                                     .zhash = zhash,
+                                     .nmoves = nmoves};
 
     for (depth = 2; depth <= max_depth; ++depth) {
         *searched_depth = depth;
