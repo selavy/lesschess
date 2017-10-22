@@ -41,7 +41,9 @@ void move_print(FILE *fp, move mv) {
     fprintf(fp, "\n");
 }
 
-void move_print_short(move m) { printf("%s%s", sq_to_str[FROM(m)], sq_to_str[TO(m)]); }
+void move_print_short(move m) {
+    printf("%s%s", sq_to_str[FROM(m)], sq_to_str[TO(m)]);
+}
 
 const char *xboard_move_print(move m) {
     // max move length is "e7e8q", most moves are "e7e8"

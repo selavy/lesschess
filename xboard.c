@@ -50,9 +50,13 @@ static void handle_features_sent(const char *line, int len);
 static void handle_setup(const char *line, int len);
 static void handle_playing(const char *line, int len);
 
-static int strictcmp(const char *a, const char *b) { return strncmp(a, b, strlen(b)) == 0; }
+static int strictcmp(const char *a, const char *b) {
+    return strncmp(a, b, strlen(b)) == 0;
+}
 
-static void sigh(int nsig) { xbdebug("received signal: %d", nsig); }
+static void sigh(int nsig) {
+    xbdebug("received signal: %d", nsig);
+}
 
 void handle_input(const char *line, int len) {
     if (strictcmp(line, "quit")) {

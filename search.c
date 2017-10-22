@@ -44,7 +44,9 @@ void transposition_table_init() {
     }
 }
 // int tt_index(uint64_t h) { return h & (TTSZ - 1); }
-int tt_index(uint64_t h) { return h % TTSZ; }
+int tt_index(uint64_t h) {
+    return h % TTSZ;
+}
 
 struct search_node {
     struct position *pos;

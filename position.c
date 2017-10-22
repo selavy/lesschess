@@ -20,7 +20,9 @@ static size_t ZOBRIST_BOARD_SQ_INDEX(int pc, int sq) {
     return index;
 }
 
-static uint64_t ZOBRIST_BOARD_SQ(int pc, int sq) { return zobrist_values[ZOBRIST_BOARD_SQ_INDEX(pc, sq)]; }
+static uint64_t ZOBRIST_BOARD_SQ(int pc, int sq) {
+    return zobrist_values[ZOBRIST_BOARD_SQ_INDEX(pc, sq)];
+}
 
 static size_t ZOBRIST_BOARD_INDEX(int pc, int file, int rank) {
     assert(file >= 0 && file <= 7);
@@ -42,7 +44,9 @@ static size_t ZOBRIST_SIDE_TO_MOVE_INDEX() {
     return index;
 }
 
-static uint64_t ZOBRIST_SIDE_TO_MOVE() { return zobrist_values[ZOBRIST_SIDE_TO_MOVE_INDEX()]; }
+static uint64_t ZOBRIST_SIDE_TO_MOVE() {
+    return zobrist_values[ZOBRIST_SIDE_TO_MOVE_INDEX()];
+}
 
 static size_t ZOBRIST_CASTLE_RIGHTS_INDEX(uint8_t castle_flag) {
     const size_t base = 64 * 12 + 1;
@@ -73,7 +77,9 @@ static size_t ZOBRIST_ENPASSANT_INDEX(int sq) {
     return ZOBRIST_ENPASSANT_FILE_INDEX(file);
 }
 
-static uint64_t ZOBRIST_ENPASSANT(int sq) { return zobrist_values[ZOBRIST_ENPASSANT_INDEX(sq)]; }
+static uint64_t ZOBRIST_ENPASSANT(int sq) {
+    return zobrist_values[ZOBRIST_ENPASSANT_INDEX(sq)];
+}
 
 void zobrist_hash_module_init() {
     srand(42);
