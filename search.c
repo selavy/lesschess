@@ -102,7 +102,7 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
     return best;
 }
 
-move alphabeta_search(const struct search_node *n, int depth, int *score) {
+move root_search(const struct search_node *n, int depth, int *score) {
     struct position *pos = n->pos;
     struct savepos *sp = n->sp;
     const move *moves = n->moves;
@@ -159,7 +159,7 @@ move search(struct position *pos, int *score, int *searched_depth) {
 
     for (int depth = 2; depth <= max_depth; ++depth) {
         *searched_depth = depth;
-        best_move = alphabeta_search(&node, depth, score);
+        best_move = root_search(&node, depth, score);
         if (*score == INF || *score == NEG_INF) {
             break;
         }
