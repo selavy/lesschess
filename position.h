@@ -42,9 +42,7 @@ extern void position_print(FILE *os, const struct position *restrict const pos);
 extern int validate_position(struct position *restrict const pos);
 extern uint64_t make_move(struct position *restrict pos,
                           struct savepos *restrict sp, move m, uint64_t hash);
-extern uint64_t undo_move(struct position *restrict pos,
-                          const struct savepos *restrict sp, move m,
-                          uint64_t hash);
+extern void undo_move(struct position *restrict pos, const struct savepos *restrict sp, move m);
 extern move parse_xboard_move(struct position *restrict const pos,
                               const char *line, int len);
 

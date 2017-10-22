@@ -63,6 +63,7 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
     assert(zhash == zobrist_hash_from_position(pos));
     assert(color == WHITE || color == BLACK);
 
+    uint64_t new_zhash;
     move moves[MAX_MOVES];
     const int nmoves = generate_legal_moves(pos, &moves[0]);
     if (nmoves == 0) {
@@ -74,10 +75,10 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
     if (color == BLACK) {
         best = NEG_INF;
         for (int i = 0; i < nmoves; ++i) {
-            zhash = make_move(pos, &sp, moves[i], zhash);
+            new_zhash = make_move(pos, &sp, moves[i], zhash);
             const int value =
-                alphabeta(pos, zhash, depth - 1, alpha, beta, WHITE);
-            zhash = undo_move(pos, &sp, moves[i], zhash);
+                alphabeta(pos, new_zhash, depth - 1, alpha, beta, WHITE);
+            undo_move(pos, &sp, moves[i]);
             best = MAX(value, best);
             alpha = MAX(alpha, best);
             if (beta <= alpha) {
@@ -87,10 +88,10 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha,
     } else {
         best = INF;
         for (int i = 0; i < nmoves; ++i) {
-            zhash = make_move(pos, &sp, moves[i], zhash);
+            new_zhash = make_move(pos, &sp, moves[i], zhash);
             const int value =
-                alphabeta(pos, zhash, depth - 1, alpha, beta, BLACK);
-            zhash = undo_move(pos, &sp, moves[i], zhash);
+                alphabeta(pos, new_zhash, depth - 1, alpha, beta, BLACK);
+            undo_move(pos, &sp, moves[i]);
             best = MIN(best, value);
             beta = MIN(beta, best);
             if (beta <= alpha) {
@@ -106,21 +107,20 @@ move alphabeta_search(const struct search_node *n, int depth, int *score) {
     struct position *pos = n->pos;
     struct savepos *sp = n->sp;
     const move *moves = n->moves;
-    const uint64_t orig_zhash = n->zhash;
+    const uint64_t zhash = n->zhash;
     const int nmoves = n->nmoves;
     move bestmove = INVALID_MOVE;
-    uint64_t zhash = orig_zhash;
+    uint64_t new_zhash;
 
-    assert(orig_zhash == zobrist_hash_from_position(pos));
+    assert(zhash == zobrist_hash_from_position(pos));
     assert(nmoves > 0);
     int bestscore = pos->wtm == WHITE ? NEG_INF : INF;
     if (pos->wtm == WHITE) {
         for (int i = 0; i < nmoves; ++i) {
-            zhash = make_move(pos, sp, moves[i], zhash);
-            assert(zhash == zobrist_hash_from_position(pos));
-            const int value = alphabeta(pos, zhash, depth, NEG_INF, INF, WHITE);
-            zhash = undo_move(pos, sp, moves[i], zhash);
-            assert(zhash == orig_zhash);
+            new_zhash = make_move(pos, sp, moves[i], zhash);
+            assert(new_zhash == zobrist_hash_from_position(pos));
+            const int value = alphabeta(pos, new_zhash, depth, NEG_INF, INF, WHITE);
+            undo_move(pos, sp, moves[i]);
             if (value > bestscore) {
                 bestmove = moves[i];
                 bestscore = value;
@@ -128,11 +128,10 @@ move alphabeta_search(const struct search_node *n, int depth, int *score) {
         }
     } else {
         for (int i = 0; i < nmoves; ++i) {
-            zhash = make_move(pos, sp, moves[i], zhash);
-            assert(zhash == zobrist_hash_from_position(pos));
-            const int value = alphabeta(pos, zhash, depth, NEG_INF, INF, 1);
-            zhash = undo_move(pos, sp, moves[i], zhash);
-            assert(zhash == orig_zhash);
+            new_zhash = make_move(pos, sp, moves[i], zhash);
+            assert(new_zhash == zobrist_hash_from_position(pos));
+            const int value = alphabeta(pos, new_zhash, depth, NEG_INF, INF, 1);
+            undo_move(pos, sp, moves[i]);
             if (value < bestscore) {
                 bestmove = moves[i];
                 bestscore = value;
