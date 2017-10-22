@@ -7,6 +7,9 @@
 #include <stdint.h>
 #include <string.h>
 
+static int alphabeta_max(struct position *pos, uint64_t orig_zhash, int depth_left, int alpha, int beta);
+static int alphabeta_min(struct position *pos, uint64_t orig_zhash, int depth_left, int alpha, int beta);
+
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -25,8 +28,6 @@ struct tt_entry {
     move move;
     uint8_t depth;
     uint8_t flags;
-    // TODO(plesslie): probably need to save depth to?  score
-    // from a deeper position should overwrite shallower values?
 };
 
 //#define TTSZ (1 << 20)
@@ -56,8 +57,6 @@ struct search_node {
     int nmoves;
 };
 
-#if 1
-
 int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int beta, int maximizing) {
     if (depth == 0) {
         const int score = evaluate(pos);
@@ -78,12 +77,14 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
             zhash = make_move(pos, &sp, moves[i], zhash);
             const int value = alphabeta(pos, zhash, depth - 1, alpha, beta, 0);
             zhash = undo_move(pos, &sp, moves[i], zhash);
-            if (value > best) {
-                best = value;
-            }
-            if (best > alpha) {
-                alpha = best;
-            }
+            best = MAX(value, best);
+            alpha = MAX(alpha, best);
+            // if (value > best) {
+            //     best = value;
+            // }
+            // if (best > alpha) {
+            //     alpha = best;
+            // }
             if (beta <= alpha) {
                 break;
             }
@@ -94,12 +95,14 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
             zhash = make_move(pos, &sp, moves[i], zhash);
             const int value = alphabeta(pos, zhash, depth - 1, alpha, beta, 1);
             zhash = undo_move(pos, &sp, moves[i], zhash);
-            if (value < best) {
-                best = value;
-            }
-            if (best < beta) {
-                beta = best;
-            }
+            best = MIN(best, value);
+            beta = MIN(beta, best);
+            // if (value < best) {
+            //     best = value;
+            // }
+            // if (best < beta) {
+            //     beta = best;
+            // }
             if (beta <= alpha) {
                 break;
             }
@@ -149,10 +152,6 @@ move alphabeta_search(const struct search_node *n, int depth, int *score) {
     return bestmove;
 }
 
-#else
-
-static int alphabeta_max(struct position *pos, uint64_t orig_zhash, int depth_left, int alpha, int beta);
-static int alphabeta_min(struct position *pos, uint64_t orig_zhash, int depth_left, int alpha, int beta);
 
 int alphabeta_max(struct position *pos, uint64_t orig_zhash, int depth_left, int alpha, int beta) {
     if (depth_left == 0) {
@@ -198,6 +197,8 @@ int alphabeta_min(struct position *pos, uint64_t orig_zhash, int depth_left, int
     }
     return beta;
 }
+
+#if 0
 
 move alphabeta_search(const struct search_node *n, int depth, int *score) {
     struct position *pos = n->pos;
