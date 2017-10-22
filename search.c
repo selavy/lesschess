@@ -223,25 +223,23 @@ move alphabeta_search(const struct search_node *n, int depth, int *score) {
 
 #endif
 
-move search(const struct position *p, int *score, int *searched_depth) {
+move search(struct position *pos, int *score, int *searched_depth) {
     const int max_depth = 5;
-    struct position pos;
     struct savepos sp;
     move moves[MAX_MOVES];
     move best_move;
 
-    memcpy(&pos, p, sizeof(pos));
-    const int nmoves = generate_legal_moves(&pos, &moves[0]);
+    const int nmoves = generate_legal_moves(pos, &moves[0]);
     if (nmoves == 0) {
         return MATED;
     }
-    const uint64_t zhash = zobrist_hash_from_position(&pos);
-    const struct search_node node = {.pos = &pos,
+    const uint64_t zhash = zobrist_hash_from_position(pos);
+    const struct search_node node = {.pos = pos,
                                      .sp = &sp,
                                      .moves = &moves[0],
                                      .zhash = zhash,
                                      .nmoves = nmoves};
-    assert(node.zhash == zobrist_hash_from_position(&pos));
+    assert(node.zhash == zobrist_hash_from_position(pos));
 
     for (int depth = 2; depth <= max_depth; ++depth) {
         *searched_depth = depth;
