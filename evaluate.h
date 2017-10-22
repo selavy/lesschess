@@ -1,10 +1,8 @@
 #ifndef EVALUATE__H_
 #define EVALUATE__H_
 
-#define INFINITI 1000000
-#define NEG_INFINITI -1000000
-#define WHITE_WIN INFINITI
-#define BLACK_WIN NEG_INFINITI
+#define INF 1000000
+#define NEG_INF -1000000
 
 struct position;
 int evaluate(struct position *restrict const pos);

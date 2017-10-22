@@ -15,7 +15,7 @@ Engine Improvements
 
 Search Algorithms
 ====================
-+Principal Variation Search (PVS)
++Principal Variation Search (PVS/NegaScout) - https://en.wikipedia.org/wiki/Principal_variation_search
 +MTD(f)
 
 Testing
