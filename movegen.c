@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int is_legal(const struct position *const restrict pos, const uint64_t pinned, const move m) {
+static int is_legal(const struct position *const pos, const uint64_t pinned, const move m) {
     const int side = pos->wtm;
     const int contra = FLIP(pos->wtm);
     const int tosq = TO(m);
@@ -57,7 +57,7 @@ static int is_legal(const struct position *const restrict pos, const uint64_t pi
     }
 }
 
-int is_legal_move(const struct position *restrict const pos, move m) {
+int is_legal_move(const struct position *const pos, move m) {
     const uint8_t side = pos->wtm;
     const int ksq = pos->ksq[side];
     const uint64_t pinned = generate_pinned(pos, side, side);
@@ -80,7 +80,7 @@ int is_legal_move(const struct position *restrict const pos, move m) {
     return result;
 }
 
-int in_check(const struct position *const restrict pos, uint8_t side) {
+int in_check(const struct position *const pos, uint8_t side) {
     return attacks(pos, FLIP(side), KSQ(*pos, side));
 }
 
@@ -149,8 +149,7 @@ static move *generate_king_moves(const int ksq, const uint64_t targets, move *mo
 // REVISIT: maybe instead of generating all attacked squares, make a new
 // "generate_attacked_ex(const struct position*, u8 side, u64 targets)" then
 // get attack mask with targets = E1 | F1 | G1 | D1 | C1
-static move *generate_castling(const struct position *const restrict pos, const uint8_t side, const int from,
-                               move *moves) {
+static move *generate_castling(const struct position *const pos, const uint8_t side, const int from, move *moves) {
     const uint8_t castle = pos->castle;
     const uint8_t contraside = FLIP(side);
 
@@ -188,7 +187,7 @@ static move *generate_castling(const struct position *const restrict pos, const 
     return moves;
 }
 
-uint64_t generate_checkers(const struct position *const restrict pos, uint8_t side) {
+uint64_t generate_checkers(const struct position *const pos, uint8_t side) {
     const int ksq = KSQ(*pos, side);
     const uint8_t contra = FLIP(side);
     const uint64_t occupied = pos->side[side] | pos->side[contra];
@@ -208,7 +207,7 @@ uint64_t generate_checkers(const struct position *const restrict pos, uint8_t si
     return rval;
 }
 
-uint64_t generate_attacked(const struct position *const restrict pos, const uint8_t side) {
+uint64_t generate_attacked(const struct position *const pos, const uint8_t side) {
     uint64_t rval = 0;
     uint64_t pcs;
     uint32_t from;
@@ -260,7 +259,7 @@ uint64_t generate_attacked(const struct position *const restrict pos, const uint
     return rval;
 }
 
-int attacks(const struct position *const restrict pos, uint8_t side, int square) {
+int attacks(const struct position *const pos, uint8_t side, int square) {
     uint64_t pcs;
     const uint8_t contra = FLIP(side);
     const uint64_t occupied = pos->side[side] | pos->side[contra];
@@ -288,7 +287,7 @@ int attacks(const struct position *const restrict pos, uint8_t side, int square)
 }
 
 // pieces from `side' that are blocking check on `kingcolor's king
-uint64_t generate_pinned(const struct position *const restrict pos, uint8_t side, uint8_t kingcolor) {
+uint64_t generate_pinned(const struct position *const pos, uint8_t side, uint8_t kingcolor) {
     // REVISIT: make new macros for pseudo attacks that don't need occupied
     // bitboard.
     //          not sure if that will be faster because LUT will be smaller.
@@ -317,7 +316,7 @@ uint64_t generate_pinned(const struct position *const restrict pos, uint8_t side
 #undef more_than_one_piece_between
 }
 
-move *generate_evasions(const struct position *const restrict pos, const uint64_t checkers, move *restrict moves) {
+move *generate_evasions(const struct position *const pos, const uint64_t checkers, move *moves) {
     uint32_t to;
     uint32_t from;
     uint64_t pcs;
@@ -463,7 +462,7 @@ move *generate_evasions(const struct position *const restrict pos, const uint64_
     return moves;
 }
 
-move *generate_non_evasions(const struct position *const restrict pos, move *restrict moves) {
+move *generate_non_evasions(const struct position *const pos, move *moves) {
     const uint8_t side = pos->wtm;
     const uint8_t contraside = FLIP(pos->wtm);
     const uint64_t same = pos->side[side];
@@ -603,13 +602,13 @@ move *generate_non_evasions(const struct position *const restrict pos, move *res
 #undef TOSQ_NOT_KING
 }
 
-int generate_legal_moves(const struct position *const restrict pos, move *restrict moves) {
+int generate_legal_moves(const struct position *const pos, move *moves) {
     const uint64_t checkers = generate_checkers(pos, pos->wtm);
     const uint8_t side = pos->wtm;
     const int ksq = KSQ(*pos, side);
     const uint64_t pinned = generate_pinned(pos, side, side);
-    move *restrict cur = moves;
-    move *restrict end = checkers ? generate_evasions(pos, checkers, moves) : generate_non_evasions(pos, moves);
+    move *cur = moves;
+    const move *end = checkers ? generate_evasions(pos, checkers, moves) : generate_non_evasions(pos, moves);
 
     while (cur != end) {
         if ((FROM(*cur) == ksq || pinned || FLAGS(*cur) == FLG_EP) && !is_legal(pos, pinned, *cur)) {
