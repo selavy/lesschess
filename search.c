@@ -7,8 +7,13 @@
 #include <stdint.h>
 #include <string.h>
 
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+static int min(int a, int b) {
+    return a < b ? a : b;
+}
+
+static int max(int a, int b) {
+    return a > b ? a : b;
+}
 
 enum {
     TT_NONE = 0,
@@ -79,8 +84,8 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
             new_zhash = make_move(pos, &sp, moves[i], zhash);
             const int value = alphabeta(pos, new_zhash, depth - 1, alpha, beta, WHITE);
             undo_move(pos, &sp, moves[i]);
-            best = MAX(value, best);
-            alpha = MAX(alpha, best);
+            best = max(value, best);
+            alpha = max(alpha, best);
             if (beta <= alpha) {
                 break;
             }
@@ -91,8 +96,8 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
             new_zhash = make_move(pos, &sp, moves[i], zhash);
             const int value = alphabeta(pos, new_zhash, depth - 1, alpha, beta, BLACK);
             undo_move(pos, &sp, moves[i]);
-            best = MIN(best, value);
-            beta = MIN(beta, best);
+            best = min(best, value);
+            beta = min(beta, best);
             if (beta <= alpha) {
                 break;
             }
