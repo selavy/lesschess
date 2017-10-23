@@ -78,6 +78,11 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
         return pos->wtm ? INF : NEG_INF;
     }
 
+    // 50-move draw
+    if (pos->halfmoves >= 100) {
+        return 0;
+    }
+
     int best;
     struct savepos sp;
     if (color == BLACK) {
