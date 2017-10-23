@@ -68,7 +68,7 @@ def run_perft_test_suite(name, fen, expected, max_depth=None,
     print "Passed."
 
 print_cmd = True
-def run_tactics_test(name, fen, expected_move, expected_score=None):
+def run_tactics_test(name, fen, expected_move=None, expected_score=None):
     import datetime
 
     print "Tactics Test: {}".format(name)
@@ -90,8 +90,10 @@ def run_tactics_test(name, fen, expected_move, expected_score=None):
     elif actual_move == "none":
         print "Failed!"
         print "Engine thinks it has no legal moves!"
-    else:
+    elif expected_move is not None or expected_score is not None:
         actual_move_san = board.san(chess.Move.from_uci(actual_move))
+        if expected_move is None:
+            expected_move = actual_move
         expected_move_san = board.san(chess.Move.from_uci(expected_move))
         if expected_score is None:
             expected_score = actual_score
@@ -109,6 +111,8 @@ def run_tactics_test(name, fen, expected_move, expected_score=None):
             print "Score: {}".format(actual_score)
             print "Depth: {}".format(actual_depth)
             print "Passed."
+    else:
+        raise Exception("Must provide either expected move or score!")
     print ""
 
 
@@ -240,6 +244,10 @@ def tactics_win_queen():
     fen = "rnbqk2r/ppp2ppp/3b4/8/2P1n3/5NP1/PP2PP1P/RNBQKB1R b KQkq - 0 1"
     run_tactics_test("Early Game Win Queen", fen, "e4f2")
 
+def tactics_50_move_rule_draw():
+    fen = "8/8/8/8/3k4/3P4/3K4/8 w - - 98 1"
+    run_tactics_test("50-move Rule Draw", fen, expected_score=0.)
+
 
 if __name__ == '__main__':
     fast_mode = True
@@ -263,6 +271,7 @@ if __name__ == '__main__':
         ("queen_sack_smothered", tactics_queen_sack_smothered_mate),
         ("caro_kann", tactics_caro_kann_mate),
 	("win_queen", tactics_win_queen),
+        ("50_move_rule", tactics_50_move_rule_draw),
     )
 
     available_suites = {}
