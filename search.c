@@ -75,6 +75,7 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
     move moves[MAX_MOVES];
     const int nmoves = generate_legal_moves(pos, &moves[0]);
     if (nmoves == 0) {
+        // TODO(plesslie): this could be stalemate
         return pos->wtm ? INF : NEG_INF;
     }
 
