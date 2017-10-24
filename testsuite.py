@@ -262,7 +262,7 @@ epd_records = (
     '2r1nrk1/p2q1ppp/bp1p4/n1pPp3/P1P1P3/2PBB1N1/4QPPP/R4RK1 w - - bm f4; id "BK.11";',
     'r3r1k1/ppqb1ppp/8/4p1NQ/8/2P5/PP3PPP/R3R1K1 b - - bm Bf5; id "BK.12";',
     'r2q1rk1/4bppp/p2p4/2pP4/3pP3/3Q4/PP1B1PPP/R3R1K1 w - - bm b4; id "BK.13";',
-    'rnb2r1k/pp2p2p/2pp2p1/q2P1p2/8/1Pb2NP1/PB2PPBP/R2Q1RK1 w - - bm Qd2 Qe1; id "BK.14";',
+    'rnb2r1k/pp2p2p/2pp2p1/q2P1p2/8/1Pb2NP1/PB2PPBP/R2Q1RK1 w - - bm Qd2 Qe1; id "BK.14";', # TODO(plesslie): fix this test to accept either move
     '2r3k1/1p2q1pp/2b1pr2/p1pp4/6Q1/1P1PP1R1/P1PN2PP/5RK1 w - - bm Qxg7+; id "BK.15";',
     'r1bqkb1r/4npp1/p1p4p/1p1pP1B1/8/1B6/PPPN1PPP/R2Q1RK1 w kq - bm Ne4; id "BK.16";',
     'r2q1rk1/1ppnbppp/p2p1nb1/3Pp3/2P1P1P1/2N2N1P/PPB1QP2/R1B2RK1 b - - bm h5; id "BK.17";',
@@ -308,9 +308,9 @@ def run_epd_test(name, fen, expected_move):
             print "Actual Score  : {}".format(actual_score)
             print "Actual Depth  : {}".format(actual_depth)
         else:
-            print "Move : {} ({})".format(actual_move_san, actual_move)
-            print "Score: {}".format(actual_score)
-            print "Depth: {}".format(actual_depth)
+        #     print "Move : {} ({})".format(actual_move_san, actual_move)
+        #     print "Score: {}".format(actual_score)
+        #     print "Depth: {}".format(actual_depth)
             print "Passed."
     print ""
 
@@ -321,20 +321,14 @@ def tactics_epd_records():
         expected_move, rest = rest.split(';', 1)
         expected_move = expected_move.strip()
         name = rest[5:-2]
-        # fen = fen.replace('-', '0')
         fen += "0 0"
-        print "Name=",name
-        print "FEN=",fen
+        # print "Name=",name
+        # print "FEN=",fen
         run_epd_test(name, fen, expected_move)
-        break
+        break  # for now, just the first test
         
 
 if __name__ == '__main__':
-    find_executable()    
-    tactics_epd_records()
-    sys.exit()
-
-    
     fast_mode = True
 
     perft_suites = (
@@ -357,6 +351,7 @@ if __name__ == '__main__':
         ("caro_kann", tactics_caro_kann_mate),
 	("win_queen", tactics_win_queen),
         ("50_move_rule", tactics_50_move_rule_draw),
+        ("edp_tactics", tactics_epd_records),
     )
 
     available_suites = {}
