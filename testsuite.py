@@ -73,9 +73,9 @@ def run_tactics_test(name, fen, expected_move=None, expected_score=None):
 
     print "Tactics Test: {}".format(name)
     board = chess.Board(fen)
-    print "{!s}".format(board)
     cmd = '{exe} tactics "{fen}"'.format(exe=target, fen=fen)
-    if print_cmd:
+    if False:
+        print "{!s}".format(board)
         print "Running command '{}'".format(cmd)
     begin = datetime.datetime.now()
     output = subprocess.check_output(cmd, shell=True)

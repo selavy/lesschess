@@ -161,6 +161,7 @@ void run_tactics_test(int nargs, char **args) {
 int main(int argc, char **argv) {
     zobrist_hash_module_init();
     transposition_table_init();
+    transposition_table_counters_init();
 
     if (argc < 2) {
         xboard_uci_main();
@@ -173,6 +174,7 @@ int main(int argc, char **argv) {
         }
     } else if (strcmp(argv[1], "tactics") == 0) {
         run_tactics_test(argc - 2, argv + 2);
+        transposition_table_counters_print();
     } else if (strcmp(argv[1], "replay") == 0) {
         if (argc == 3) {
             replay_file(argv[2]);

@@ -28,28 +28,41 @@ struct tt_entry {
     // TODO(plesslie): don't need to save entire hash, just
     // save bits not in the index
     uint64_t hash;
-    int score;
-    move move;
     uint8_t depth;
+    int score;
     uint8_t flags;
+    move move;
 };
 
 //#define TTSZ (1 << 20)
 // smallest prime above 1 << 20
 #define TTSZ 1048583
 struct tt_entry tt_tbl[TTSZ];
+uint64_t transposition_table_hits;
+uint64_t transposition_table_lookups;
+
+void transposition_table_counters_init() {
+    transposition_table_hits = 0ull;
+    transposition_table_lookups = 0ull;
+}
+
+void transposition_table_counters_print() {
+    fprintf(stderr, "Transposition Table Hits   : %" PRIu64 "\n", transposition_table_hits);
+    fprintf(stderr, "Transposition Table Lookups: %" PRIu64 "\n", transposition_table_lookups);    
+}
 
 void transposition_table_init() {
     // static_assert(__builtin_popcount(TTSZ) == 0, "Transposition Table size
     // must be a power of 2!");
     for (int i = 0; i < TTSZ; ++i) {
-        tt_tbl[i].hash = 0;
+        tt_tbl[i].hash = 0ull;
         tt_tbl[i].score = 0;
         tt_tbl[i].move = INVALID_MOVE;
-        tt_tbl[i].depth = 0;
+        tt_tbl[i].depth = 0u;
         tt_tbl[i].flags = TT_NONE;
     }
 }
+
 // int tt_index(uint64_t h) { return h & (TTSZ - 1); }
 int tt_index(uint64_t h) {
     return h % TTSZ;
@@ -64,8 +77,23 @@ struct search_node {
 };
 
 int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int beta, int color) {
+    const int table_index = tt_index(zhash);
+    ++transposition_table_lookups;
+    if (tt_tbl[table_index].hash == zhash && tt_tbl[table_index].depth >= depth) {
+        ++transposition_table_hits;
+        return tt_tbl[table_index].score;
+    }
+    
     if (depth == 0) {
         const int score = evaluate(pos);
+        #define USE_TRANSPOSITION_TABLE
+        #ifdef USE_TRANSPOSITION_TABLE
+        tt_tbl[table_index].hash = zhash;
+        tt_tbl[table_index].depth = 0;
+        tt_tbl[table_index].score = score;
+        tt_tbl[table_index].flags = TT_EXACT;
+        tt_tbl[table_index].move = INVALID_MOVE; // TODO(plesslie): fix
+        #endif
         return score;
     }
     assert(zhash == zobrist_hash_from_position(pos));
