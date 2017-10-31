@@ -122,7 +122,16 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
             undo_move(pos, &sp, moves[i]);
             best = max(value, best);
             alpha = max(alpha, best);
-            if (beta <= alpha) {
+            if (beta <= alpha) { // alpha cutoff
+                #ifdef USE_TRANSPOSITION_TABLE
+                if (tt_tbl[table_index].hash == zhash && tt_tbl[table_index].flags != TT_EXACT) {
+                    tt_tbl[table_index].hash = zhash;
+                    tt_tbl[table_index].depth = depth;
+                    tt_tbl[table_index].score = best;
+                    tt_tbl[table_index].flags = TT_ALPHA;
+                    tt_tbl[table_index].move = moves[i];
+                }
+                #endif
                 break;
             }
         }
@@ -134,7 +143,16 @@ int alphabeta(struct position *pos, uint64_t zhash, int depth, int alpha, int be
             undo_move(pos, &sp, moves[i]);
             best = min(best, value);
             beta = min(beta, best);
-            if (beta <= alpha) {
+            if (beta <= alpha) { // beta cutoff
+                #ifdef USE_TRANSPOSITION_TABLE
+                if (tt_tbl[table_index].hash == zhash && tt_tbl[table_index].flags != TT_EXACT) {
+                    tt_tbl[table_index].hash = zhash;
+                    tt_tbl[table_index].depth = depth;
+                    tt_tbl[table_index].score = best;
+                    tt_tbl[table_index].flags = TT_BETA;
+                    tt_tbl[table_index].move = moves[i];
+                }
+                #endif
                 break;
             }
         }
