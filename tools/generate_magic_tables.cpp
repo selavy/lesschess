@@ -375,15 +375,15 @@ static const uint64_t king_attacks[64] = { 770ULL,1797ULL,3594ULL,7188ULL,14376U
 
 int main(int argc, char **argv) {
     InitializeMagic();
-    FILE *fp = fopen("magic_tables.cpp", "w");
+    FILE *fp = fopen("magic_tables.generated.cpp", "w");
     if (!fp) {
-        fputs("Failed to open \"magic_tables.cpp\"", stderr);
+        fputs("Failed to open \"magic_tables.generated.cpp\"", stderr);
         exit(EXIT_FAILURE);
     }
-    FILE *hdr = fopen("magic_tables.h", "w");
+    FILE *hdr = fopen("magic_tables.generated.h", "w");
     if (!hdr) {
         fclose(fp);
-        fputs("Failed to open \"magic_tables.h\"", stderr);
+        fputs("Failed to open \"magic_tables.generated.h\"", stderr);
         exit(EXIT_FAILURE);
     }
 
@@ -430,7 +430,7 @@ int main(int argc, char **argv) {
     hputs("#define pawn_attacks(side, square) ((side) == WHITE ? wpawn_attacks[square] : bpawn_attacks[square])\n");
     hputs("");
 
-    fprintf(fp, "#include \"magic_tables.h\"\n\n");
+    fprintf(fp, "#include \"magic_tables.generated.h\"\n\n");
     fprintf(fp, "//\n");
     fprintf(fp, "//   Idea and table generation code shamelessly taken from Crafty\n");
     fprintf(fp, "//   I did at least generate my own knight, pawn, and king attacks ;)\n");
