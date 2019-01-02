@@ -1,0 +1,63 @@
+[[TODO]]
++Bitboard move generation
+    +Maybe implement this in python and have frontend translate to c++ backend?
+        +https://github.com/niklasf/python-chess
++Test framework:
+    +Perft
+        +Generate legal moves in certain positions (en passant, castling shenanigans, etc)
+    +Tactics positions
++UCI support
+    +Hook up to xboard with Polyglot
+        +https://github.com/ddugovic/polyglot
+        +http://wbec-ridderkerk.nl/html/details1/PolyGlot.html
++MiniMax tree pruning
+	+https://www.chessprogramming.org/Principal_Variation_Search
++Quiescence Search
+    +https://www.chessprogramming.org/Quiescence_Search
++Zobrist Hashing + TT table
+    +https://www.chessprogramming.org/Zobrist_Hashing
+    +https://www.chessprogramming.org/Transposition_Table
++Iterative Deepening search
+    +https://www.chessprogramming.org/Iterative_Deepening
++Parallel Search
++Hook up to lichess:
+    +https://lichess.org/api#tag/Chess-Bot
+    +https://lichess.org/blog/WvDNticAAMu_mHKP/welcome-lichess-bots
++Syzygy tablebase support
+    +https://github.com/syzygy1/tb
++SEE
+    +https://www.chessprogramming.org/SEE_-_The_Swap_Algorithm
++Neural Net + Reinforcement Learning training for tree pruning/eval tuning
++Windows support? (probably not at this point)
+
+
+OLD TODO:
+Non-Engine Improvements
+=======================
++syzygy tablebases
++opening book
+
+Engine Improvements
+===================
++Iterative Deepening Search + Time scheduling
++Move Ordering  - Killer Move Heuristic
++Transposition Table
++Incorporate piece placement into eval function
++Parallelize search
++3-move repetition draw (use TT table?)
++Aspiration Window
+
+Search Algorithms
+====================
++Principal Variation Search (PVS/NegaScout) - https://en.wikipedia.org/wiki/Principal_variation_search
++MTD(f)
+
+Testing
+========
++test harness for 1-3 move mate tactics [DONE]
++test harness for perft [DONE]
+
+Misc
+====
++Cleanup xboard uci code
+
