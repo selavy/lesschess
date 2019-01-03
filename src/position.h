@@ -68,3 +68,12 @@ std::string_view::iterator
 parse_fen_board(std::string_view::iterator first,
                 std::string_view::iterator last,
                 Position& p) noexcept;
+
+std::string_view::iterator
+consume_spaces(std::string_view::iterator first,
+        std::string_view::iterator last) noexcept;
+
+std::string_view::iterator
+parse_fen_color(std::string_view::iterator first,
+                std::string_view::iterator last,
+                Position& pos) noexcept;

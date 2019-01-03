@@ -26,10 +26,9 @@ parse_fen_board(std::string_view::iterator first,
     memset(&pos.bbrd_[0], 0, sizeof(pos.bbrd_));
     memset(&pos.sq2p_[0], 0, sizeof(pos.sq2p_));
     memset(&pos.side_[0], 0, sizeof(pos.side_));
-    for (u8 rank = 7; rank >= 0; --rank) {
-        for (u8 file = 0; file < 8; ++file) {
+    for (int rank = 7; rank >= 0; --rank) {
+        for (int file = 0; file < 8; ++file) {
             if (first == last) {
-                printf("breaking first loop :(\n");
                 return last;
             }
             char c = *first++;
@@ -38,11 +37,10 @@ parse_fen_board(std::string_view::iterator first,
             } else {
                 auto maybe_piece = translate_fen_piece(c);
                 if (!maybe_piece) {
-                    printf("breaking on character: %c\n", c);
                     return last;
                 }
                 ColorPiece piece = *maybe_piece;
-                const Square sq{file, rank};
+                const Square sq{static_cast<u8>(file), static_cast<u8>(rank)};
                 pos.sq2p_[sq.value()] = piece.value();
                 pos.side_[piece.color()] |= sq.mask();
                 if (piece.piece() == KING) {
@@ -54,7 +52,125 @@ parse_fen_board(std::string_view::iterator first,
                 printf("Placed %s at %s(%d)\n", piece.name(), sq.name(), sq.value());
             }
         }
+        if (first < last && *first == '/') {
+            ++first;
+        }
+    }
+    return first;
+}
+
+std::string_view::iterator
+consume_spaces(std::string_view::iterator first,
+               std::string_view::iterator last) noexcept
+{
+    while (first < last && *first == ' ') {
         ++first;
+    }
+    return first;
+}
+
+std::string_view::iterator
+parse_fen_color(std::string_view::iterator first,
+                std::string_view::iterator last,
+                Position& pos) noexcept
+{
+    if (first < last) {
+        char c = *first++;
+        switch (c) {
+            case 'W':
+            case 'w':
+                pos.wtm_ = WHITE;
+                break;
+            case 'B':
+            case 'b':
+                pos.wtm_ = BLACK;
+                break;
+            default:
+                return last;
+        }
+    }
+    return first;
+}
+
+std::string_view::iterator
+parse_fen_castling(std::string_view::iterator first,
+                   std::string_view::iterator last,
+                   Position& pos) noexcept
+{
+    if (!(first < last)) {
+        return last;
+    }
+    if (*first == '-') {
+        pos.castle_ = Position::CASTLE_NONE;
+        return first + 1;
+    }
+    while (first < last) {
+        const char c = *first++;
+        switch (c) {
+            case 'K':
+                pos.castle_ |= Position::CASTLE_WHITE_KING_SIDE;
+                break;
+            case 'k':
+                pos.castle_ |= Position::CASTLE_BLACK_KING_SIDE;
+                break;
+            case 'Q':
+                pos.castle_ |= Position::CASTLE_WHITE_QUEEN_SIDE;
+                break;
+            case 'q':
+                pos.castle_ |= Position::CASTLE_BLACK_QUEEN_SIDE;
+                break;
+            default:
+                return last;
+        }
+    }
+    return first;
+}
+
+std::string_view::iterator
+parse_fen_epsq(std::string_view::iterator first,
+               std::string_view::iterator last,
+               Position& pos)
+{
+    if (!(first < last)) {
+        return last;
+    }
+    char c = *first++;
+    if (c == '-') {
+        pos.epsq_ = Position::ENPASSANT_NONE;
+        return first;
+    }
+    if (c >= 'a' && c <= 'h') {
+        u8 file = c - 'a';
+        u8 rank = *first++ - '1';
+        assert(file >= 0 && file <= 7);
+        assert(rank >= 0 && rank <= 7);
+        if (rank == 2 || rank == 5) {
+            pos.epsq_ = Square{file, rank}.value();
+            return first;
+        }
+    }
+    return last;
+}
+
+template <typename T,
+          typename = typename std::enable_if<std::is_integral<T>::value>::type>
+std::string_view::iterator
+parse_fen_number(std::string_view::iterator first,
+                 std::string_view::iterator last,
+                 T& out)
+{
+    if (!(first < last)) {
+        return first;
+    }
+    out = 0;
+    while (first < last) {
+        char c = *first++;
+        if (c >= '0' && c <= '9') {
+            out *= 10;
+            out += c - '0';
+        } else {
+            break;
+        }
     }
     return first;
 }
@@ -66,85 +182,23 @@ parse_fen_board(std::string_view::iterator first,
     pos.halfmoves_ = 0;
     pos.castle_ = Position::CASTLE_NONE;
     pos.epsq_ = Position::ENPASSANT_NONE;
-
-    auto first = fen.begin();
+    auto it = fen.begin();
     auto last = fen.end();
-    first = parse_fen_board(first, last, pos);
-    auto it = first;
-
-    printf("it = %c\n", *it);
-    // Active color
-    switch (*it++) {
-        case 'w':
-        case 'W':
-            pos.wtm_ = WHITE;
-            break;
-        case 'b':
-        case 'B':
-            pos.wtm_ = BLACK;
-            break;
-        default:
-            return std::nullopt;
-    }
-    // TEMP TEMP
-    printf("To Move: %s\n", pos.wtm_ == WHITE ? "WHITE" : "BLACK");
-    ++it; // space
-
-    // Castling availability
-    if (*it == '-') {
-        pos.castle_ = Position::CASTLE_NONE;
-        ++it;
-    } else {
-        while (it != fen.end() && *it != ' ') {
-            switch (*it) {
-                case 'K': pos.castle_ |= Position::CASTLE_WHITE_KING_SIDE; break;
-                case 'Q': pos.castle_ |= Position::CASTLE_WHITE_QUEEN_SIDE; break;
-                case 'k': pos.castle_ |= Position::CASTLE_BLACK_KING_SIDE; break;
-                case 'q': pos.castle_ |= Position::CASTLE_BLACK_QUEEN_SIDE; break;
-                default: return std::nullopt;
-            }
-            ++it;
-        }
-    }
-    // TEMP TEMP
-    printf("Castling availability: %u\n", pos.castle_);
-    ++it;
-
-    // En passant target square
-    if (it == fen.end()) {
-        return std::nullopt;
-    } else if (*it == '-') {
-        pos.epsq_ = Position::ENPASSANT_NONE;
-    } else if (*it >= 'a' && *it <= 'h') {
-        const u8 file = *it++ - 'a';
-        const u8 rank = *it++ - '1';
-        if (rank == 2 || rank == 5) {
-            pos.epsq_ = Square{file, rank}.value();
-        }
-    } else {
-        return std::nullopt;
-    }
-
-    // Halfmove clock
-    while (it != fen.end() && *it != ' ') {
-        char c = *it++;
-        if (c < '0' || c > '9') {
-            return std::nullopt;
-        }
-        pos.halfmoves_ *= 10;
-        pos.halfmoves_ += c - '0';
-    }
-    ++it;
-
-    while (it != fen.end()) {
-        char c = *it;
-        if (c < '0' || c > '9') {
-            return std::nullopt;
-        }
-        pos.moves_ *= 10;
-        pos.moves_ += c - '0';
-    }
-
+    it = parse_fen_board(it, last, pos);
+    if (it == last) return std::nullopt;
+    it = consume_spaces(it, last);
+    it = parse_fen_color(it, last, pos);
+    if (it == last) return std::nullopt;
+    it = consume_spaces(it, last);
+    it = parse_fen_castling(it, last, pos);
+    if (it == last) return std::nullopt;
+    it = consume_spaces(it, last);
+    it = parse_fen_epsq(it, last, pos);
+    if (it == last) return std::nullopt;
+    it = consume_spaces(it, last);
+    it = parse_fen_number(it, last, pos.halfmoves_);
+    it = consume_spaces(it, last);
+    it = parse_fen_number(it, last, pos.moves_);
     return pos;
 }
 

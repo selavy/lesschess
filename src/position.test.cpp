@@ -6,7 +6,9 @@ TEST_CASE("Position from FEN") {
         Position position;
         std::string fen_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         std::string_view fen{fen_};
-        auto it = parse_fen_board(fen.begin(), fen.end(), position);
+        auto it = fen.begin();
+        auto last = fen.end();
+        it = parse_fen_board(it, last, position);
 
         REQUIRE(position.piece_on_square(A1) == ColorPiece{WHITE, ROOK});
         REQUIRE(position.piece_on_square(B1) == ColorPiece{WHITE, KNIGHT});
@@ -32,9 +34,29 @@ TEST_CASE("Position from FEN") {
             REQUIRE(position.piece_on_square(Square{file, RANK_7}.value()) == ColorPiece{BLACK, PAWN});
         }
 
-        REQUIRE(it != fen.end());
+        REQUIRE(it != last);
         REQUIRE(*it == ' ');
+
+        it = consume_spaces(it, last);
+        REQUIRE(it != last);
+        REQUIRE(*it != ' ');
+
+        REQUIRE(*it == 'w');
+        position.wtm_ = BLACK; // so we can verify it is set
+        it = parse_fen_color(it, last, position);
+        REQUIRE(it != last);
+        REQUIRE(*it == ' ');
+        REQUIRE(position.wtm_ == WHITE);
+
+        it = consume_spaces(it, last);
+        REQUIRE(it != last);
+        REQUIRE(*it != ' ');
+
+        position.castle_ = CASTLE_NONE;
+        it = parse_fen_castling(it, last, position);
+        REQUIRE(it != last);
     }
+
     // SECTION("Starting position") {
     //     auto maybe_pos = Position::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     //     REQUIRE(static_cast<bool>(maybe_pos) == true);
