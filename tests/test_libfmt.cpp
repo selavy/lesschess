@@ -2,6 +2,6 @@
 #include "fmt/printf.h"
 
 int main(int argc, char**argv) {
-    fmt::printf("Hello, %s!", "world\n");
+    fmt::printf("Hello, %s!\n", "world");
     return 0;
 }
