@@ -29,35 +29,65 @@ static std::optional<ColorPiece> translate_fen_piece(char c) noexcept {
     memset(&pos.sq2p_[0], 0, sizeof(pos.sq2p_));
     memset(&pos.side_[0], 0, sizeof(pos.side_));
 
+
     auto it = fen.begin();
-    u8 sq = 63;
-    while (it != fen.end() && sq >= 0) {
-        const char c = *it++;
-        if (c >= '1' && c <= '8') {
-            sq -= c - '0';
-        } else if (c == '/') {
-            // ++sq;
-            // assert(sq % 8 == 0);
-        } else {
-            auto maybe_piece = translate_fen_piece(c);
-            if (!maybe_piece) {
+    for (u8 rank = 7; rank >= 0; --rank) {
+        for (u8 file = 0; file < 8; ++file) {
+            if (it == fen.end()) {
                 return std::nullopt;
             }
-            ColorPiece piece = *maybe_piece;
-            const Square square{sq};
-            auto mask = square.mask();
-            pos.sq2p_[sq] = piece.value();
-            pos.side_[piece.color()] |= mask;
-            if (piece.piece() == KING) {
-                pos.ksq_[piece.color()] = sq;
+            char c = *it++;
+            if (c >= '1' && c <= '8') {
+                file += c - '0' - 1;
             } else {
-                pos.bbrd_[piece.value()] |= mask;
+                auto maybe_piece = translate_fen_piece(c);
+                if (!maybe_piece) {
+                    return std::nullopt;
+                }
+                ColorPiece piece = *maybe_piece;
+                const Square sq{file, rank};
+                pos.sq2p_[sq.value()] = piece.value();
+                pos.side_[piece.color()] |= sq.mask();
+                if (piece.piece() == KING) {
+                    pos.ksq_[piece.color()] = sq.value();
+                } else {
+                    pos.bbrd_[piece.value()] |= sq.mask();
+                }
+                // TEMP TEMP
+                printf("Placed %s at %s(%d)\n", piece.name(), sq.name(), sq);
             }
-            // TEMP TEMP
-            printf("Placed %s at %s(%d)\n", piece.name(), square.name(), sq);
-            --sq;
         }
     }
+
+    // auto it = fen.begin();
+    // u8 sq = 63;
+    // while (it != fen.end() && sq >= 0) {
+    //     const char c = *it++;
+    //     if (c >= '1' && c <= '8') {
+    //         sq -= c - '0';
+    //     } else if (c == '/') {
+    //         // ++sq;
+    //         // assert(sq % 8 == 0);
+    //     } else {
+    //         auto maybe_piece = translate_fen_piece(c);
+    //         if (!maybe_piece) {
+    //             return std::nullopt;
+    //         }
+    //         ColorPiece piece = *maybe_piece;
+    //         const Square square{sq};
+    //         auto mask = square.mask();
+    //         pos.sq2p_[sq] = piece.value();
+    //         pos.side_[piece.color()] |= mask;
+    //         if (piece.piece() == KING) {
+    //             pos.ksq_[piece.color()] = sq;
+    //         } else {
+    //             pos.bbrd_[piece.value()] |= mask;
+    //         }
+    //         // TEMP TEMP
+    //         printf("Placed %s at %s(%d)\n", piece.name(), square.name(), sq);
+    //         --sq;
+    //     }
+    // }
 
     // Active color
     if (it == fen.end() || *it++ != ' ') {
