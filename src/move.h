@@ -21,7 +21,8 @@ enum Piece {
     QUEEN  = 3,
     KING   = 4,
     PAWN   = 5,
-    N_PIECES = 6,
+    N_PIECES,
+    EMPTY_SQUARE = N_PIECES*2,
 };
 
 
@@ -45,7 +46,10 @@ struct ColorPiece {
         "black queen",
         "black king",
         "black pawn",
+        "empty",
     };
+
+    constexpr ColorPiece() noexcept : rep_(EMPTY_SQUARE) {}
 
     constexpr ColorPiece(u8 rep) noexcept : rep_{rep} {}
 
@@ -58,12 +62,19 @@ struct ColorPiece {
     }
 
     [[nodiscard]]
+    constexpr bool empty() const noexcept {
+        return rep_ == EMPTY_SQUARE;
+    }
+
+    [[nodiscard]]
     constexpr Color color() const noexcept {
+        assert(!empty());
         return rep_ < N_PIECES ? WHITE : BLACK;
     }
 
     [[nodiscard]]
     constexpr Piece piece() const noexcept {
+        assert(!empty());
         return static_cast<Piece>(rep_ % N_PIECES);
     }
 

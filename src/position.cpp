@@ -37,6 +37,9 @@ Position::Position() noexcept
     // memset(&sq2p_[0], 0, sizeof(sq2p_));
     // memset(&side_[0], 0, sizeof(side_));
     // memset(&ksq_[0] , 0, sizeof(ksq_));
+    // for (int i = 0; i < sizeof(sq2p_); ++i) {
+    //     sq2p_[i] = Square{};
+    // }
 }
 
 Position Position::from_fen(std::string_view fen) {
