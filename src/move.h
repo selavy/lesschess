@@ -24,9 +24,65 @@ enum Piece {
     N_PIECES = 6,
 };
 
+
 enum Color {
     WHITE = 0,
     BLACK = 1,
+};
+
+
+struct ColorPiece {
+    static constexpr const char* const names[] = {
+        "white knight",
+        "white bishop",
+        "white rook",
+        "white queen",
+        "white king",
+        "white pawn",
+        "black knight",
+        "black bishop",
+        "black rook",
+        "black queen",
+        "black king",
+        "black pawn",
+    };
+
+    constexpr ColorPiece(u8 rep) noexcept : rep_{rep} {}
+
+    constexpr ColorPiece(Color color, Piece piece) noexcept
+        : rep_(static_cast<u8>(color)*N_PIECES + static_cast<u8>(piece)) {}
+
+    [[nodiscard]]
+    constexpr u8 value() const noexcept {
+        return rep_;
+    }
+
+    [[nodiscard]]
+    constexpr Color color() const noexcept {
+        return rep_ < N_PIECES ? WHITE : BLACK;
+    }
+
+    [[nodiscard]]
+    constexpr Piece piece() const noexcept {
+        return static_cast<Piece>(rep_ % N_PIECES);
+    }
+
+    [[nodiscard]]
+    constexpr bool operator==(ColorPiece rhs) const noexcept {
+        return rep_ == rhs.rep_;
+    }
+
+    [[nodiscard]]
+    constexpr bool operator!=(ColorPiece rhs) const noexcept {
+        return rep_ == rhs.rep_;
+    }
+
+    [[nodiscard]]
+    constexpr const char *const name() const noexcept {
+        return names[rep_];
+    }
+
+    u8 rep_;
 };
 
 enum {
@@ -49,6 +105,43 @@ enum {
     A8, B8, C8, D8, E8, F8, G8, H8,
 };
 // clang-format on
+
+
+struct Square {
+    static constexpr const char* const names[64] = {
+        "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+        "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+        "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+        "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+        "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+        "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+        "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+        "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+    };
+
+    constexpr Square(u8 file, u8 rank) : rep_(8*rank + file)
+    { assert(rep_ >= A1 && rep_ <= H8); }
+
+    constexpr Square(u8 sq) noexcept : rep_{sq}
+    { assert(rep_ >= A1 && rep_ <= H8); }
+
+    [[nodiscard]]
+    constexpr u8 value() const noexcept {
+        return rep_;
+    }
+
+    [[nodiscard]]
+    constexpr u64 mask() const noexcept {
+        return static_cast<u64>(1) << rep_;
+    }
+
+    [[nodiscard]]
+    constexpr const char* const name() const noexcept {
+        return names[rep_];
+    }
+
+    u8 rep_;
+};
 
 struct ep_capture_tag {};
 struct castle_tag {};

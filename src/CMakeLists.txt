@@ -13,6 +13,7 @@
 add_executable(lesschess
     main.cpp
     move.cpp
+    position.cpp
     magic_tables.generated.cpp
     )
 set_target_properties(lesschess PROPERTIES CXX_STANDARD 17)
