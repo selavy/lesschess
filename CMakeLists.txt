@@ -12,6 +12,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 add_subdirectory(tools)
 add_subdirectory(src)
+add_subdirectory(tests)
 
 # add_executable(lesschess src/main.cpp)
 # set_target_properties(lesschess PROPERTIES CXX_STANDARD 17)
