@@ -9,6 +9,9 @@ TEST_CASE("Move", "move representation construction checks") {
         static_assert(move.from() == A1, "");
         static_assert(move.to()   == A2, "");
         REQUIRE(move.flags() == Move::Flags::NONE);
+        REQUIRE(move.is_enpassant() == false);
+        REQUIRE(move.is_castle()    == false);
+        REQUIRE(move.is_promotion() == false);
     }
 
     SECTION("En Passant move") {
@@ -17,7 +20,10 @@ TEST_CASE("Move", "move representation construction checks") {
         REQUIRE(move.to()   == D6);
         static_assert(move.from() == E5, "");
         static_assert(move.to()   == D6, "");
-        REQUIRE(move.flags() == Move::Flags::EP);
+        REQUIRE(move.flags() == Move::Flags::ENPASSANT);
+        REQUIRE(move.is_enpassant() == true);
+        REQUIRE(move.is_castle()    == false);
+        REQUIRE(move.is_promotion() == false);
     }
 
     SECTION("Castle move") {
@@ -27,5 +33,21 @@ TEST_CASE("Move", "move representation construction checks") {
         static_assert(move.from() == E1, "");
         static_assert(move.to()   == G1, "");
         REQUIRE(move.flags() == Move::Flags::CASTLE);
+        REQUIRE(move.is_enpassant() == false);
+        REQUIRE(move.is_castle()    == true);
+        REQUIRE(move.is_promotion() == false);
+    }
+
+    SECTION("Promotion move") {
+        constexpr Move move{E2, E1, ROOK};
+        REQUIRE(move.from() == E2);
+        REQUIRE(move.to()   == E1);
+        static_assert(move.from() == E2, "");
+        static_assert(move.to()   == E1, "");
+        REQUIRE(move.flags() == Move::Flags::PROMOTION);
+        REQUIRE(move.is_enpassant() == false);
+        REQUIRE(move.is_castle()    == false);
+        REQUIRE(move.is_promotion() == true);
+        REQUIRE(move.promotion() == ROOK);
     }
 }

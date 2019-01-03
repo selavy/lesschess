@@ -57,10 +57,10 @@ struct promotion_tag {}; // NOTE(peter): for symmetry
 class Move {
 public:
     enum Flags : u16 {
-        NONE   = 0,
-        EP     = 1,
-        PROMO  = 2,
-        CASTLE = 3,
+        NONE      = 0,
+        ENPASSANT = 1,
+        PROMOTION = 2,
+        CASTLE    = 3,
     };
 
     constexpr Move() noexcept : rep_{0u} {}
@@ -74,11 +74,11 @@ public:
     }
 
     constexpr Move(u8 from, u8 to, ep_capture_tag) noexcept
-        : rep_((to << 0u) | (from << 6u) | (Flags::EP << 14u))
+        : rep_((to << 0u) | (from << 6u) | (Flags::ENPASSANT << 14u))
     {
         assert(((from >= A4 && from <= H4) && (to >= A3 && to <= H3)) ||
                ((from >= A5 && from <= H5) && (to >= A6 && to <= H6)));
-        assert(flags() == Flags::EP);
+        assert(flags() == Flags::ENPASSANT);
     }
 
     constexpr Move(u8 from, u8 to, castle_tag) noexcept
@@ -92,11 +92,13 @@ public:
     }
 
     constexpr Move(u8 from, u8 to, u8 promo) noexcept
-        : rep_((to << 0u) | (from << 6u) | (promo << 12u) | (Flags::PROMO << 14u))
+        : rep_((to << 0u) | (from << 6u) | (promo << 12u) | (Flags::PROMOTION << 14u))
     {
         assert((from >= A2 && from <= H2) || (from >= A7 && from <= H7));
-        assert((to   >= A1 && to   <= A1) || (to   >= A8 && to   <= H8));
-        assert(flags() == Flags::PROMO);
+        assert((to   >= A1 && to   <= H1) || (to   >= A8 && to   <= H8));
+        assert(promo == KNIGHT | promo == BISHOP | promo == ROOK | promo == QUEEN);
+        assert(promotion() == promo);
+        assert(flags() == Flags::PROMOTION);
     }
 
     [[nodiscard]]
@@ -110,9 +112,9 @@ public:
     }
 
     [[nodiscard]]
-    constexpr u8 promo() const noexcept {
+    constexpr u8 promotion() const noexcept {
         // TODO(peter): assert on flags
-        assert(flags() == Flags::PROMO);
+        assert(is_promotion());
         return (rep_ >> 12u) & 0x03;
     }
 
@@ -122,8 +124,8 @@ public:
     }
 
     [[nodiscard]]
-    constexpr bool is_promo() const noexcept {
-        return flags() == Flags::PROMO;
+    constexpr bool is_promotion() const noexcept {
+        return flags() == Flags::PROMOTION;
     }
 
     [[nodiscard]]
@@ -133,7 +135,7 @@ public:
 
     [[nodiscard]]
     constexpr bool is_enpassant() const noexcept {
-        return flags() == Flags::EP;
+        return flags() == Flags::ENPASSANT;
     }
 
 private:
