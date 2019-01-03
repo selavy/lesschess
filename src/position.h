@@ -63,3 +63,8 @@ struct Position {
     }
 };
 
+
+std::string_view::iterator
+parse_fen_board(std::string_view::iterator first,
+                std::string_view::iterator last,
+                Position& p) noexcept;

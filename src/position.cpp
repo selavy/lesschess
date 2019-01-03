@@ -18,31 +18,28 @@ static std::optional<ColorPiece> translate_fen_piece(char c) noexcept {
     return ColorPiece{color, piece};
 }
 
-/* static */ std::optional<Position> Position::from_fen(std::string_view fen) {
-    Position pos;
-    pos.moves_ = 1;
-    pos.wtm_ = WHITE;
-    pos.halfmoves_ = 0;
-    pos.castle_ = Position::CASTLE_NONE;
-    pos.epsq_ = Position::ENPASSANT_NONE;
+std::string_view::iterator
+parse_fen_board(std::string_view::iterator first,
+                std::string_view::iterator last,
+                Position& pos) noexcept
+{
     memset(&pos.bbrd_[0], 0, sizeof(pos.bbrd_));
     memset(&pos.sq2p_[0], 0, sizeof(pos.sq2p_));
     memset(&pos.side_[0], 0, sizeof(pos.side_));
-
-
-    auto it = fen.begin();
     for (u8 rank = 7; rank >= 0; --rank) {
         for (u8 file = 0; file < 8; ++file) {
-            if (it == fen.end()) {
-                return std::nullopt;
+            if (first == last) {
+                printf("breaking first loop :(\n");
+                return last;
             }
-            char c = *it++;
+            char c = *first++;
             if (c >= '1' && c <= '8') {
                 file += c - '0' - 1;
             } else {
                 auto maybe_piece = translate_fen_piece(c);
                 if (!maybe_piece) {
-                    return std::nullopt;
+                    printf("breaking on character: %c\n", c);
+                    return last;
                 }
                 ColorPiece piece = *maybe_piece;
                 const Square sq{file, rank};
@@ -54,49 +51,29 @@ static std::optional<ColorPiece> translate_fen_piece(char c) noexcept {
                     pos.bbrd_[piece.value()] |= sq.mask();
                 }
                 // TEMP TEMP
-                printf("Placed %s at %s(%d)\n", piece.name(), sq.name(), sq);
+                printf("Placed %s at %s(%d)\n", piece.name(), sq.name(), sq.value());
             }
         }
+        ++first;
     }
+    return first;
+}
 
-    // auto it = fen.begin();
-    // u8 sq = 63;
-    // while (it != fen.end() && sq >= 0) {
-    //     const char c = *it++;
-    //     if (c >= '1' && c <= '8') {
-    //         sq -= c - '0';
-    //     } else if (c == '/') {
-    //         // ++sq;
-    //         // assert(sq % 8 == 0);
-    //     } else {
-    //         auto maybe_piece = translate_fen_piece(c);
-    //         if (!maybe_piece) {
-    //             return std::nullopt;
-    //         }
-    //         ColorPiece piece = *maybe_piece;
-    //         const Square square{sq};
-    //         auto mask = square.mask();
-    //         pos.sq2p_[sq] = piece.value();
-    //         pos.side_[piece.color()] |= mask;
-    //         if (piece.piece() == KING) {
-    //             pos.ksq_[piece.color()] = sq;
-    //         } else {
-    //             pos.bbrd_[piece.value()] |= mask;
-    //         }
-    //         // TEMP TEMP
-    //         printf("Placed %s at %s(%d)\n", piece.name(), square.name(), sq);
-    //         --sq;
-    //     }
-    // }
+/* static */ std::optional<Position> Position::from_fen(std::string_view fen) {
+    Position pos;
+    pos.moves_ = 1;
+    pos.wtm_ = WHITE;
+    pos.halfmoves_ = 0;
+    pos.castle_ = Position::CASTLE_NONE;
+    pos.epsq_ = Position::ENPASSANT_NONE;
 
+    auto first = fen.begin();
+    auto last = fen.end();
+    first = parse_fen_board(first, last, pos);
+    auto it = first;
+
+    printf("it = %c\n", *it);
     // Active color
-    if (it == fen.end() || *it++ != ' ') {
-        return std::nullopt;
-    }
-    if (it == fen.end()) {
-        return std::nullopt;
-    }
-
     switch (*it++) {
         case 'w':
         case 'W':
@@ -109,11 +86,11 @@ static std::optional<ColorPiece> translate_fen_piece(char c) noexcept {
         default:
             return std::nullopt;
     }
+    // TEMP TEMP
+    printf("To Move: %s\n", pos.wtm_ == WHITE ? "WHITE" : "BLACK");
+    ++it; // space
 
     // Castling availability
-    if (it == fen.end()) {
-        return std::nullopt;
-    }
     if (*it == '-') {
         pos.castle_ = Position::CASTLE_NONE;
         ++it;
@@ -129,6 +106,9 @@ static std::optional<ColorPiece> translate_fen_piece(char c) noexcept {
             ++it;
         }
     }
+    // TEMP TEMP
+    printf("Castling availability: %u\n", pos.castle_);
+    ++it;
 
     // En passant target square
     if (it == fen.end()) {
@@ -154,6 +134,7 @@ static std::optional<ColorPiece> translate_fen_piece(char c) noexcept {
         pos.halfmoves_ *= 10;
         pos.halfmoves_ += c - '0';
     }
+    ++it;
 
     while (it != fen.end()) {
         char c = *it;
