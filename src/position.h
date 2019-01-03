@@ -42,9 +42,15 @@ struct Position {
     // 8..15 = a6..h6
     u8  epsq_; // 0..16 == 5 bits
 
-    static std::optional<Position> from_fen(std::string_view fen);
+    Position() noexcept;
+    static Position from_fen(std::string_view fen);
     void make_move(Savepos& sp, Move move);
     void undo_move(const Savepos& sp, Move move);
+
+    [[nodiscard]]
+    bool wtm() const noexcept {
+        return wtm_ == WHITE;
+    }
 
     [[nodiscard]]
     u8 castle() const noexcept {
@@ -57,23 +63,13 @@ struct Position {
     }
 
     [[nodiscard]]
+    bool enpassant_available() const noexcept {
+        return epsq_ != ENPASSANT_NONE;
+    }
+
+    [[nodiscard]]
     ColorPiece piece_on_square(u8 square) const noexcept {
         assert(square >= A1 && square <= H8);
         return sq2p_[square];
     }
 };
-
-
-std::string_view::iterator
-parse_fen_board(std::string_view::iterator first,
-                std::string_view::iterator last,
-                Position& p) noexcept;
-
-std::string_view::iterator
-consume_spaces(std::string_view::iterator first,
-        std::string_view::iterator last) noexcept;
-
-std::string_view::iterator
-parse_fen_color(std::string_view::iterator first,
-                std::string_view::iterator last,
-                Position& pos) noexcept;
