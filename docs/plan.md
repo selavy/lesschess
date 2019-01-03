@@ -1,3 +1,8 @@
+[[PLAN]]
+1. Install libfmt
+2. Read position from FEN
+3. Move generation + perft test harness
+
 [[TODO]]
 +Bitboard move generation
     +Maybe implement this in python and have frontend translate to c++ backend?
