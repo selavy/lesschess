@@ -42,6 +42,17 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.enpassant_available() == false);
         REQUIRE(position.fifty_move_rule_moves() == 0);
         REQUIRE(position.move_number() == 1);
+
+        // flip side to move a couple times to verify that...
+        REQUIRE(position.white_to_move() == true);
+        position.flip_to_move();
+        REQUIRE(position.white_to_move() == false);
+        position.flip_to_move();
+        REQUIRE(position.white_to_move() == true);
+        position.flip_to_move();
+        REQUIRE(position.white_to_move() == false);
+        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
+        REQUIRE(position.enpassant_available() == false);
     }
 
     SECTION("After 1.e4") {

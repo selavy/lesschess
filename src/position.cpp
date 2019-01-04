@@ -29,11 +29,12 @@ Position::Position() noexcept
     , ksqs{0}
     , moves(1)
     , halfmoves(0)
-    , wtm(WHITE)
+    // , wtm(WHITE)
     , castle(Position::CASTLE_NONE)
     , epsq(Position::ENPASSANT_NONE)
 {
     memset(sq2p, EMPTY_SQUARE, sizeof(sq2p));
+    set_white_to_move(true);
 }
 
 Position Position::from_fen(std::string_view fen) {
@@ -94,11 +95,13 @@ Position Position::from_fen(std::string_view fen) {
     switch (*it++) {
         case 'W':
         case 'w':
-            position.wtm = WHITE;
+            // position.wtm = WHITE;
+            position.set_white_to_move(true);
             break;
         case 'B':
         case 'b':
-            position.wtm = BLACK;
+            // position.wtm = BLACK;
+            position.set_white_to_move(false);
             break;
         default:
             throw std::runtime_error("Invalid character in color specification");
