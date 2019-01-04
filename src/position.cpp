@@ -192,10 +192,10 @@ Position Position::from_fen(std::string_view fen) {
     return position;
 }
 
-void make_move(Savepos& sp, Move move) {
+void Position::make_move(Savepos& sp, Move move) {
 
 }
 
-void undo_move(const Savepos& sp, Move move) {
+void Position::undo_move(const Savepos& sp, Move move) {
 
 }
