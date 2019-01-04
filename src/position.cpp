@@ -30,7 +30,7 @@ Position::Position() noexcept
     , moves(1)
     , halfmoves(0)
     , wtm(WHITE)
-    , castle(Position::CASTLE_ALL)
+    , castle_(Position::CASTLE_NONE)
     , epsq(Position::ENPASSANT_NONE)
 {
     memset(sq2p, EMPTY_SQUARE, sizeof(sq2p));
@@ -109,23 +109,23 @@ Position Position::from_fen(std::string_view fen) {
     if (it == last) {
         throw std::runtime_error("Expected castling availability specification");
     } else if (*it == '-') {
-        position.castle = Position::CASTLE_NONE;
+        position.set_castle_flags(Position::CASTLE_NONE);
         ++it;
     } else {
         while (it < last && *it != ' ') {
             char c = *it++;
             switch (c) {
             case 'K':
-                position.castle |= Position::CASTLE_WHITE_KING_SIDE;
+                position.set_castle_flag(Position::CASTLE_WHITE_KING_SIDE);
                 break;
             case 'k':
-                position.castle |= Position::CASTLE_BLACK_KING_SIDE;
+                position.set_castle_flag(Position::CASTLE_BLACK_KING_SIDE);
                 break;
             case 'Q':
-                position.castle |= Position::CASTLE_WHITE_QUEEN_SIDE;
+                position.set_castle_flag(Position::CASTLE_WHITE_QUEEN_SIDE);
                 break;
             case 'q':
-                position.castle |= Position::CASTLE_BLACK_QUEEN_SIDE;
+                position.set_castle_flag(Position::CASTLE_BLACK_QUEEN_SIDE);
                 break;
             default:
                 throw std::runtime_error("Invalid character in castling specification");

@@ -37,10 +37,10 @@ TEST_CASE("Position from FEN") {
         }
 
         REQUIRE(position.white_to_move() == true);
-        REQUIRE(position.castle == Position::CASTLE_ALL);
+        REQUIRE(position.castle() == Position::CASTLE_ALL);
         REQUIRE(position.enpassant_available() == false);
-        REQUIRE(position.halfmoves == 0);
-        REQUIRE(position.moves == 1);
+        REQUIRE(position.fifty_move_rule_moves() == 0);
+        REQUIRE(position.move_number() == 1);
     }
 
     SECTION("After 1.e4") {
@@ -74,9 +74,9 @@ TEST_CASE("Position from FEN") {
         }
 
         REQUIRE(position.white_to_move() == false);
-        REQUIRE(position.castle == Position::CASTLE_ALL);
-        REQUIRE(position.halfmoves == 0);
-        REQUIRE(position.moves == 1);
+        REQUIRE(position.castle() == Position::CASTLE_ALL);
+        REQUIRE(position.fifty_move_rule_moves() == 0);
+        REQUIRE(position.move_number() == 1);
         REQUIRE(position.enpassant_available() == true);
         REQUIRE(position.enpassant_target_square() == Square{E3});
     }
@@ -128,9 +128,9 @@ TEST_CASE("Position from FEN") {
         }
 
         REQUIRE(position.white_to_move() == true);
-        REQUIRE(position.castle == Position::CASTLE_ALL);
-        REQUIRE(position.halfmoves == 0);
-        REQUIRE(position.moves == 2);
+        REQUIRE(position.castle() == Position::CASTLE_ALL);
+        REQUIRE(position.fifty_move_rule_moves() == 0);
+        REQUIRE(position.move_number() == 2);
         REQUIRE(position.enpassant_available() == true);
         REQUIRE(position.enpassant_target_square() == Square{C6});
     }
@@ -156,9 +156,9 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.piece_on_square(B5) == Piece{});
         REQUIRE(position.piece_on_square(H5) == Piece{});
 
-        REQUIRE(position.moves == 1); // default value when missing from FEN
-        REQUIRE(position.halfmoves == 0); // default value when missing from FEN
-        REQUIRE(position.castle == Position::CASTLE_ALL);
+        REQUIRE(position.move_number() == 1); // default value when missing from FEN
+        REQUIRE(position.fifty_move_rule_moves() == 0); // default value when missing from FEN
+        REQUIRE(position.castle() == Position::CASTLE_ALL);
         REQUIRE(position.enpassant_available() == false);
     }
 }

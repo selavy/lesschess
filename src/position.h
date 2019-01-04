@@ -65,6 +65,39 @@ struct Position {
         return wtm == WHITE;
     }
 
+    [[nodiscard]]
+    u8 castle() const noexcept {
+        return castle_;
+    }
+
+    [[nodiscard]]
+    int move_number() const noexcept {
+        return moves;
+    }
+
+    [[nodiscard]]
+    int fifty_move_rule_moves() const noexcept {
+        return halfmoves;
+    }
+
+private:
+    void set_castle_flag(u8 bit) noexcept {
+        castle_ |= bit;
+    }
+
+    void clear_castle_flag(u8 bit) noexcept {
+        castle_ &= ~bit;
+    }
+
+    void clear_castle_flags() noexcept {
+        castle_ = Position::CASTLE_NONE;
+    }
+
+    void set_castle_flags(u8 flags) noexcept {
+        // TODO(peter): validate
+        castle_ = flags;
+    }
+
     // data
     u64 bbrd[10];
     u64 side[2];
@@ -74,7 +107,7 @@ struct Position {
     u8  halfmoves; // 50-move rule counter // 0..50 = 7-bits
     // TODO(peter): combine wtm, castle, and epsq?
     u8  wtm;    // 1-bits
-    u8  castle; // 3-bits
+    u8  castle_; // 3-bits
     // NOTE(peter): target square behind the pawn (like in FEN)
     // If white to move, then we know target square must be on 6-th rank
     u8  epsq; // 0..8 == 4 bits
