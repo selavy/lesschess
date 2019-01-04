@@ -30,7 +30,7 @@ Position::Position() noexcept
     , moves(1)
     , halfmoves(0)
     , wtm(WHITE)
-    , castle_(Position::CASTLE_NONE)
+    , castle(Position::CASTLE_NONE)
     , epsq(Position::ENPASSANT_NONE)
 {
     memset(sq2p, EMPTY_SQUARE, sizeof(sq2p));

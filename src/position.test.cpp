@@ -38,7 +38,7 @@ TEST_CASE("Position from FEN") {
         }
 
         REQUIRE(position.white_to_move() == true);
-        REQUIRE(position.castle() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
         REQUIRE(position.enpassant_available() == false);
         REQUIRE(position.fifty_move_rule_moves() == 0);
         REQUIRE(position.move_number() == 1);
@@ -75,7 +75,7 @@ TEST_CASE("Position from FEN") {
         }
 
         REQUIRE(position.white_to_move() == false);
-        REQUIRE(position.castle() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
         REQUIRE(position.fifty_move_rule_moves() == 0);
         REQUIRE(position.move_number() == 1);
         REQUIRE(position.enpassant_available() == true);
@@ -129,7 +129,7 @@ TEST_CASE("Position from FEN") {
         }
 
         REQUIRE(position.white_to_move() == true);
-        REQUIRE(position.castle() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
         REQUIRE(position.fifty_move_rule_moves() == 0);
         REQUIRE(position.move_number() == 2);
         REQUIRE(position.enpassant_available() == true);
@@ -159,7 +159,7 @@ TEST_CASE("Position from FEN") {
 
         REQUIRE(position.move_number() == 1); // default value when missing from FEN
         REQUIRE(position.fifty_move_rule_moves() == 0); // default value when missing from FEN
-        REQUIRE(position.castle() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
         REQUIRE(position.enpassant_available() == false);
     }
 
@@ -188,7 +188,7 @@ TEST_CASE("Position from FEN") {
 
         REQUIRE(position.move_number() == 1);
         REQUIRE(position.fifty_move_rule_moves() == 0);
-        REQUIRE(position.castle() == Position::CASTLE_NONE);
+        REQUIRE(position.castle_flags() == Position::CASTLE_NONE);
         REQUIRE(position.enpassant_available() == false);
     }
 
@@ -238,7 +238,7 @@ TEST_CASE("Position from FEN") {
 
         REQUIRE(position.move_number() == 1);
         REQUIRE(position.fifty_move_rule_moves() == 0);
-        REQUIRE(position.castle() == (Position::CASTLE_BLACK_KING_SIDE | Position::CASTLE_BLACK_QUEEN_SIDE));
+        REQUIRE(position.castle_flags() == (Position::CASTLE_BLACK_KING_SIDE | Position::CASTLE_BLACK_QUEEN_SIDE));
         REQUIRE(position.enpassant_available() == false);
     }
 
@@ -248,7 +248,7 @@ TEST_CASE("Position from FEN") {
 
         REQUIRE(position.move_number() == 8);
         REQUIRE(position.fifty_move_rule_moves() == 1);
-        REQUIRE(position.castle() == (Position::CASTLE_WHITE_KING_SIDE | Position::CASTLE_WHITE_QUEEN_SIDE));
+        REQUIRE(position.castle_flags() == (Position::CASTLE_WHITE_KING_SIDE | Position::CASTLE_WHITE_QUEEN_SIDE));
         REQUIRE(position.enpassant_available() == false);
     }
 

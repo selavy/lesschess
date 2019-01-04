@@ -1,6 +1,7 @@
 [[PLAN]]
 1. Install libfmt [DONE: see tests/test_libfmt.cpp]
-2. Read position from FEN
+2. Read position from FEN [DONE-ish]
+    # TODO(peter): go back and harden this code.  Works well enough for now
 3. Move generation + perft test harness
 
 [[TODO]]
