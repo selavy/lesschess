@@ -7,9 +7,9 @@ struct Savepos {
     u8 halfmoves;
     u8 epsq;
     u8 castle;
-    u8 capture;
+    Piece capture;
 };
-static_assert(std::is_pod<Savepos>::value == true, "");
+static_assert(std::is_trivially_copyable<Savepos>::value == true, "");
 
 struct Position {
     enum {
@@ -62,7 +62,7 @@ struct Position {
 
     [[nodiscard]]
     bool white_to_move() const noexcept {
-        return wtm;
+        return wtm == WHITE;
     }
 
     // TODO(peter): make this private, should only be called on make_move/undo_move
@@ -86,8 +86,8 @@ struct Position {
     }
 
 private:
-    void _set_white_to_move(bool white_to_move) {
-        wtm = white_to_move;
+    void _set_white_to_move(bool white_to_move) noexcept {
+        wtm = white_to_move ? WHITE : BLACK;
     }
 
     void _set_castle_flags(u8 flags) noexcept {
@@ -100,7 +100,7 @@ private:
 
 private:
     u64 bbrd[10];
-    u64 side[2];
+    u64 sidemask[2];
     u8  sq2p[64];
     u8  ksqs[2];
     u16 moves;

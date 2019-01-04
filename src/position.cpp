@@ -31,7 +31,7 @@ Position::Position() noexcept
     , castle(Position::CASTLE_NONE)
 {
     memset(bbrd, 0, sizeof(bbrd));
-    memset(side, 0, sizeof(side));
+    memset(sidemask, 0, sizeof(sidemask));
     memset(ksqs, 0, sizeof(ksqs));
     memset(sq2p, EMPTY_SQUARE, sizeof(sq2p));
 }
@@ -73,7 +73,7 @@ Position Position::from_fen(std::string_view fen) {
                 Piece piece = translate_fen_piece(c);
                 Square sq{static_cast<u8>(file), static_cast<u8>(rank)};
                 position.sq2p[sq.value()] = piece.value();
-                position.side[piece.color()] |= sq.mask();
+                position.sidemask[piece.color()] |= sq.mask();
                 if (piece.kind() == KING) {
                     position.ksqs[piece.color()] = sq.value();
                 } else {
@@ -192,10 +192,95 @@ Position Position::from_fen(std::string_view fen) {
     return position;
 }
 
-void Position::make_move(Savepos& sp, Move move) {
-
+[[nodiscard]]
+constexpr u8 rook_square_to_castle_flag(Square square) noexcept {
+    switch (square.value()) {
+        case A8: return Position::CASTLE_BLACK_QUEEN_SIDE;
+        case H8: return Position::CASTLE_BLACK_KING_SIDE;
+        case A1: return Position::CASTLE_WHITE_QUEEN_SIDE;
+        case H1: return Position::CASTLE_WHITE_KING_SIDE;
+        default: return 0;
+    }
 }
 
-void Position::undo_move(const Savepos& sp, Move move) {
+[[nodiscard]]
+constexpr bool is_rank2(u8 side, Square square) noexcept {
+    constexpr u64 SECOND_RANK{0xff00ull};
+    constexpr u64 SEVENTH_RANK{0xff000000000000ull};
+    u64 mask = side == WHITE ? SECOND_RANK : SEVENTH_RANK;
+    return square.mask() & mask;
+}
+
+[[nodiscard]]
+constexpr bool is_rank7(u8 side, Square square) noexcept {
+    return is_rank2(side ^ 1, square);
+}
+
+[[nodiscard]]
+constexpr bool is_enpassant_square(u8 side, Square square) noexcept {
+    constexpr u64 WHITE_ENPASSANT_SQUARES{0x00000000ff000000ull};
+    constexpr u64 BLACK_ENPASSANT_SQUARES{0x000000ff00000000ull};
+    u64 mask = side == WHITE ? WHITE_ENPASSANT_SQUARES : BLACK_ENPASSANT_SQUARES;
+    return square.mask() & mask;
+}
+
+void Position::make_move(Savepos& sp, Move move) noexcept {
+    const u8 side = wtm;
+    const u8 contra = side ^ 1;
+    const Square from = move.from();
+    const Square to = move.to();
+    const Piece piece = piece_on_square(from);
+    const Piece captured = piece_on_square(to);
+    const Flags flags = move.flags();
+    const PieceKind kind = piece.kind();
+    const u64* board = kind != KING ? &bbrd[piece.value()] : 0;
+
+    assert(to != from);
+    assert(to_piece.kind() != KING);
+
+    sp.halfmoves = halfmoves;
+    sp.epsq = epsq;
+    sp.castle = castle;
+    sp.capture = captured;
+
+    if (flags == Flags::NONE) {
+        if (board) {
+            *board &= ~from.mask();
+            *board |= to.mask();
+        } else {
+            ksqs[side] = to.value();
+            if (side == WHITE) {
+                castle &= ~Position::CASTLE_WHITE;
+            } else {
+                castle &= ~Position::CASTLE_BLACK;
+            }
+        }
+        sq2p[from.value()] = Square{};
+        sq2p[to.value()] = pc;
+        sidemask[side] &= ~from;
+        sidemask[side] |= to;
+
+        if (!captured.empty()) {
+            bbrd[captured.value()] &= ~to;
+            sidemask[contra] &= ~to;
+            castle &= ~rook_square_to_castle_flag(to);
+        } else if (kind == PAWN && is_rank2(side, from) && is_enpassant(side, to)) {
+            _set_enpassant_square(to);
+            assert((to >= A3 && to <= H3) || (to >= A6 && to <= H6));
+        }
+
+        if (kind == ROOK) {
+            castle &= ~rook_square_to_castle_flag(from);
+        }
+    } else if (Flags::ENPASSANT) {
+        assert(kind == PAWN);
+        assert(captured.empty());
+        board &= ~from.mask();
+        board |= to.mask();
+        board[Piece{contra, PAWN}.value()] &= 
+    }
+}
+
+void Position::undo_move(const Savepos& sp, Move move) noexcept {
 
 }
