@@ -170,6 +170,18 @@ struct Square {
     constexpr const char* const name() const noexcept
     { return names[rep_]; }
 
+    [[nodiscard]]
+    constexpr u8 file() const noexcept {
+        // return rep_ % 8;
+        return rep_ & 7;
+    }
+
+    [[nodiscard]]
+    constexpr u8 rank() const noexcept {
+        // return rep_ / 8;
+        return rep_ >> 3;
+    }
+
     u8 rep_;
 };
 static_assert(sizeof(Square) == 1, "");
