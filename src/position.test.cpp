@@ -161,4 +161,24 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.castle() == Position::CASTLE_ALL);
         REQUIRE(position.enpassant_available() == false);
     }
+
+    SECTION("Position #3") {
+        std::string fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -";
+        Position position = Position::from_fen(fen);
+
+        std::map<u8, Piece> expected = {
+            { A5, Piece{WHITE, KING} },
+            { B4, Piece{WHITE, ROOK} },
+        };
+
+        // REQUIRE(position.piece_on_square(A5) == Piece{WHITE, KING});
+        // REQUIRE(position.piece_on_square(B4) == Piece{WHITE, ROOK});
+        // REQUIRE(position.piece_on_square(B5) == Piece{WHITE, PAWN});
+        // REQUIRE(position.piece_on_square(F2) == Piece{WHITE, PAWN});
+
+        REQUIRE(position.move_number() == 1);
+        REQUIRE(position.fifty_move_rule_moves() == 0);
+        REQUIRE(position.castle() == Position::CASTLE_NONE);
+        REQUIRE(position.enpassant_available() == false);
+    }
 }
