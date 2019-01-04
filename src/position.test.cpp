@@ -191,4 +191,65 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.castle() == Position::CASTLE_NONE);
         REQUIRE(position.enpassant_available() == false);
     }
+
+    SECTION("Position #4") {
+        std::string fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
+        Position position = Position::from_fen(fen);
+
+        std::map<u8, Piece> expected = {
+            { A1, { WHITE, ROOK } },
+            { D1, { WHITE, QUEEN } },
+            { F1, { WHITE, ROOK } },
+            { G1, { WHITE, KING } },
+            { A2, { WHITE, PAWN } },
+            { B2, { BLACK, PAWN } },
+            { D2, { WHITE, PAWN } },
+            { G2, { WHITE, PAWN } },
+            { H2, { WHITE, PAWN } },
+            { A3, { BLACK, QUEEN } },
+            { F3, { WHITE, KNIGHT } },
+            { A4, { WHITE, BISHOP } },
+            { B4, { WHITE, BISHOP } },
+            { C4, { WHITE, PAWN } },
+            { E4, { WHITE, PAWN } },
+            { A5, { BLACK, KNIGHT } },
+            { B5, { WHITE, PAWN } },
+            { B6, { BLACK, BISHOP } },
+            { F6, { BLACK, KNIGHT } },
+            { G6, { BLACK, BISHOP } },
+            { H6, { WHITE, KNIGHT } },
+            { A7, { WHITE, PAWN } },
+            { B7, { BLACK, PAWN } },
+            { C7, { BLACK, PAWN } },
+            { D7, { BLACK, PAWN } },
+            { F7, { BLACK, PAWN } },
+            { G7, { BLACK, PAWN } },
+            { H7, { BLACK, PAWN } },
+            { A8, { BLACK, ROOK } },
+            { E8, { BLACK, KING } },
+            { H8, { BLACK, ROOK } },
+        };
+
+        for (u8 sq = 0; sq < 64; ++sq) {
+            auto it  = expected.find(sq);
+            Piece pc = it != expected.end() ? it->second : Piece{};
+            REQUIRE(position.piece_on_square(sq) == pc);
+        }
+
+        REQUIRE(position.move_number() == 1);
+        REQUIRE(position.fifty_move_rule_moves() == 0);
+        REQUIRE(position.castle() == (Position::CASTLE_BLACK_KING_SIDE | Position::CASTLE_BLACK_QUEEN_SIDE));
+        REQUIRE(position.enpassant_available() == false);
+    }
+
+    SECTION("Position #5") {
+        std::string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
+        Position position = Position::from_fen(fen);
+
+        REQUIRE(position.move_number() == 8);
+        REQUIRE(position.fifty_move_rule_moves() == 1);
+        REQUIRE(position.castle() == (Position::CASTLE_WHITE_KING_SIDE | Position::CASTLE_WHITE_QUEEN_SIDE));
+        REQUIRE(position.enpassant_available() == false);
+    }
+
 }
