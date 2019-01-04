@@ -68,8 +68,8 @@ struct Position {
     }
 
     [[nodiscard]]
-    ColorPiece piece_on_square(u8 square) const noexcept {
+    Piece piece_on_square(u8 square) const noexcept {
         assert(square >= A1 && square <= H8);
-        return sq2p_[square];
+        return Piece{sq2p_[square]};
     }
 };

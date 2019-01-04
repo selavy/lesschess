@@ -1,5 +1,5 @@
 [[PLAN]]
-1. Install libfmt
+1. Install libfmt [DONE: see tests/test_libfmt.cpp]
 2. Read position from FEN
 3. Move generation + perft test harness
 

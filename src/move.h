@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cassert>
+#include <type_traits>
 
 using u8  = uint8_t;
 using u16 = uint16_t;
@@ -12,7 +13,7 @@ using s16 = int16_t;
 using s32 = int32_t;
 using s64 = int64_t;
 
-enum Piece {
+enum PieceKind {
     // Must have this order so promotion piece can
     // be represented in 2-bits
     KNIGHT = 0,
@@ -29,71 +30,6 @@ enum Piece {
 enum Color {
     WHITE = 0,
     BLACK = 1,
-};
-
-
-struct ColorPiece {
-    static constexpr const char* const names[] = {
-        "white knight",
-        "white bishop",
-        "white rook",
-        "white queen",
-        "white king",
-        "white pawn",
-        "black knight",
-        "black bishop",
-        "black rook",
-        "black queen",
-        "black king",
-        "black pawn",
-        "empty",
-    };
-
-    constexpr ColorPiece() noexcept : rep_(EMPTY_SQUARE) {}
-
-    constexpr ColorPiece(u8 rep) noexcept : rep_{rep} {}
-
-    constexpr ColorPiece(Color color, Piece piece) noexcept
-        : rep_(static_cast<u8>(color)*N_PIECES + static_cast<u8>(piece)) {}
-
-    [[nodiscard]]
-    constexpr u8 value() const noexcept {
-        return rep_;
-    }
-
-    [[nodiscard]]
-    constexpr bool empty() const noexcept {
-        return rep_ == EMPTY_SQUARE;
-    }
-
-    [[nodiscard]]
-    constexpr Color color() const noexcept {
-        assert(!empty());
-        return rep_ < N_PIECES ? WHITE : BLACK;
-    }
-
-    [[nodiscard]]
-    constexpr Piece piece() const noexcept {
-        assert(!empty());
-        return static_cast<Piece>(rep_ % N_PIECES);
-    }
-
-    [[nodiscard]]
-    constexpr bool operator==(ColorPiece rhs) const noexcept {
-        return rep_ == rhs.rep_;
-    }
-
-    [[nodiscard]]
-    constexpr bool operator!=(ColorPiece rhs) const noexcept {
-        return rep_ == rhs.rep_;
-    }
-
-    [[nodiscard]]
-    constexpr const char *const name() const noexcept {
-        return names[rep_];
-    }
-
-    u8 rep_;
 };
 
 enum {
@@ -125,6 +61,83 @@ enum {
     RANK_1=0, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8,
 };
 
+struct Piece {
+    static constexpr const char* const names[] = {
+        "white knight",
+        "white bishop",
+        "white rook",
+        "white queen",
+        "white king",
+        "white pawn",
+        "black knight",
+        "black bishop",
+        "black rook",
+        "black queen",
+        "black king",
+        "black pawn",
+        "empty",
+    };
+
+    constexpr Piece() noexcept : rep_(EMPTY_SQUARE) {}
+
+    constexpr Piece(u8 rep) noexcept : rep_{rep} {
+        assert(rep >= 0 && rep <= EMPTY_SQUARE);
+    }
+
+    constexpr Piece(Color color, PieceKind piece) noexcept
+        : rep_(static_cast<u8>(color)*N_PIECES + static_cast<u8>(piece)) {}
+
+    [[nodiscard]]
+    constexpr u8 value() const noexcept {
+        return rep_;
+    }
+
+    [[nodiscard]]
+    constexpr bool empty() const noexcept {
+        return rep_ == EMPTY_SQUARE;
+    }
+
+    [[nodiscard]]
+    constexpr Color color() const noexcept {
+        assert(!empty());
+        return rep_ < N_PIECES ? WHITE : BLACK;
+    }
+
+    [[nodiscard]]
+    constexpr PieceKind piece_type() const noexcept {
+        assert(!empty());
+        return static_cast<PieceKind>(rep_ % N_PIECES);
+    }
+
+    [[nodiscard]]
+    constexpr bool operator==(Piece rhs) const noexcept {
+        return rep_ == rhs.rep_;
+    }
+
+    [[nodiscard]]
+    constexpr bool operator!=(Piece rhs) const noexcept {
+        return rep_ == rhs.rep_;
+    }
+
+    [[nodiscard]]
+    constexpr const char *const name() const noexcept {
+        return names[rep_];
+    }
+
+    u8 rep_;
+};
+static_assert(sizeof(Piece) == 1, "");
+static_assert(std::is_trivially_copyable<Piece>::value == true, "");
+
+constexpr bool operator==(Piece lhs, Piece rhs) noexcept {
+    return lhs.value() == rhs.value();
+}
+
+constexpr bool operator!=(Piece lhs, Piece rhs) noexcept {
+    return !(operator==(lhs, rhs));
+}
+
+
 struct Square {
     static constexpr const char* const names[64] = {
         "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
@@ -137,29 +150,30 @@ struct Square {
         "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
     };
 
-    constexpr Square(u8 file, u8 rank) : rep_(8*rank + file)
+    Square() noexcept = default;
+
+    constexpr Square(u8 file, u8 rank) noexcept : rep_(8*rank + file)
     { assert(rep_ >= A1 && rep_ <= H8); }
 
     constexpr Square(u8 sq) noexcept : rep_{sq}
     { assert(rep_ >= A1 && rep_ <= H8); }
 
     [[nodiscard]]
-    constexpr u8 value() const noexcept {
-        return rep_;
-    }
+    constexpr u8 value() const noexcept
+    { return rep_; }
 
     [[nodiscard]]
-    constexpr u64 mask() const noexcept {
-        return static_cast<u64>(1) << rep_;
-    }
+    constexpr u64 mask() const noexcept
+    { return static_cast<u64>(1) << rep_; }
 
     [[nodiscard]]
-    constexpr const char* const name() const noexcept {
-        return names[rep_];
-    }
+    constexpr const char* const name() const noexcept
+    { return names[rep_]; }
 
     u8 rep_;
 };
+static_assert(sizeof(Square) == 1, "");
+static_assert(std::is_pod<Square>::value == true, "");
 
 struct ep_capture_tag {};
 struct castle_tag {};
@@ -174,7 +188,7 @@ public:
         CASTLE    = 3,
     };
 
-    constexpr Move() noexcept : rep_{0u} {}
+    Move() noexcept = default;
 
     constexpr Move(u8 from, u8 to) noexcept
         : rep_((to << 0u) | (from << 6u))
@@ -252,27 +266,6 @@ public:
 private:
     u16 rep_;
 };
-static_assert(sizeof(Move) == 2, "Move must be 2-bytes!");
+static_assert(sizeof(Move) == 2, "");
+static_assert(std::is_pod<Move>::value == true, "");
 
-// class Position {
-//     u64 board[10]; // NOTE(peter): don't need bitmap for king position, use :ksq:
-//     u8  sq2pc[N_SQUARES];
-//     u8  ksq[2];
-//     // number of full moves
-//     u16 nmoves;
-//     // number of tempi since last capture or pawn advance
-//     // for 50-move rule
-//     u8  halfmoves;
-//     u8  castle;
-//     // target square behind pawn (like FEN)
-//     // 16 = no en passant
-//     // 0..7  = a3..h3
-//     // 8..15 = a6..h6
-//     u8  epsq;
-// };
-// 
-// class SavePos {
-//     uint8_t halfmoves;
-//     uint8_t epsq;
-//     uint8_t 
-// }
