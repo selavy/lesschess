@@ -77,6 +77,8 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.castle == Position::CASTLE_ALL);
         REQUIRE(position.halfmoves == 0);
         REQUIRE(position.moves == 1);
+        REQUIRE(position.enpassant_available() == true);
+        REQUIRE(position.enpassant_target_square() == Square{E3});
     }
 
     SECTION("After 1.e4 c5") {
@@ -129,6 +131,8 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.castle == Position::CASTLE_ALL);
         REQUIRE(position.halfmoves == 0);
         REQUIRE(position.moves == 2);
+        REQUIRE(position.enpassant_available() == true);
+        REQUIRE(position.enpassant_target_square() == Square{C6});
     }
 
     SECTION("Kiwipete position") {
@@ -136,5 +140,25 @@ TEST_CASE("Position from FEN") {
         Position position = Position::from_fen(fen);
 
         REQUIRE(position.piece_on_square(A1) == Piece{WHITE, ROOK});
+        REQUIRE(position.piece_on_square(E1) == Piece{WHITE, KING});
+        REQUIRE(position.piece_on_square(F3) == Piece{WHITE, QUEEN});
+        REQUIRE(position.piece_on_square(E5) == Piece{WHITE, KNIGHT});
+        REQUIRE(position.piece_on_square(D5) == Piece{WHITE, PAWN});
+        REQUIRE(position.piece_on_square(C3) == Piece{WHITE, KNIGHT});
+
+        REQUIRE(position.piece_on_square(E8) == Piece{BLACK, KING});
+        REQUIRE(position.piece_on_square(A6) == Piece{BLACK, BISHOP});
+        REQUIRE(position.piece_on_square(G7) == Piece{BLACK, BISHOP});
+        REQUIRE(position.piece_on_square(E7) == Piece{BLACK, QUEEN});
+        REQUIRE(position.piece_on_square(B6) == Piece{BLACK, KNIGHT});
+        REQUIRE(position.piece_on_square(B4) == Piece{BLACK, PAWN});
+
+        REQUIRE(position.piece_on_square(B5) == Piece{});
+        REQUIRE(position.piece_on_square(H5) == Piece{});
+
+        REQUIRE(position.moves == 1); // default value when missing from FEN
+        REQUIRE(position.halfmoves == 0); // default value when missing from FEN
+        REQUIRE(position.castle == Position::CASTLE_ALL);
+        REQUIRE(position.enpassant_available() == false);
     }
 }

@@ -9,6 +9,7 @@ struct Savepos {
     u8 castle;
     u8 capture;
 };
+static_assert(std::is_pod<Savepos>::value == true, "");
 
 struct Position {
     enum {
@@ -26,20 +27,6 @@ struct Position {
         ENPASSANT_NONE = 16,
     };
 
-    u64 bbrd[10];
-    u64 side[2];
-    u8  sq2p[64];
-    u8  ksqs[2];
-    u16 moves;
-    u8  halfmoves; // 50-move rule counter
-    // TODO(peter): combine wtm and castle?
-    u8  wtm;    // 1-bits
-    u8  castle; // 3-bits
-    // target square behind the pawn (like in FEN)
-    // 0..7  = a3..h3
-    // 8..15 = a6..h6
-    u8  epsq; // 0..16 == 5 bits
-
     Position() noexcept;
 
     static Position from_fen(std::string_view fen);
@@ -49,9 +36,12 @@ struct Position {
     void undo_move(const Savepos& sp, Move move) noexcept;
 
     [[nodiscard]]
-    u8 enpassant_target_square() const noexcept {
+    Square enpassant_target_square() const noexcept {
         assert(enpassant_available());
-        return epsq < 8 ? A3 + epsq : A6 + epsq;
+        // NOTE(peter): If white to move, then last move must have been
+        //              black therefore, target square must be on black
+        //              side.
+        return white_to_move() ? epsq + A6 : epsq + A3;
     }
 
     [[nodiscard]]
@@ -74,4 +64,18 @@ struct Position {
     bool white_to_move() const noexcept {
         return wtm == WHITE;
     }
+
+    // data
+    u64 bbrd[10];
+    u64 side[2];
+    u8  sq2p[64];
+    u8  ksqs[2];
+    u16 moves;
+    u8  halfmoves; // 50-move rule counter // 0..50 = 7-bits
+    // TODO(peter): combine wtm, castle, and epsq?
+    u8  wtm;    // 1-bits
+    u8  castle; // 3-bits
+    // NOTE(peter): target square behind the pawn (like in FEN)
+    // If white to move, then we know target square must be on 6-th rank
+    u8  epsq; // 0..8 == 4 bits
 };

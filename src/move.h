@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cassert>
 #include <type_traits>
+#include <ostream>
 
 using u8  = uint8_t;
 using u16 = uint16_t;
@@ -175,6 +176,16 @@ struct Square {
 };
 static_assert(sizeof(Square) == 1, "");
 static_assert(std::is_pod<Square>::value == true, "");
+
+constexpr bool operator==(Square lhs, Square rhs) noexcept {
+    return lhs.rep_ == rhs.rep_;
+}
+
+constexpr bool operator!=(Square lhs, Square rhs) noexcept {
+    return !(lhs == rhs);
+}
+
+std::ostream& operator<<(std::ostream& os, Square sq) noexcept;
 
 struct ep_capture_tag {};
 struct castle_tag {};

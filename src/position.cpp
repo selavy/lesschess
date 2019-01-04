@@ -149,10 +149,16 @@ Position Position::from_fen(std::string_view fen) {
         u8 rank = *it++ - '1';
         assert(file >= 0 && file <= 7);
         assert(rank >= 0 && rank <= 7);
-        if (!(rank == 2 || rank == 5)) {
+        Square square{file, rank};
+        if (rank == RANK_3) {
+            assert(square.value() >= A3 && square.value() <= H3);
+            position.epsq = square.value() - A3;
+        } else if (rank == RANK_6) {
+            assert(square.value() >= A6 && square.value() <= H6);
+            position.epsq = square.value() - A6;
+        } else {
             throw std::runtime_error("Invalid rank for enpassant target square");
         }
-        position.epsq = Square{file, rank}.value();
     }
     // it = expect(it, ' ');
     bool has_halfmove = it != last && *it++ == ' ';
