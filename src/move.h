@@ -104,9 +104,8 @@ struct Piece {
     }
 
     [[nodiscard]]
-    constexpr PieceKind piece_type() const noexcept {
-        assert(!empty());
-        return static_cast<PieceKind>(rep_ % N_PIECES);
+    constexpr PieceKind kind() const noexcept {
+        return empty() ? EMPTY_SQUARE : static_cast<PieceKind>(rep_ % N_PIECES);
     }
 
     [[nodiscard]]

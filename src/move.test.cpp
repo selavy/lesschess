@@ -81,3 +81,21 @@ TEST_CASE("Square", "square from file, rank or value, etc") {
         REQUIRE(Square{FILE_B, RANK_7}.rank() == RANK_7);
     }
 }
+
+TEST_CASE("Piece", "piece and color") {
+    SECTION("Can recover piece kind") {
+        REQUIRE(Piece{BLACK, BISHOP}.kind() == BISHOP);
+        REQUIRE(Piece{BLACK, KNIGHT}.kind() == KNIGHT);
+        REQUIRE(Piece{BLACK, PAWN}  .kind() == PAWN);
+        REQUIRE(Piece{WHITE, PAWN}  .kind() == PAWN);
+        REQUIRE(Piece{WHITE, KING}  .kind() == KING);
+    }
+
+    SECTION("Can recover color") {
+        REQUIRE(Piece{BLACK, BISHOP}.color() == BLACK);
+        REQUIRE(Piece{BLACK, KNIGHT}.color() == BLACK);
+        REQUIRE(Piece{BLACK, PAWN}  .color() == BLACK);
+        REQUIRE(Piece{WHITE, PAWN}  .color() == WHITE);
+        REQUIRE(Piece{WHITE, KING}  .color() == WHITE);
+    }
+}
