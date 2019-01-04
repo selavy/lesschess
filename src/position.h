@@ -41,13 +41,11 @@ struct Position {
         // NOTE(peter): If white to move, then last move must have been
         //              black therefore, target square must be on black
         //              side.
-        // u8 epsq = _unpack_enpassant_square();
         return white_to_move() ? epsq + A6 : epsq + A3;
     }
 
     [[nodiscard]]
     bool enpassant_available() const noexcept {
-        // u8 epsq = _unpack_enpassant_square();
         return epsq != ENPASSANT_NONE;
     }
 
@@ -64,21 +62,17 @@ struct Position {
 
     [[nodiscard]]
     bool white_to_move() const noexcept {
-        return (flags & 0x01) == 0x01;
+        return wtm;
     }
 
+    // TODO(peter): make this private, should only be called on make_move/undo_move
     void flip_to_move() noexcept {
-        flags ^= 0x01;
-    }
-
-    void set_white_to_move(bool white_to_move) {
-        flags = (flags & 0xFE) | (white_to_move & 0x01);
+        wtm ^= 1;
     }
 
     [[nodiscard]]
     u8 castle_flags() const noexcept {
         return castle;
-        // return (flags >> 1) & 0x03;
     }
 
     [[nodiscard]]
@@ -92,58 +86,26 @@ struct Position {
     }
 
 private:
-    void set_castle_flag(u8 bit) noexcept {
-        castle |= bit;
+    void _set_white_to_move(bool white_to_move) {
+        wtm = white_to_move;
     }
 
-    void clear_castle_flag(u8 bit) noexcept {
-        castle &= ~bit;
-    }
-
-    void clear_castle_flags() noexcept {
-        castle = Position::CASTLE_NONE;
-    }
-
-    void set_castle_flags(u8 flags) noexcept {
-        // TODO(peter): validate
+    void _set_castle_flags(u8 flags) noexcept {
         castle = flags;
     }
 
-    // u8 _unpack_enpassant_square() noexcept {
-    //     return (flags >> 4) & 0x0F;
-    // }
+    void _set_enpassant_square(u8 sq) noexcept {
+        epsq = sq;
+    }
 
-    // void _pack_enpassant_square(u8 sq) noexcept {
-    //     flags = flags & 
-
-    // }
-
-    // u8 _unpack_castle_flags() noexcept {
-    //     return (flags >> 1) & 0x07;
-    // }
-
-    // data
+private:
     u64 bbrd[10];
     u64 side[2];
     u8  sq2p[64];
     u8  ksqs[2];
     u16 moves;
-    u8  halfmoves; // 50-move rule counter // 0..50 = 7-bits
-
-    // REVISIT(peter): I think these will all be unpacked on every move/unmove call
-    //                 so it doesn't matter where they are located?
-    // flags bitfield:
-    // bit0    = wtm
-    // bit1..3 = castle
-    // bit4..7 = epsq
-    u8 flags;
-    u8 castle;
-    u8 epsq;
-
-    // // TODO(peter): combine wtm, castle, and epsq?
-    // u8  wtm;    // 1-bits
-    // u8  castle; // 3-bits
-    // // NOTE(peter): target square behind the pawn (like in FEN)
-    // // If white to move, then we know target square must be on 6-th rank
-    // u8  epsq; // 0..8 == 4 bits
+    u8  halfmoves;
+    u8  wtm;
+    u8  epsq;
+    u8  castle;
 };
