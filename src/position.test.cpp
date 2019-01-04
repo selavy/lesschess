@@ -124,6 +124,11 @@ TEST_CASE("Position from FEN") {
                 REQUIRE(position.piece_on_square(Square{file, rank}.value()) == Piece{});
             }
         }
+
+        REQUIRE(position.white_to_move() == true);
+        REQUIRE(position.castle == Position::CASTLE_ALL);
+        REQUIRE(position.halfmoves == 0);
+        REQUIRE(position.moves == 2);
     }
 
     SECTION("Kiwipete position") {

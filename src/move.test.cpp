@@ -98,4 +98,22 @@ TEST_CASE("Piece", "piece and color") {
         REQUIRE(Piece{WHITE, PAWN}  .color() == WHITE);
         REQUIRE(Piece{WHITE, KING}  .color() == WHITE);
     }
+
+    SECTION("Piece name") {
+        REQUIRE(strcmp(Piece{WHITE, PAWN}  .name(), "white pawn") == 0);
+        REQUIRE(strcmp(Piece{WHITE, KNIGHT}.name(), "white knight") == 0);
+        REQUIRE(strcmp(Piece{WHITE, BISHOP}.name(), "white bishop") == 0);
+        REQUIRE(strcmp(Piece{WHITE, ROOK}  .name(), "white rook") == 0);
+        REQUIRE(strcmp(Piece{WHITE, QUEEN} .name(), "white queen") == 0);
+        REQUIRE(strcmp(Piece{WHITE, KING}  .name(), "white king") == 0);
+
+        REQUIRE(strcmp(Piece{BLACK, PAWN}  .name(), "black pawn") == 0);
+        REQUIRE(strcmp(Piece{BLACK, KNIGHT}.name(), "black knight") == 0);
+        REQUIRE(strcmp(Piece{BLACK, BISHOP}.name(), "black bishop") == 0);
+        REQUIRE(strcmp(Piece{BLACK, ROOK}  .name(), "black rook") == 0);
+        REQUIRE(strcmp(Piece{BLACK, QUEEN} .name(), "black queen") == 0);
+        REQUIRE(strcmp(Piece{BLACK, KING}  .name(), "black king") == 0);
+
+        REQUIRE(strcmp(Piece{}.name(), "empty") == 0);
+    }
 }

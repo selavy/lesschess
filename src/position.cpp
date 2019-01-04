@@ -154,10 +154,11 @@ Position Position::from_fen(std::string_view fen) {
         }
         position.epsq = Square{file, rank}.value();
     }
-    it = expect(it, ' ');
+    // it = expect(it, ' ');
+    bool has_halfmove = it != last && *it++ == ' ';
 
     // may or may not have halfmove and move specifications
-    if (it == last) {
+    if (has_halfmove && it != last) {
         // Halfmove spec (50-move rule)
         while (it != last && *it != ' ') {
             if (*it < '0' && *it > '9') {
@@ -165,6 +166,7 @@ Position Position::from_fen(std::string_view fen) {
             }
             position.halfmoves *= 10;
             position.halfmoves += *it - '0';
+            ++it;
         }
 
         // assuming that if halfmove is there then move spec is also there
@@ -176,6 +178,7 @@ Position Position::from_fen(std::string_view fen) {
             }
             position.moves *= 10;
             position.moves += *it - '0';
+            ++it;
         }
     }
 
