@@ -1,13 +1,14 @@
 #include "position.h"
 #include <cstring>
 #include <cstdlib>
+#include <stdexcept>
 
 namespace {
 
-ColorPiece translate_fen_piece(char c) {
+Piece translate_fen_piece(char c) {
     Color color = std::isupper(c) ? WHITE : BLACK;
     c = std::tolower(c);
-    Piece piece;
+    PieceKind piece;
     switch (c) {
         case 'p': piece = PAWN; break;
         case 'n': piece = KNIGHT; break;
@@ -17,29 +18,22 @@ ColorPiece translate_fen_piece(char c) {
         case 'k': piece = KING; break;
         default: throw std::runtime_error{"Invalid piece"};
     }
-    return ColorPiece{color, piece};
+    return Piece{color, piece};
 }
 
 } // ~anonymous namespace
 
 Position::Position() noexcept
-    : bbrd_{0}
-    , side_{0}
-    , sq2p_{0}
-    , ksq_{0}
-    , moves_(1)
-    , halfmoves_(0)
-    , wtm_(WHITE)
-    , castle_(Position::CASTLE_ALL)
-    , epsq_(Position::ENPASSANT_NONE)
+    : bbrd{0}
+    , side{0}
+    , ksqs{0}
+    , moves(1)
+    , halfmoves(0)
+    , wtm(WHITE)
+    , castle(Position::CASTLE_ALL)
+    , epsq(Position::ENPASSANT_NONE)
 {
-    // memset(&bbrd_[0], 0, sizeof(bbrd_));
-    // memset(&sq2p_[0], 0, sizeof(sq2p_));
-    // memset(&side_[0], 0, sizeof(side_));
-    // memset(&ksq_[0] , 0, sizeof(ksq_));
-    // for (int i = 0; i < sizeof(sq2p_); ++i) {
-    //     sq2p_[i] = Square{};
-    // }
+    memset(sq2p, EMPTY_SQUARE, sizeof(sq2p));
 }
 
 Position Position::from_fen(std::string_view fen) {
@@ -76,14 +70,14 @@ Position Position::from_fen(std::string_view fen) {
                     throw std::runtime_error("Invalid board specification");
                 }
             } else {
-                ColorPiece piece = translate_fen_piece(c);
-                const Square sq{static_cast<u8>(file), static_cast<u8>(rank)};
-                position.sq2p_[sq.value()] = piece.value();
-                position.side_[piece.color()] |= sq.mask();
-                if (piece.piece() == KING) {
-                    position.ksq_[piece.color()] = sq.value();
+                Piece piece = translate_fen_piece(c);
+                Square sq{static_cast<u8>(file), static_cast<u8>(rank)};
+                position.sq2p[sq.value()] = piece.value();
+                position.side[piece.color()] |= sq.mask();
+                if (piece.kind() == KING) {
+                    position.ksqs[piece.color()] = sq.value();
                 } else {
-                    position.bbrd_[piece.value()] |= sq.mask();
+                    position.bbrd[piece.value()] |= sq.mask();
                 }
             }
         }
@@ -100,11 +94,11 @@ Position Position::from_fen(std::string_view fen) {
     switch (*it++) {
         case 'W':
         case 'w':
-            position.wtm_ = WHITE;
+            position.wtm = WHITE;
             break;
         case 'B':
         case 'b':
-            position.wtm_ = BLACK;
+            position.wtm = BLACK;
             break;
         default:
             throw std::runtime_error("Invalid character in color specification");
@@ -115,23 +109,23 @@ Position Position::from_fen(std::string_view fen) {
     if (it == last) {
         throw std::runtime_error("Expected castling availability specification");
     } else if (*it == '-') {
-        position.castle_ = Position::CASTLE_NONE;
+        position.castle = Position::CASTLE_NONE;
         ++it;
     } else {
         while (it < last && *it != ' ') {
             char c = *it++;
             switch (c) {
             case 'K':
-                position.castle_ |= Position::CASTLE_WHITE_KING_SIDE;
+                position.castle |= Position::CASTLE_WHITE_KING_SIDE;
                 break;
             case 'k':
-                position.castle_ |= Position::CASTLE_BLACK_KING_SIDE;
+                position.castle |= Position::CASTLE_BLACK_KING_SIDE;
                 break;
             case 'Q':
-                position.castle_ |= Position::CASTLE_WHITE_QUEEN_SIDE;
+                position.castle |= Position::CASTLE_WHITE_QUEEN_SIDE;
                 break;
             case 'q':
-                position.castle_ |= Position::CASTLE_BLACK_QUEEN_SIDE;
+                position.castle |= Position::CASTLE_BLACK_QUEEN_SIDE;
                 break;
             default:
                 throw std::runtime_error("Invalid character in castling specification");
@@ -144,7 +138,7 @@ Position Position::from_fen(std::string_view fen) {
     if (it == last) {
         throw std::runtime_error("Expected en passant target square");
     } else if (*it == '-') {
-        position.epsq_ = Position::ENPASSANT_NONE;
+        position.epsq = Position::ENPASSANT_NONE;
         ++it;
     } else {
         char c = *it++;
@@ -158,7 +152,7 @@ Position Position::from_fen(std::string_view fen) {
         if (!(rank == 2 || rank == 5)) {
             throw std::runtime_error("Invalid rank for enpassant target square");
         }
-        position.epsq_ = Square{file, rank}.value();
+        position.epsq = Square{file, rank}.value();
     }
     it = expect(it, ' ');
 
@@ -169,19 +163,19 @@ Position Position::from_fen(std::string_view fen) {
             if (*it < '0' && *it > '9') {
                 throw std::runtime_error("Invalid halfmove specification");
             }
-            position.halfmoves_ *= 10;
-            position.halfmoves_ += *it - '0';
+            position.halfmoves *= 10;
+            position.halfmoves += *it - '0';
         }
 
         // assuming that if halfmove is there then move spec is also there
         it = expect(it, ' ');
-        position.moves_ = 0;
+        position.moves = 0;
         while (it != last && *it != ' ') {
             if (*it < '0' && *it > '9') {
                 throw std::runtime_error("Invalid move specification");
             }
-            position.moves_ *= 10;
-            position.moves_ += *it - '0';
+            position.moves *= 10;
+            position.moves += *it - '0';
         }
     }
 

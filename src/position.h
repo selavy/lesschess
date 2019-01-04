@@ -2,8 +2,6 @@
 
 #include "move.h"
 #include <string_view>
-#include <optional>
-
 
 struct Savepos {
     u8 halfmoves;
@@ -28,48 +26,47 @@ struct Position {
         ENPASSANT_NONE = 16,
     };
 
-    u64 bbrd_[10];
-    u64 side_[2];
-    u8  sq2p_[64];
-    u8  ksq_[2];
-    u16 moves_;
-    u8  halfmoves_; // 50-move rule counter
+    u64 bbrd[10];
+    u64 side[2];
+    u8  sq2p[64];
+    u8  ksqs[2];
+    u16 moves;
+    u8  halfmoves; // 50-move rule counter
     // TODO(peter): combine wtm and castle?
-    u8  wtm_;    // 1-bits
-    u8  castle_; // 3-bits
+    u8  wtm;    // 1-bits
+    u8  castle; // 3-bits
     // target square behind the pawn (like in FEN)
     // 0..7  = a3..h3
     // 8..15 = a6..h6
-    u8  epsq_; // 0..16 == 5 bits
+    u8  epsq; // 0..16 == 5 bits
 
     Position() noexcept;
+
     static Position from_fen(std::string_view fen);
-    void make_move(Savepos& sp, Move move);
-    void undo_move(const Savepos& sp, Move move);
+
+    void make_move(Savepos& sp, Move move) noexcept;
+
+    void undo_move(const Savepos& sp, Move move) noexcept;
 
     [[nodiscard]]
-    bool wtm() const noexcept {
-        return wtm_ == WHITE;
-    }
-
-    [[nodiscard]]
-    u8 castle() const noexcept {
-        return castle_;
-    }
-
-    [[nodiscard]]
-    u8 epsq() const noexcept {
-        return epsq_ < 8 ? A3 + epsq_ : A6 + epsq_;
+    u8 enpassant_target_square() const noexcept {
+        assert(enpassant_available());
+        return epsq < 8 ? A3 + epsq : A6 + epsq;
     }
 
     [[nodiscard]]
     bool enpassant_available() const noexcept {
-        return epsq_ != ENPASSANT_NONE;
+        return epsq != ENPASSANT_NONE;
     }
 
     [[nodiscard]]
     Piece piece_on_square(u8 square) const noexcept {
         assert(square >= A1 && square <= H8);
-        return Piece{sq2p_[square]};
+        return Piece{sq2p[square]};
+    }
+
+    [[nodiscard]]
+    bool white_to_move() const noexcept {
+        return wtm == WHITE;
     }
 };

@@ -80,7 +80,7 @@ struct Piece {
 
     constexpr Piece() noexcept : rep_(EMPTY_SQUARE) {}
 
-    constexpr Piece(u8 rep) noexcept : rep_{rep} {
+    constexpr explicit Piece(u8 rep) noexcept : rep_{rep} {
         assert(rep >= 0 && rep <= EMPTY_SQUARE);
     }
 
@@ -106,16 +106,6 @@ struct Piece {
     [[nodiscard]]
     constexpr PieceKind kind() const noexcept {
         return empty() ? EMPTY_SQUARE : static_cast<PieceKind>(rep_ % N_PIECES);
-    }
-
-    [[nodiscard]]
-    constexpr bool operator==(Piece rhs) const noexcept {
-        return rep_ == rhs.rep_;
-    }
-
-    [[nodiscard]]
-    constexpr bool operator!=(Piece rhs) const noexcept {
-        return rep_ == rhs.rep_;
     }
 
     [[nodiscard]]
