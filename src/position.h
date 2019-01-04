@@ -60,6 +60,11 @@ struct Position {
     }
 
     [[nodiscard]]
+    Piece piece_on_square(Square square) const noexcept {
+        return piece_on_square(square.value());
+    }
+
+    [[nodiscard]]
     Piece piece_on_square(u8 square) const noexcept {
         assert(square >= A1 && square <= H8);
         return Piece{sq2p[square]};

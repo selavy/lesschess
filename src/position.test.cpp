@@ -15,7 +15,7 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.piece_on_square(G1) == Piece{WHITE, KNIGHT});
         REQUIRE(position.piece_on_square(H1) == Piece{WHITE, ROOK});
         for (u8 file = FILE_A; file <= FILE_H; ++file) {
-            REQUIRE(position.piece_on_square(Square{file, RANK_2}.value()) == Piece{WHITE, PAWN});
+            REQUIRE(position.piece_on_square(Square{file, RANK_2}) == Piece{WHITE, PAWN});
         }
 
         REQUIRE(position.piece_on_square(A8) == Piece{BLACK, ROOK});
@@ -27,12 +27,12 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.piece_on_square(G8) == Piece{BLACK, KNIGHT});
         REQUIRE(position.piece_on_square(H8) == Piece{BLACK, ROOK});
         for (u8 file = FILE_A; file <= FILE_H; ++file) {
-            REQUIRE(position.piece_on_square(Square{file, RANK_7}.value()) == Piece{BLACK, PAWN});
+            REQUIRE(position.piece_on_square(Square{file, RANK_7}) == Piece{BLACK, PAWN});
         }
 
         for (u8 rank = RANK_3; rank <= RANK_6; ++rank) {
             for (u8 file = FILE_A; file <= FILE_H; ++file) {
-                REQUIRE(position.piece_on_square(Square{file, rank}.value()) == Piece{});
+                REQUIRE(position.piece_on_square(Square{file, rank}) == Piece{});
             }
         }
 
@@ -57,7 +57,7 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.piece_on_square(H1) == Piece{WHITE, ROOK});
         for (u8 file = FILE_A; file <= FILE_H; ++file) {
             if (file != FILE_E) {
-                REQUIRE(position.piece_on_square(Square{file, RANK_2}.value()) == Piece{WHITE, PAWN});
+                REQUIRE(position.piece_on_square(Square{file, RANK_2}) == Piece{WHITE, PAWN});
             }
         }
 
@@ -70,7 +70,7 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.piece_on_square(G8) == Piece{BLACK, KNIGHT});
         REQUIRE(position.piece_on_square(H8) == Piece{BLACK, ROOK});
         for (u8 file = FILE_A; file <= FILE_H; ++file) {
-            REQUIRE(position.piece_on_square(Square{file, RANK_7}.value()) == Piece{BLACK, PAWN});
+            REQUIRE(position.piece_on_square(Square{file, RANK_7}) == Piece{BLACK, PAWN});
         }
 
         REQUIRE(position.white_to_move() == false);
@@ -93,9 +93,9 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.piece_on_square(H1) == Piece{WHITE, ROOK});
         for (u8 file = FILE_A; file <= FILE_H; ++file) {
             if (file != FILE_E) {
-                REQUIRE(position.piece_on_square(Square{file, RANK_2}.value()) == Piece{WHITE, PAWN});
+                REQUIRE(position.piece_on_square(Square{file, RANK_2}) == Piece{WHITE, PAWN});
             } else {
-                REQUIRE(position.piece_on_square(Square{file, RANK_4}.value()) == Piece{WHITE, PAWN});
+                REQUIRE(position.piece_on_square(Square{file, RANK_4}) == Piece{WHITE, PAWN});
             }
         }
 
@@ -109,9 +109,9 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.piece_on_square(H8) == Piece{BLACK, ROOK});
         for (u8 file = FILE_A; file <= FILE_H; ++file) {
             if (file != FILE_C) {
-                REQUIRE(position.piece_on_square(Square{file, RANK_7}.value()) == Piece{BLACK, PAWN});
+                REQUIRE(position.piece_on_square(Square{file, RANK_7}) == Piece{BLACK, PAWN});
             } else {
-                REQUIRE(position.piece_on_square(Square{file, RANK_5}.value()) == Piece{BLACK, PAWN});
+                REQUIRE(position.piece_on_square(Square{file, RANK_5}) == Piece{BLACK, PAWN});
             }
         }
 
@@ -121,7 +121,7 @@ TEST_CASE("Position from FEN") {
                 if ((file == FILE_E && rank == RANK_4) || (file == FILE_C && rank == RANK_5)) {
                     continue;
                 }
-                REQUIRE(position.piece_on_square(Square{file, rank}.value()) == Piece{});
+                REQUIRE(position.piece_on_square(Square{file, rank}) == Piece{});
             }
         }
 
@@ -134,5 +134,7 @@ TEST_CASE("Position from FEN") {
     SECTION("Kiwipete position") {
         std::string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -";
         Position position = Position::from_fen(fen);
+
+        REQUIRE(position.piece_on_square(A1) == Piece{WHITE, ROOK});
     }
 }
