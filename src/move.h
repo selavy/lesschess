@@ -127,6 +127,7 @@ constexpr bool operator!=(Piece lhs, Piece rhs) noexcept {
     return !(operator==(lhs, rhs));
 }
 
+std::ostream& operator<<(std::ostream& os, Piece pc) noexcept;
 
 struct Square {
     static constexpr const char* const names[64] = {

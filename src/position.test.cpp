@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "position.h"
+#include <map>
 
 TEST_CASE("Position from FEN") {
     SECTION("Starting position") {
@@ -167,14 +168,23 @@ TEST_CASE("Position from FEN") {
         Position position = Position::from_fen(fen);
 
         std::map<u8, Piece> expected = {
-            { A5, Piece{WHITE, KING} },
-            { B4, Piece{WHITE, ROOK} },
+            { A5, {WHITE, KING} },
+            { B4, {WHITE, ROOK} },
+            { B5, {WHITE, PAWN} },
+            { E2, {WHITE, PAWN} },
+            { G2, {WHITE, PAWN} },
+            { C7, {BLACK, PAWN} },
+            { D6, {BLACK, PAWN} },
+            { F4, {BLACK, PAWN} },
+            { H4, {BLACK, KING} },
+            { H5, {BLACK, ROOK} },
         };
 
-        // REQUIRE(position.piece_on_square(A5) == Piece{WHITE, KING});
-        // REQUIRE(position.piece_on_square(B4) == Piece{WHITE, ROOK});
-        // REQUIRE(position.piece_on_square(B5) == Piece{WHITE, PAWN});
-        // REQUIRE(position.piece_on_square(F2) == Piece{WHITE, PAWN});
+        for (u8 sq = 0; sq < 64; ++sq) {
+            auto it  = expected.find(sq);
+            Piece pc = it != expected.end() ? it->second : Piece{};
+            REQUIRE(position.piece_on_square(sq) == pc);
+        }
 
         REQUIRE(position.move_number() == 1);
         REQUIRE(position.fifty_move_rule_moves() == 0);

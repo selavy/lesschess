@@ -5,3 +5,7 @@ std::ostream& operator<<(std::ostream& os, Square sq) noexcept {
     return os;
 }
 
+std::ostream& operator<<(std::ostream& os, Piece pc) noexcept {
+    os << pc.name();
+    return os;
+}
