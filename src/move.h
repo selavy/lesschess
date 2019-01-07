@@ -252,10 +252,10 @@ public:
     }
 
     [[nodiscard]]
-    constexpr u8 promotion() const noexcept {
+    constexpr PieceKind promotion() const noexcept {
         // TODO(peter): assert on flags
         assert(is_promotion());
-        return (rep_ >> 12u) & 0x03;
+        return static_cast<PieceKind>((rep_ >> 12u) & 0x03);
     }
 
     [[nodiscard]]

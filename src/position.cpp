@@ -275,13 +275,35 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         if (kind == ROOK) {
             castle &= ~rook_square_to_castle_flag(from);
         }
-    } // else if (Flags::ENPASSANT) {
-      //   assert(kind == PAWN);
-      //   assert(captured.empty());
-      //   board &= ~from.mask();
-      //   board |= to.mask();
-      //   board[Piece{contra, PAWN}.value()] &= 
-    // }
+    } else if (flags == Move::Flags::ENPASSANT) {
+        const Square target{epsq};
+        assert(kind == PAWN);
+        assert(captured.empty());
+        *board &= ~from.mask();
+        *board |= to.mask();
+        board[Piece{static_cast<Color>(contra), PAWN}.value()] &= ~target.mask();
+        sq2p[target.value()] = NO_PIECE;
+        sq2p[from.value()] = NO_PIECE;
+        sq2p[to.value()] = piece;
+        sidemask[side] &= ~from.mask();
+        sidemask[side] |= to.mask();
+        sidemask[contra] &= ~target.mask();
+    } else if (flags == Move::Flags::PROMOTION) {
+        const PieceKind promotion_kind = move.promotion();
+        const Piece promotion_piece = Piece{static_cast<Color>(side), promotion_kind};
+        assert(kind == PAWN);
+        *board &= ~from.mask();
+        bbrd[promotion_piece.value()] |= to.mask();
+        sq2p[to.value()] = promotion_piece;
+        sq2p[from.value()] = NO_PIECE;
+        sidemask[side] &= ~from.mask();
+        sidemask[side] |= to.mask();
+        if (!captured.empty()) {
+            bbrd[captured.value()] &= ~to.mask();
+            sidemask[contra] &= ~to.mask();
+            castle &= ~rook_square_to_castle_flag(to);
+        }
+    }
 }
 
 void Position::undo_move(const Savepos& sp, Move move) noexcept {

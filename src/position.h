@@ -100,6 +100,7 @@ private:
     }
 
 private:
+    // TODO(peter): rename to boards
     u64 bbrd[10];
     u64 sidemask[2];
     std::array<Piece, 64> sq2p;
