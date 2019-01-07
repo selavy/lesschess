@@ -2,6 +2,7 @@
 
 #include "move.h"
 #include <string_view>
+#include <array>
 
 struct Savepos {
     u8 halfmoves;
@@ -101,11 +102,11 @@ private:
 private:
     u64 bbrd[10];
     u64 sidemask[2];
-    u8  sq2p[64];
-    u8  ksqs[2];
+    std::array<Piece, 64> sq2p;
+    u8 ksqs[2];
     u16 moves;
-    u8  halfmoves;
-    u8  wtm;
-    u8  epsq;
-    u8  castle;
+    u8 halfmoves;
+    u8 wtm;
+    u8 epsq;
+    u8 castle;
 };

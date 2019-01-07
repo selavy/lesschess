@@ -119,6 +119,8 @@ struct Piece {
 static_assert(sizeof(Piece) == 1, "");
 static_assert(std::is_trivially_copyable<Piece>::value == true, "");
 
+constexpr Piece NO_PIECE = Piece{};
+
 constexpr bool operator==(Piece lhs, Piece rhs) noexcept {
     return lhs.value() == rhs.value();
 }
