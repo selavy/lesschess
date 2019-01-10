@@ -244,6 +244,10 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     sp.ep_target = ep_target;
     sp.castle = castle;
     sp.capture = captured;
+    if (ep_target != Position::ENPASSANT_NONE) {
+        // NOTE(peter): written like this for zobrist hashing structure
+        ep_target = Position::ENPASSANT_NONE;
+    }
 
     if (flags == Move::Flags::NONE) {
         if (board) {

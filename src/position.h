@@ -25,7 +25,7 @@ struct Position {
     };
 
     enum {
-        ENPASSANT_NONE = 16,
+        ENPASSANT_NONE = Square::INVALID,
     };
 
     Position() noexcept;
@@ -98,7 +98,7 @@ private:
 
     void _set_enpassant_square(u8 sq) noexcept {
         ep_target = sq;
-        assert(ep_target == NO_ENPASSANT ||
+        assert(ep_target == Position::ENPASSANT_NONE ||
               (ep_target >= A3 && ep_target <= H3) ||
               (ep_target >= A6 && ep_target <= H6));
     }

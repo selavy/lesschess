@@ -132,7 +132,9 @@ constexpr bool operator!=(Piece lhs, Piece rhs) noexcept {
 std::ostream& operator<<(std::ostream& os, Piece pc) noexcept;
 
 struct Square {
-    static constexpr const char* const names[64] = {
+    constexpr static u8 INVALID = 64;
+
+    static constexpr const char* const names[65] = {
         "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
         "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
         "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
@@ -141,9 +143,15 @@ struct Square {
         "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
         "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
         "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+        "invalid",
     };
 
-    Square() noexcept = default;
+    Square() noexcept : rep_(INVALID) {}
+    // TODO(peter): do I need to specify these?
+    Square(const Square&) noexcept = default;
+    Square(Square&&) noexcept = default;
+    Square& operator=(const Square&) noexcept = default;
+    Square& operator=(Square&&) noexcept = default;
 
     constexpr Square(u8 file, u8 rank) noexcept : rep_(8*rank + file)
     { assert(rep_ >= A1 && rep_ <= H8); }
@@ -175,10 +183,15 @@ struct Square {
         return rep_ >> 3;
     }
 
+    [[nodiscard]]
+    constexpr bool valid() const noexcept {
+        return rep_ != INVALID;
+    }
+
     u8 rep_;
 };
 static_assert(sizeof(Square) == 1, "");
-static_assert(std::is_pod<Square>::value == true, "");
+static_assert(std::is_trivially_copyable<Square>::value == true, "");
 
 constexpr bool operator==(Square lhs, Square rhs) noexcept {
     return lhs.rep_ == rhs.rep_;
