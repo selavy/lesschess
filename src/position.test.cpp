@@ -286,29 +286,41 @@ TEST_CASE("Position::dump_fen") {
 }
 
 TEST_CASE("Position::make_move") {
-    std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    Position position = Position::from_fen(fen);
-    Move move(E2, E4); // 1. e4
-    REQUIRE(move.from() == E2);
-    REQUIRE(move.to()   == E4);
-    REQUIRE(move.is_promotion() == false);
-    REQUIRE(move.is_enpassant() == false);
-    REQUIRE(move.is_castle() == false);
-    REQUIRE(position.move_number() == 1);
-    REQUIRE(position.fifty_move_rule_moves() == 0);
-    Savepos save;
-    position.make_move(save, move);
-    REQUIRE(position.move_number() == 1);
-    REQUIRE(position.fifty_move_rule_moves() == 0);
+    SECTION("1.e4") {
+        std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        Position position = Position::from_fen(fen);
+        Move move(E2, E4); // 1. e4
+        REQUIRE(move.from() == E2);
+        REQUIRE(move.to()   == E4);
+        REQUIRE(move.is_promotion() == false);
+        REQUIRE(move.is_enpassant() == false);
+        REQUIRE(move.is_castle() == false);
+        REQUIRE(position.move_number() == 1);
+        REQUIRE(position.fifty_move_rule_moves() == 0);
+        Savepos save;
+        position.make_move(save, move);
+        REQUIRE(position.move_number() == 1);
+        REQUIRE(position.fifty_move_rule_moves() == 0);
 
-    REQUIRE(position.piece_on_square(E2) == NO_PIECE);
-    REQUIRE(position.piece_on_square(E4) == Piece(WHITE, PAWN));
+        REQUIRE(position.piece_on_square(E2) == NO_PIECE);
+        REQUIRE(position.piece_on_square(E4) == Piece(WHITE, PAWN));
 
-    REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
-    REQUIRE(position.enpassant_available() == true);
-    REQUIRE(position.enpassant_target_square() == E3);
+        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
+        REQUIRE(position.enpassant_available() == true);
+        REQUIRE(position.enpassant_target_square() == E3);
 
-    std::string expect_fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
-    Position expected = Position::from_fen(expect_fen);
-    REQUIRE(position == expected);
+        std::string expect_fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+        Position expected = Position::from_fen(expect_fen);
+        REQUIRE(position == expected);
+    }
+
+    SECTION("1.e4 c5") {
+        std::string fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+        Position position = Position::from_fen(fen);
+        Move move(C7, C5);
+        Savepos save;
+        position.make_move(save, move);
+        std::string expected_fen = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2";
+        REQUIRE(position.dump_fen() == expected_fen);
+    }
 }
