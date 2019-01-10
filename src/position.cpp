@@ -335,10 +335,23 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
          sq2p[rsq.value()] = Piece(side, ROOK);
          sidemask[side] &= ~(to.mask() | from.mask());
          sidemask[side] |= ksq.mask() | rsq.mask();
+        if (side == WHITE) {
+            castle &= ~Position::CASTLE_WHITE;
+        } else {
+            castle &= ~Position::CASTLE_BLACK;
+        }
      } else {
          assert(0);
          __builtin_unreachable();
      }
+
+    wtm = contra;
+    if (kind == PAWN || !captured.empty()) {
+        halfmoves = 0;
+    } else {
+        ++halfmoves;
+    }
+    ++moves;
 }
 
 void Position::undo_move(const Savepos& sp, Move move) noexcept {
