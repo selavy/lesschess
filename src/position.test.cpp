@@ -288,6 +288,7 @@ TEST_CASE("Position::make_move") {
     REQUIRE(position.enpassant_available() == true);
     REQUIRE(position.enpassant_target_square() == E3);
 
-    // std::string fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
-    // Position position = Position::from_fen(fen);
+    std::string expect_fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+    Position expected = Position::from_fen(expect_fen);
+    REQUIRE(position == expected);
 }

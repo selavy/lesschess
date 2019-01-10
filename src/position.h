@@ -22,9 +22,7 @@ struct Position {
         CASTLE_WHITE = CASTLE_WHITE_KING_SIDE | CASTLE_WHITE_QUEEN_SIDE,
         CASTLE_BLACK = CASTLE_BLACK_KING_SIDE | CASTLE_BLACK_QUEEN_SIDE,
         CASTLE_ALL   = CASTLE_WHITE | CASTLE_BLACK,
-    };
 
-    enum {
         ENPASSANT_NONE = Square::INVALID,
     };
 
@@ -86,6 +84,12 @@ struct Position {
     int fifty_move_rule_moves() const noexcept {
         return halfmoves;
     }
+
+    [[nodiscard]]
+    bool operator==(const Position& rhs) const noexcept;
+
+    [[nodiscard]]
+    bool operator!=(const Position& rhs) const noexcept;
 
 private:
     void _set_white_to_move(bool white_to_move) noexcept {

@@ -364,3 +364,21 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
 void Position::undo_move(const Savepos& sp, Move move) noexcept {
 
 }
+
+bool Position::operator==(const Position& rhs) const noexcept {
+    const Position& lhs = *this;
+    return ((lhs.boards == rhs.boards) &&
+            (lhs.sidemask == rhs.sidemask) &&
+            (lhs.sq2p == rhs.sq2p) &&
+            (lhs.kings == rhs.kings) &&
+            (lhs.moves == rhs.moves) &&
+            (lhs.halfmoves == rhs.halfmoves) &&
+            (lhs.wtm == rhs.wtm) &&
+            (lhs.ep_target == rhs.ep_target) &&
+            (lhs.castle == rhs.castle));
+}
+
+bool Position::operator!=(const Position& rhs) const noexcept {
+    return !(*this == rhs);
+}
+
