@@ -30,6 +30,9 @@ struct Position {
 
     static Position from_fen(std::string_view fen);
 
+    [[nodiscard]]
+    std::string dump_fen() const noexcept;
+
     void make_move(Savepos& sp, Move move) noexcept;
 
     void undo_move(const Savepos& sp, Move move) noexcept;

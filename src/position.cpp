@@ -191,6 +191,69 @@ Position Position::from_fen(std::string_view fen) {
     return position;
 }
 
+std::string Position::dump_fen() const noexcept {
+    // std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    std::string result;
+    int emptys = 0;
+    for (int rank = RANK_8; rank >= RANK_1; --rank) {
+        for (int file = FILE_A; file <= FILE_H; ++file) {
+            const Square square(static_cast<u8>(file), static_cast<u8>(rank));
+            const Piece piece = piece_on_square(square);
+            if (piece.empty()) {
+                ++emptys;
+            } else {
+                if (emptys > 0) {
+                    result += std::to_string(emptys);
+                    emptys = 0;
+                }
+                result += piece.fen();
+            }
+        }
+        if (emptys > 0) {
+            result += std::to_string(emptys);
+            emptys = 0;
+        }
+        if (rank != RANK_1) {
+            result += '/';
+        }
+    }
+
+    result += ' ';
+    result += wtm == WHITE ? 'w' : 'b';
+    result += ' ';
+
+    if ((castle & Position::CASTLE_WHITE_KING_SIDE) != 0) {
+        result += 'K';
+    }
+    if ((castle & Position::CASTLE_WHITE_QUEEN_SIDE) != 0) {
+        result += 'Q';
+    }
+    if ((castle & Position::CASTLE_BLACK_KING_SIDE) != 0) {
+        result += 'k';
+    }
+    if ((castle & Position::CASTLE_BLACK_QUEEN_SIDE) != 0) {
+        result += 'q';
+    }
+    if (castle == Position::CASTLE_NONE) {
+        result += '-';
+    }
+    result += ' ';
+
+    if (enpassant_available()) {
+        result += enpassant_target_square().name();
+    } else {
+        result += '-';
+    }
+    result += ' ';
+
+    result += std::to_string(fifty_move_rule_moves());
+    result += ' ';
+    result += std::to_string(move_number());
+
+    return result;
+}
+
 [[nodiscard]]
 constexpr u8 rook_square_to_castle_flag(Square square) noexcept {
     switch (square.value()) {

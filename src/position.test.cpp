@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "position.h"
+#include <iostream>
 #include <map>
 
 TEST_CASE("Position from FEN") {
@@ -263,6 +264,25 @@ TEST_CASE("Position from FEN") {
         REQUIRE(position.enpassant_available() == false);
     }
 
+}
+
+TEST_CASE("Position::dump_fen") {
+    using FEN = std::string;
+    std::vector<FEN> test_cases = {
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
+        "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2",
+        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+        "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+        "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+        "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
+    };
+
+    for (auto&& fen: test_cases) {
+        Position position = Position::from_fen(fen);
+        std::string my_fen = position.dump_fen();
+        REQUIRE(my_fen == fen);
+    }
 }
 
 TEST_CASE("Position::make_move") {
