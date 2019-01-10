@@ -32,7 +32,6 @@ Position::Position() noexcept
 {
     boards.fill(0ull);
     sidemask.fill(0ull);
-    kings.fill(0ull);
     sq2p.fill(NO_PIECE);
 }
 
@@ -75,7 +74,8 @@ Position Position::from_fen(std::string_view fen) {
                 position.sq2p[sq.value()] = piece;
                 position.sidemask[piece.color()] |= sq.mask();
                 if (piece.kind() == KING) {
-                    position.kings[piece.color()] = sq.value();
+                    // position.kings[piece.color()] = sq.value();
+                    position.kings[piece.color()] = sq;
                 } else {
                     position.boards[piece.value()] |= sq.mask();
                 }
@@ -225,8 +225,9 @@ constexpr bool is_enpassant_square(u8 side, Square square) noexcept {
 }
 
 void Position::make_move(Savepos& sp, Move move) noexcept {
-    const u8 side = wtm;
-    const u8 contra = side ^ 1;
+    assert(wtm == WHITE || wtm == BLACK);
+    const Color side = static_cast<Color>(wtm);
+    const Color contra = static_cast<Color>(side ^ 1);
     const Square from = move.from();
     const Square to = move.to();
     const Piece piece = piece_on_square(from);
@@ -250,7 +251,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
             *board &= ~from.mask();
             *board |= to.mask();
         } else {
-            kings[side] = to.value();
+            kings[side] = to; // to.value();
             if (side == WHITE) {
                 castle &= ~Position::CASTLE_WHITE;
             } else {
@@ -280,7 +281,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         assert(captured.empty());
         *board &= ~from.mask();
         *board |= to.mask();
-        board[Piece{static_cast<Color>(contra), PAWN}.value()] &= ~target.mask();
+        board[Piece(contra, PAWN).value()] &= ~target.mask();
         sq2p[target.value()] = NO_PIECE;
         sq2p[from.value()] = NO_PIECE;
         sq2p[to.value()] = piece;
@@ -289,7 +290,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         sidemask[contra] &= ~target.mask();
     } else if (flags == Move::Flags::PROMOTION) {
         const PieceKind promotion_kind = move.promotion();
-        const Piece promotion_piece = Piece{static_cast<Color>(side), promotion_kind};
+        const Piece promotion_piece = Piece(side, promotion_kind);
         assert(kind == PAWN);
         *board &= ~from.mask();
         boards[promotion_piece.value()] |= to.mask();
@@ -302,30 +303,42 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
             sidemask[contra] &= ~to.mask();
             castle &= ~rook_square_to_castle_flag(to);
         }
-    }
-//     } else if (flags == Move::Flags::CASTLE) {
-//         assert(kind == KING);
-//         int ksq;
-//         int rsq;
-//         switch (tosq) {
-//             case H1:
-//                 ksq = G1;
-//                 rsq = F1;
-//             case A1:
-//                 ksq = C1;
-//                 rsq = D1;
-//             case H8:
-//                 ksq = G8;
-//                 rsq = F8;
-//             case A8:
-//                 ksq = C8;
-//                 rsq = D8;
-//             default:
-//                 assert(0);
-//                 __builtin_unreachable();
-//         }
-//         ksqs
-//     }
+     } else if (flags == Move::Flags::CASTLE) {
+         assert(kind == KING);
+         u64* rooks = &boards[Piece(side, ROOK).value()];
+         Square ksq;
+         Square rsq;
+         switch (to.value()) {
+             case H1:
+                 ksq = Square(G1);
+                 rsq = Square(F1);
+             case A1:
+                 ksq = Square(C1);
+                 rsq = Square(D1);
+             case H8:
+                 ksq = Square(G8);
+                 rsq = Square(F8);
+             case A8:
+                 ksq = Square(C8);
+                 rsq = Square(D8);
+             default:
+                 assert(0);
+                 __builtin_unreachable();
+         }
+         kings[side] = ksq;
+         *rooks &= ~to.mask();
+         *rooks |= rsq.mask();
+
+         sq2p[from.value()] = NO_PIECE;
+         sq2p[to.value()] = NO_PIECE;
+         sq2p[ksq.value()] = Piece(side, KING);
+         sq2p[rsq.value()] = Piece(side, ROOK);
+         sidemask[side] &= ~(to.mask() | from.mask());
+         sidemask[side] |= ksq.mask() | rsq.mask();
+     } else {
+         assert(0);
+         __builtin_unreachable();
+     }
 }
 
 void Position::undo_move(const Savepos& sp, Move move) noexcept {

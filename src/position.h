@@ -103,7 +103,7 @@ private:
     std::array<u64, 10> boards;
     std::array<u64, 2> sidemask;
     std::array<Piece, 64> sq2p;
-    std::array<u8, 2> kings;
+    std::array<Square, 2> kings;
     u16 moves;
     u8 halfmoves;
     u8 wtm;
