@@ -100,11 +100,10 @@ private:
     }
 
 private:
-    // TODO(peter): rename to boards
-    u64 bbrd[10];
-    u64 sidemask[2];
+    std::array<u64, 10> boards;
+    std::array<u64, 2> sidemask;
     std::array<Piece, 64> sq2p;
-    u8 ksqs[2];
+    std::array<u8, 2> kings;
     u16 moves;
     u8 halfmoves;
     u8 wtm;

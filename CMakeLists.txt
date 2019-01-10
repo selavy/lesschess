@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.5)
 project(lesschess
     VERSION 0.0.1
     LANGUAGES C CXX
-    DESCRIPTION "Chess Engine"
+    # # TODO(peter): doesn't work for CMake < 3.8?
+    # # (https://github.com/robotology/yarp/issues/1628)
+    # DESCRIPTION "Chess Engine"
     )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
