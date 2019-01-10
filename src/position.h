@@ -6,7 +6,7 @@
 
 struct Savepos {
     u8 halfmoves;
-    u8 epsq;
+    u8 ep_target;
     u8 castle;
     Piece capture;
 };
@@ -42,12 +42,13 @@ struct Position {
         // NOTE(peter): If white to move, then last move must have been
         //              black therefore, target square must be on black
         //              side.
-        return white_to_move() ? epsq + A6 : epsq + A3;
+        // return white_to_move() ? epsq + A6 : epsq + A3;
+        return ep_target;
     }
 
     [[nodiscard]]
     bool enpassant_available() const noexcept {
-        return epsq != ENPASSANT_NONE;
+        return ep_target != ENPASSANT_NONE;
     }
 
     [[nodiscard]]
@@ -58,7 +59,7 @@ struct Position {
     [[nodiscard]]
     Piece piece_on_square(u8 square) const noexcept {
         assert(square >= A1 && square <= H8);
-        return Piece{sq2p[square]};
+        return Piece(sq2p[square]);
     }
 
     [[nodiscard]]
@@ -96,7 +97,10 @@ private:
     }
 
     void _set_enpassant_square(u8 sq) noexcept {
-        epsq = sq;
+        ep_target = sq;
+        assert(ep_target == NO_ENPASSANT ||
+              (ep_target >= A3 && ep_target <= H3) ||
+              (ep_target >= A6 && ep_target <= H6));
     }
 
 private:
@@ -107,6 +111,6 @@ private:
     u16 moves;
     u8 halfmoves;
     u8 wtm;
-    u8 epsq;
+    u8 ep_target;
     u8 castle;
 };

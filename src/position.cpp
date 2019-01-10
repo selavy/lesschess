@@ -27,7 +27,7 @@ Position::Position() noexcept
     : moves(1u)
     , halfmoves(0u)
     , wtm(1u)
-    , epsq(Position::ENPASSANT_NONE)
+    , ep_target(Position::ENPASSANT_NONE)
     , castle(Position::CASTLE_NONE)
 {
     boards.fill(0ull);
@@ -70,7 +70,7 @@ Position Position::from_fen(std::string_view fen) {
                 }
             } else {
                 Piece piece = translate_fen_piece(c);
-                Square sq{static_cast<u8>(file), static_cast<u8>(rank)};
+                Square sq(static_cast<u8>(file), static_cast<u8>(rank));
                 position.sq2p[sq.value()] = piece;
                 position.sidemask[piece.color()] |= sq.mask();
                 if (piece.kind() == KING) {
@@ -242,7 +242,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     assert(captured.empty() || captured.color() == contra);
 
     sp.halfmoves = halfmoves;
-    sp.epsq = epsq;
+    sp.ep_target = ep_target;
     sp.castle = castle;
     sp.capture = captured;
 
@@ -268,15 +268,17 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
             sidemask[contra] &= ~to.mask();
             castle &= ~rook_square_to_castle_flag(to);
         } else if (kind == PAWN && is_rank2(side, from) && is_enpassant_square(side, to)) {
-            _set_enpassant_square(to.value());
-            assert((to.value() >= A3 && to.value() <= H3) || (to.value() >= A6 && to.value() <= H6));
+            u8 target = side == WHITE ? to.value() - 8 : to.value() + 8;
+            _set_enpassant_square(target);
+            assert((target >= A3 && target <= H3) || (target >= A6 && target <= H6));
         }
 
         if (kind == ROOK) {
             castle &= ~rook_square_to_castle_flag(from);
         }
     } else if (flags == Move::Flags::ENPASSANT) {
-        const Square target{epsq};
+        assert(enpassant_available() == true);
+        const Square target = enpassant_target_square();
         assert(kind == PAWN);
         assert(captured.empty());
         *board &= ~from.mask();
@@ -351,7 +353,9 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     } else {
         ++halfmoves;
     }
-    ++moves;
+    if (side == BLACK) {
+        ++moves;
+    }
 }
 
 void Position::undo_move(const Savepos& sp, Move move) noexcept {
