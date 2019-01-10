@@ -74,7 +74,6 @@ Position Position::from_fen(std::string_view fen) {
                 position.sq2p[sq.value()] = piece;
                 position.sidemask[piece.color()] |= sq.mask();
                 if (piece.kind() == KING) {
-                    // position.kings[piece.color()] = sq.value();
                     position.kings[piece.color()] = sq;
                 } else {
                     position.boards[piece.value()] |= sq.mask();
@@ -154,10 +153,10 @@ Position Position::from_fen(std::string_view fen) {
         Square square{file, rank};
         if (rank == RANK_3) {
             assert(square.value() >= A3 && square.value() <= H3);
-            position._set_enpassant_square(square.value() - A3);
+            position._set_enpassant_square(square.value());
         } else if (rank == RANK_6) {
             assert(square.value() >= A6 && square.value() <= H6);
-            position._set_enpassant_square(square.value() - A6);
+            position._set_enpassant_square(square.value());
         } else {
             throw std::runtime_error("Invalid rank for enpassant target square");
         }
