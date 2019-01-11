@@ -453,102 +453,64 @@ bool Position::operator!=(const Position& rhs) const noexcept {
     return !(*this == rhs);
 }
 
-#include <iostream>
-
-void board_compare(u64 lhs, u64 rhs, const char *left, const char *right) {
-    for (u64 i = 0; i < 64; ++i) {
-        u64 mask = 1ull << i;
-        bool l = (lhs & mask) != 0;
-        bool r = (rhs & mask) != 0;
-        if (l && l == r) {
-            std::cout << Square(i).name() << " in both\n";
-            continue;
-        } else if (l) {
-            std::cout << left << " has " << Square(i).name() << "\n";
-        } else if (r) {
-            std::cout << right << " has " << Square(i).name() << "\n";
-        }
-    }
-}
-
 void Position::_validate() const noexcept {
 #ifndef NDEBUG
-    std::array<Color, 2> colors = { WHITE, BLACK };
-    std::array<PieceKind, 6> kinds = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
+    std::array<Piece, 12> pieces = {
+        Piece(WHITE, PAWN),
+        Piece(WHITE, KNIGHT),
+        Piece(WHITE, BISHOP),
+        Piece(WHITE, ROOK),
+        Piece(WHITE, QUEEN),
+        Piece(WHITE, KING),
+        Piece(BLACK, PAWN),
+        Piece(BLACK, KNIGHT),
+        Piece(BLACK, BISHOP),
+        Piece(BLACK, ROOK),
+        Piece(BLACK, QUEEN),
+        Piece(BLACK, KING),
+    };
 
     // Verify sidemasks
     u64 white_mask = 0ull;
-    for (auto kind: kinds) {
-        u64 piece_mask;
-        if (kind == KING) {
-            piece_mask = kings[WHITE].mask();
-        } else {
-            piece_mask = boards[Piece(WHITE, kind).value()];
-        }
-        assert((white_mask & piece_mask) == 0ull);
-        white_mask |= piece_mask;
-    }
     u64 black_mask = 0ull;
-    for (auto kind: kinds) {
-        u64 piece_mask;
-        if (kind == KING) {
-            piece_mask = kings[BLACK].mask();
+    for (auto piece: pieces) {
+        u64 piece_mask = piece.kind() == KING ?  kings[piece.color()].mask() : boards[piece.value()];
+        assert((white_mask & piece_mask) == 0ull);
+        assert((black_mask & piece_mask) == 0ull);
+        if (piece.color() == WHITE) {
+            white_mask |= piece_mask;
         } else {
-            piece_mask = boards[Piece(BLACK, kind).value()];
+            black_mask |= piece_mask;
         }
-
-        bool cond = (black_mask & piece_mask) == 0ull;
-        // if ((black_mask & piece_mask) != 0ull) {
-        if (cond == false) {
-            board_compare(black_mask, piece_mask, "black_mask", "piece_mask");
-        }
-
-        // assert((black_mask & piece_mask) == 0ull);
-        assert(cond == true);
-        black_mask |= piece_mask;
     }
     u64 full_mask = white_mask | black_mask;
     assert(sidemask[WHITE] == white_mask);
     assert(sidemask[BLACK] == black_mask);
     assert((white_mask & black_mask) == 0ull); // no bits should overlap
 
-//     for (int i = 0; i < sq2p.size(); ++i) {
-//         Piece piece = sq2p[i];
-//         Square square(i);
-// 
-// 
-//     }
-//     for (auto&& piece: sq2p) {
-//         if (piece.empty()) {
-//             assert(full_mask)
-//         }
-//     }
+    // Verify sq2p == boards
+    for (int i = 0; i < 64; ++i) {
+        Piece piece = sq2p[i];
+        Square square(i);
+        if (piece.empty()) {
+            assert((white_mask & square.mask()) == 0ull);
+            assert((black_mask & square.mask()) == 0ull);
+        } else if (piece.kind() == KING){
+            assert(kings[piece.color()] == square);
+        } else {
+            assert((boards[piece.value()] & square.mask()) != 0);
+        }
+    }
 
-
-    // std::array<Color, 2> colors = { WHITE, BLACK };
-    // std::array<PieceKind, 5> kinds = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN };
-    // for (auto&& color: colors) {
-    //     for (auto&& kind: kinds) {
-    //         Piece piece(color, kind);
-    //         u64 board = boards[piece.value()];
-    //         for (int i = 0; i < 64; ++i) {
-    //             Square sq(static_cast<u8>(i));
-    //             bool bitboard_has_piece = (sq.mask() & board) != 0;
-    //             bool sq2p_has_piece = piece_on_square(sq) == piece;
-    //             assert(bitboard_has_piece == sq2p_has_piece);
-    //         }
-    //     }
-    // }
-
-    // std::array<int, 13> counts;
-    // counts.fill(0);
-    // for (auto&& piece: sq2p) {
-    //     ++counts[piece.value()];
-    // }
-    // assert(counts[Piece(WHITE, KING).value()] == 1);
-    // assert(counts[Piece(BLACK, KING).value()] == 1);
-    // assert(counts[Piece(WHITE, PAWN).value()] <= 8);
-    // assert(counts[Piece(BLACK, PAWN).value()] <= 8);
+    std::array<int, 14> counts;
+    counts.fill(0);
+    for (auto&& piece: sq2p) {
+        ++counts[piece.value()];
+    }
+    assert(counts[Piece(WHITE, KING).value()] == 1);
+    assert(counts[Piece(BLACK, KING).value()] == 1);
+    assert(counts[Piece(WHITE, PAWN).value()] <= 8);
+    assert(counts[Piece(BLACK, PAWN).value()] <= 8);
 #endif
 }
 
