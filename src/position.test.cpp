@@ -464,4 +464,91 @@ TEST_CASE("Undo Move") {
         position.undo_move(save, move);
         REQUIRE(position == position_copy);
     }
+
+    SECTION("Make move white castle") {
+        std::string original_fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
+
+        using FEN = std::string;
+        std::vector<std::pair<Move::CastleKind, FEN>> test_cases = {
+            { Move::CastleKind::WHITE_KING_SIDE, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kq - 1 1" },
+            { Move::CastleKind::WHITE_QUEEN_SIDE, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR3R b kq - 1 1"},
+        };
+
+        for (auto&& test_case: test_cases) {
+            auto&& kind = std::get<0>(test_case);
+            auto&& expected = std::get<1>(test_case);
+            Position position = Position::from_fen(original_fen);
+            Move move = Move::make_castle_move(kind);
+            Savepos save;
+            position.make_move(save, move);
+            REQUIRE(position.dump_fen() == expected);
+        }
+
+    }
+
+    SECTION("Make move black castle") {
+        std::string original_fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1";
+
+        using FEN = std::string;
+        std::vector<std::pair<Move::CastleKind, FEN>> test_cases = {
+            { Move::CastleKind::BLACK_KING_SIDE, "r4rk1/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQ - 1 2" },
+            { Move::CastleKind::BLACK_QUEEN_SIDE, "2kr3r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQ - 1 2" },
+        };
+
+        for (auto&& test_case: test_cases) {
+            auto&& kind = std::get<0>(test_case);
+            auto&& expected = std::get<1>(test_case);
+            Position position = Position::from_fen(original_fen);
+            Move move = Move::make_castle_move(kind);
+            Savepos save;
+            position.make_move(save, move);
+            REQUIRE(position.dump_fen() == expected);
+        }
+
+    }
+//     SECTION("Undo white castle move") {
+//         std::string original_fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq -";
+//         Position position = Position::from_fen(original_fen);
+//         Position position_copy = position;
+// 
+//         // std::array<Move::CastleKind, 2> moves{
+//         //     Move::CastleKind::WHITE_KING_SIDE,
+//         //     Move::CastleKind::WHITE_QUEEN_SIDE,
+//         // };
+// 
+//         Move white_king_side = Move::make_castle_move(Move::CastleKind::WHITE_KING_SIDE);
+//         Savepos save;
+//         position.make_move(save, white_king_side);
+//         position.undo_move(save, white_king_side);
+//         REQUIRE(position == position_copy);
+// 
+// #if 0
+//         Move white_queen_side = Move::make_castle_move(Move::CastleKind::WHITE_QUEEN_SIDE);
+//         Savepos save;
+//         position.make_move(save, white_queen_side);
+//         position.undo_move(save, white_queen_side);
+//         REQUIRE(position == position_copy);
+// #endif
+//     }
+
+#if 0
+    SECTION("Undo black castle move") {
+        std::string original_fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq -";
+        Position position = Position::from_fen(original_fen);
+        Position position_copy = position;
+
+        Move white_king_side = Move::make_castle_move(Move::CastleKind::BLACK_KING_SIDE);
+        Savepos save;
+        position.make_move(save, white_king_side);
+        position.undo_move(save, white_king_side);
+        REQUIRE(position == position_copy);
+
+        Move white_queen_side = Move::make_castle_move(Move::CastleKind::BLACK_QUEEN_SIDE);
+        Savepos save;
+        position.make_move(save, white_queen_side);
+        position.undo_move(save, white_queen_side);
+        REQUIRE(position == position_copy);
+    }
+#endif
+
 }

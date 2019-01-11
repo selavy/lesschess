@@ -465,7 +465,20 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
             boards[captured.value()] |= to.mask();
             sidemask[contra] |= to.mask();
         }
-    } // else if (flags == )
+    } else if (flags == Move::Flags::CASTLE) {
+        Piece rook = Piece(side, ROOK);
+        auto [ksq, rsq] = _get_castle_squares(to);
+        sq2p[from.value()] = piece;
+        sq2p[to.value()] = rook;
+        sq2p[ksq.value()] = NO_PIECE;
+        sq2p[rsq.value()] = NO_PIECE;
+        sidemask[side] |= to.mask() | from.mask();
+        sidemask[side] &= ~(ksq.mask() | rsq.mask());
+        kings[side] = from;
+        // TODO(peter): verify only doing 1 load here
+        boards[rook.value()] &= ~rsq.mask();
+        boards[rook.value()] |= to.mask();
+    }
 
     // const Color contra = static_cast<Color>(wtm);
     // const Color side = static_cast<Color>(contra ^ 1);
