@@ -546,25 +546,4 @@ TEST_CASE("Undo Move") {
             REQUIRE(position == position_copy);
         }
     }
-
-#if 0
-    SECTION("Undo black castle move") {
-        std::string original_fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq -";
-        Position position = Position::from_fen(original_fen);
-        Position position_copy = position;
-
-        Move white_king_side = Move::make_castle_move(Move::CastleKind::BLACK_KING_SIDE);
-        Savepos save;
-        position.make_move(save, white_king_side);
-        position.undo_move(save, white_king_side);
-        REQUIRE(position == position_copy);
-
-        Move white_queen_side = Move::make_castle_move(Move::CastleKind::BLACK_QUEEN_SIDE);
-        Savepos save;
-        position.make_move(save, white_queen_side);
-        position.undo_move(save, white_queen_side);
-        REQUIRE(position == position_copy);
-    }
-#endif
-
 }
