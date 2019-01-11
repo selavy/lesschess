@@ -44,7 +44,7 @@ struct Position {
         //              black therefore, target square must be on black
         //              side.
         // return white_to_move() ? epsq + A6 : epsq + A3;
-        return ep_target;
+        return Square(ep_target);
     }
 
     [[nodiscard]]
@@ -109,6 +109,8 @@ private:
               (ep_target >= A3 && ep_target <= H3) ||
               (ep_target >= A6 && ep_target <= H6));
     }
+
+    void _validate() const noexcept;
 
 private:
     std::array<u64, 10> boards;

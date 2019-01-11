@@ -21,8 +21,8 @@ enum PieceKind {
     BISHOP = 1,
     ROOK   = 2,
     QUEEN  = 3,
-    KING   = 4,
-    PAWN   = 5,
+    PAWN   = 4,
+    KING   = 5,
     N_PIECES,
     EMPTY_SQUARE = N_PIECES*2,
 };
@@ -64,25 +64,23 @@ enum {
 
 struct Piece {
     static constexpr const char* const names[] = {
-        "white knight",
-        "white bishop",
-        "white rook",
-        "white queen",
-        "white king",
-        "white pawn",
-        "black knight",
-        "black bishop",
-        "black rook",
-        "black queen",
-        "black king",
-        "black pawn",
-        "empty",
+        "white knight", "black knight",
+        "white bishop", "black bishop",
+        "white rook", "black rook",
+        "white queen", "black queen",
+        "white pawn", "black pawn",
+        "white king", "black king",
+        "empty", "empty",
     };
 
     static constexpr char fen_names[] = {
-        'N', 'B', 'R', 'Q', 'K', 'P',
-        'n', 'b', 'r', 'q', 'k', 'p',
-        ' ',
+        'N', 'n',
+        'B', 'b',
+        'R', 'r',
+        'Q', 'q',
+        'P', 'p',
+        'K', 'k',
+        ' ', ' ',
     };
 
     constexpr Piece() noexcept : rep_(EMPTY_SQUARE) {}
@@ -92,7 +90,7 @@ struct Piece {
     }
 
     constexpr Piece(Color color, PieceKind piece) noexcept
-        : rep_(static_cast<u8>(color)*N_PIECES + static_cast<u8>(piece)) {}
+        : rep_(static_cast<u8>(2*piece + color)) {}
 
     [[nodiscard]]
     constexpr u8 value() const noexcept {
@@ -107,12 +105,14 @@ struct Piece {
     [[nodiscard]]
     constexpr Color color() const noexcept {
         assert(!empty());
-        return rep_ < N_PIECES ? WHITE : BLACK;
+        // return static_cast<Color>(rep_ % 2);
+        return static_cast<Color>(rep_ & 1);
     }
 
     [[nodiscard]]
     constexpr PieceKind kind() const noexcept {
-        return empty() ? EMPTY_SQUARE : static_cast<PieceKind>(rep_ % N_PIECES);
+        // return empty() ? EMPTY_SQUARE : static_cast<PieceKind>(rep_ / 2);
+        return empty() ? EMPTY_SQUARE : static_cast<PieceKind>(rep_ >> 1);
     }
 
     [[nodiscard]]
@@ -164,10 +164,12 @@ struct Square {
     Square& operator=(const Square&) noexcept = default;
     Square& operator=(Square&&) noexcept = default;
 
-    constexpr Square(u8 file, u8 rank) noexcept : rep_(8*rank + file)
+    constexpr Square(int file, int rank) noexcept : rep_(8*rank + file)
     { assert(rep_ >= A1 && rep_ <= H8); }
 
-    constexpr Square(u8 sq) noexcept : rep_{sq}
+    // NOTE(peter): not very safe to make this non-explicit, but really
+    //              annoying if it isn't...
+    constexpr Square(int sq) noexcept : rep_{static_cast<u8>(sq)}
     { assert(rep_ >= A1 && rep_ <= H8); }
 
     [[nodiscard]]
@@ -289,13 +291,13 @@ public:
     }
 
     [[nodiscard]]
-    constexpr u8 to() const noexcept {
-        return (rep_ >> 0u) & 0x3f;
+    constexpr Square to() const noexcept {
+        return Square((rep_ >> 0u) & 0x3f);
     }
 
     [[nodiscard]]
-    constexpr u8 from() const noexcept {
-        return (rep_ >> 6u) & 0x3f;
+    constexpr Square from() const noexcept {
+        return Square((rep_ >> 6u) & 0x3f);
     }
 
     [[nodiscard]]

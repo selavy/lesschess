@@ -188,6 +188,7 @@ Position Position::from_fen(std::string_view fen) {
         }
     }
 
+    position._validate();
     return position;
 }
 
@@ -287,6 +288,8 @@ constexpr bool is_enpassant_square(u8 side, Square square) noexcept {
 }
 
 void Position::make_move(Savepos& sp, Move move) noexcept {
+    _validate();
+
     assert(wtm == WHITE || wtm == BLACK);
     const Color side = static_cast<Color>(wtm);
     const Color contra = static_cast<Color>(side ^ 1);
@@ -297,6 +300,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     const Move::Flags flags = move.flags();
     const PieceKind kind = piece.kind();
     u64* board = kind != KING ? &boards[piece.value()] : 0;
+    Square new_ep_target = Square();
 
     assert(to != from);
     assert(captured.kind() != KING);
@@ -307,10 +311,6 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     sp.ep_target = ep_target;
     sp.castle = castle;
     sp.capture = captured;
-    if (ep_target != Position::ENPASSANT_NONE) {
-        // NOTE(peter): written like this for zobrist hashing structure
-        ep_target = Position::ENPASSANT_NONE;
-    }
 
     if (flags == Move::Flags::NONE) {
         if (board) {
@@ -335,7 +335,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
             castle &= ~rook_square_to_castle_flag(to);
         } else if (kind == PAWN && is_rank2(side, from) && is_enpassant_square(side, to)) {
             u8 target = side == WHITE ? to.value() - 8 : to.value() + 8;
-            _set_enpassant_square(target);
+            new_ep_target = target;
             assert((target >= A3 && target <= H3) || (target >= A6 && target <= H6));
         }
 
@@ -371,51 +371,53 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
             sidemask[contra] &= ~to.mask();
             castle &= ~rook_square_to_castle_flag(to);
         }
-     } else if (flags == Move::Flags::CASTLE) {
-         assert(kind == KING);
-         u64* rooks = &boards[Piece(side, ROOK).value()];
-         Square ksq;
-         Square rsq;
-         switch (to.value()) {
-             case H1:
-                 ksq = Square(G1);
-                 rsq = Square(F1);
-                 break;
-             case A1:
-                 ksq = Square(C1);
-                 rsq = Square(D1);
-                 break;
-             case H8:
-                 ksq = Square(G8);
-                 rsq = Square(F8);
-                 break;
-             case A8:
-                 ksq = Square(C8);
-                 rsq = Square(D8);
-                 break;
-             default:
-                 assert(0 && "invalid castle target square");
-                 __builtin_unreachable();
-         }
-         kings[side] = ksq;
-         *rooks &= ~to.mask();
-         *rooks |= rsq.mask();
+    } else if (flags == Move::Flags::CASTLE) {
+        assert(kind == KING);
+        u64* rooks = &boards[Piece(side, ROOK).value()];
+        Square ksq;
+        Square rsq;
+        switch (to.value()) {
+            case H1:
+                ksq = Square(G1);
+                rsq = Square(F1);
+                break;
+            case A1:
+                ksq = Square(C1);
+                rsq = Square(D1);
+                break;
+            case H8:
+                ksq = Square(G8);
+                rsq = Square(F8);
+                break;
+            case A8:
+                ksq = Square(C8);
+                rsq = Square(D8);
+                break;
+            default:
+                assert(0 && "invalid castle target square");
+                __builtin_unreachable();
+        }
+        kings[side] = ksq;
+        *rooks &= ~to.mask();
+        *rooks |= rsq.mask();
 
-         sq2p[from.value()] = NO_PIECE;
-         sq2p[to.value()] = NO_PIECE;
-         sq2p[ksq.value()] = Piece(side, KING);
-         sq2p[rsq.value()] = Piece(side, ROOK);
-         sidemask[side] &= ~(to.mask() | from.mask());
-         sidemask[side] |= ksq.mask() | rsq.mask();
+        sq2p[from.value()] = NO_PIECE;
+        sq2p[to.value()] = NO_PIECE;
+        sq2p[ksq.value()] = Piece(side, KING);
+        sq2p[rsq.value()] = Piece(side, ROOK);
+        sidemask[side] &= ~(to.mask() | from.mask());
+        sidemask[side] |= ksq.mask() | rsq.mask();
         if (side == WHITE) {
             castle &= ~Position::CASTLE_WHITE;
         } else {
             castle &= ~Position::CASTLE_BLACK;
         }
-     } else {
-         assert(0);
-         __builtin_unreachable();
-     }
+    } else {
+        assert(0);
+        __builtin_unreachable();
+    }
+
+    _set_enpassant_square(new_ep_target.value());
 
     wtm = contra;
     if (kind == PAWN || !captured.empty() && !move.is_castle()) {
@@ -426,6 +428,8 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     if (side == BLACK) {
         ++moves;
     }
+
+    _validate();
 }
 
 void Position::undo_move(const Savepos& sp, Move move) noexcept {
@@ -448,4 +452,104 @@ bool Position::operator==(const Position& rhs) const noexcept {
 bool Position::operator!=(const Position& rhs) const noexcept {
     return !(*this == rhs);
 }
+
+#include <iostream>
+
+void board_compare(u64 lhs, u64 rhs, const char *left, const char *right) {
+    for (u64 i = 0; i < 64; ++i) {
+        u64 mask = 1ull << i;
+        bool l = (lhs & mask) != 0;
+        bool r = (rhs & mask) != 0;
+        if (l && l == r) {
+            std::cout << Square(i).name() << " in both\n";
+            continue;
+        } else if (l) {
+            std::cout << left << " has " << Square(i).name() << "\n";
+        } else if (r) {
+            std::cout << right << " has " << Square(i).name() << "\n";
+        }
+    }
+}
+
+void Position::_validate() const noexcept {
+#ifndef NDEBUG
+    std::array<Color, 2> colors = { WHITE, BLACK };
+    std::array<PieceKind, 6> kinds = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
+
+    // Verify sidemasks
+    u64 white_mask = 0ull;
+    for (auto kind: kinds) {
+        u64 piece_mask;
+        if (kind == KING) {
+            piece_mask = kings[WHITE].mask();
+        } else {
+            piece_mask = boards[Piece(WHITE, kind).value()];
+        }
+        assert((white_mask & piece_mask) == 0ull);
+        white_mask |= piece_mask;
+    }
+    u64 black_mask = 0ull;
+    for (auto kind: kinds) {
+        u64 piece_mask;
+        if (kind == KING) {
+            piece_mask = kings[BLACK].mask();
+        } else {
+            piece_mask = boards[Piece(BLACK, kind).value()];
+        }
+
+        bool cond = (black_mask & piece_mask) == 0ull;
+        // if ((black_mask & piece_mask) != 0ull) {
+        if (cond == false) {
+            board_compare(black_mask, piece_mask, "black_mask", "piece_mask");
+        }
+
+        // assert((black_mask & piece_mask) == 0ull);
+        assert(cond == true);
+        black_mask |= piece_mask;
+    }
+    u64 full_mask = white_mask | black_mask;
+    assert(sidemask[WHITE] == white_mask);
+    assert(sidemask[BLACK] == black_mask);
+    assert((white_mask & black_mask) == 0ull); // no bits should overlap
+
+//     for (int i = 0; i < sq2p.size(); ++i) {
+//         Piece piece = sq2p[i];
+//         Square square(i);
+// 
+// 
+//     }
+//     for (auto&& piece: sq2p) {
+//         if (piece.empty()) {
+//             assert(full_mask)
+//         }
+//     }
+
+
+    // std::array<Color, 2> colors = { WHITE, BLACK };
+    // std::array<PieceKind, 5> kinds = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN };
+    // for (auto&& color: colors) {
+    //     for (auto&& kind: kinds) {
+    //         Piece piece(color, kind);
+    //         u64 board = boards[piece.value()];
+    //         for (int i = 0; i < 64; ++i) {
+    //             Square sq(static_cast<u8>(i));
+    //             bool bitboard_has_piece = (sq.mask() & board) != 0;
+    //             bool sq2p_has_piece = piece_on_square(sq) == piece;
+    //             assert(bitboard_has_piece == sq2p_has_piece);
+    //         }
+    //     }
+    // }
+
+    // std::array<int, 13> counts;
+    // counts.fill(0);
+    // for (auto&& piece: sq2p) {
+    //     ++counts[piece.value()];
+    // }
+    // assert(counts[Piece(WHITE, KING).value()] == 1);
+    // assert(counts[Piece(BLACK, KING).value()] == 1);
+    // assert(counts[Piece(WHITE, PAWN).value()] <= 8);
+    // assert(counts[Piece(BLACK, PAWN).value()] <= 8);
+#endif
+}
+
 
