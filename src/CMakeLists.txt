@@ -17,3 +17,5 @@ add_executable(lesschess
     magic_tables.generated.cpp
     )
 set_target_properties(lesschess PROPERTIES CXX_STANDARD 17)
+target_include_directories(lesschess PUBLIC
+    "${PROJECT_SOURCE_DIR}/third_party/outcome/single-header")

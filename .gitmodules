@@ -1,3 +1,6 @@
 [submodule "third_party/fmt"]
 	path = third_party/fmt
 	url = https://github.com/fmtlib/fmt
+[submodule "third_party/outcome"]
+	path = third_party/outcome
+	url = https://github.com/ned14/outcome
