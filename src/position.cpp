@@ -289,6 +289,20 @@ constexpr bool is_enpassant_square(u8 side, Square square) noexcept {
     return square.mask() & mask;
 }
 
+constexpr std::pair<Square, Square>
+_get_castle_squares(Square to) noexcept {
+    switch (to.value()) {
+        case H1: return std::make_pair(Square(G1), Square(F1));
+        case A1: return std::make_pair(Square(C1), Square(D1));
+        case H8: return std::make_pair(Square(G8), Square(F8));
+        case A8: return std::make_pair(Square(C8), Square(D8));
+        default:
+            assert(0 && "invalid castle target square");
+            __builtin_unreachable();
+    }
+    // return std::make_pair(Square(), Square());
+}
+
 void Position::make_move(Savepos& sp, Move move) noexcept {
     _validate();
 
@@ -378,29 +392,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     } else if (flags == Move::Flags::CASTLE) {
         assert(kind == KING);
         u64* rooks = &boards[Piece(side, ROOK).value()];
-        Square ksq;
-        Square rsq;
-        switch (to.value()) {
-            case H1:
-                ksq = Square(G1);
-                rsq = Square(F1);
-                break;
-            case A1:
-                ksq = Square(C1);
-                rsq = Square(D1);
-                break;
-            case H8:
-                ksq = Square(G8);
-                rsq = Square(F8);
-                break;
-            case A8:
-                ksq = Square(C8);
-                rsq = Square(D8);
-                break;
-            default:
-                assert(0 && "invalid castle target square");
-                __builtin_unreachable();
-        }
+        auto [ksq, rsq] = _get_castle_squares(to);
         kings[side] = ksq;
         *rooks &= ~to.mask();
         *rooks |= rsq.mask();
@@ -473,7 +465,7 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
             boards[captured.value()] |= to.mask();
             sidemask[contra] |= to.mask();
         }
-    }
+    } // else if (flags == )
 
     // const Color contra = static_cast<Color>(wtm);
     // const Color side = static_cast<Color>(contra ^ 1);

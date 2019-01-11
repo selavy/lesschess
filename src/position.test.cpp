@@ -423,4 +423,45 @@ TEST_CASE("Undo Move") {
         REQUIRE(position.dump_fen() == starting_position);
         REQUIRE(position == position_copy);
     }
+
+    SECTION("Undo Flags=NONE with no capture king move") {
+        std::string original_fen = "rnbqkbnr/ppp1pppp/3p4/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2";
+        Position position = Position::from_fen(original_fen);
+        Position position_copy = position;
+        REQUIRE(position.dump_fen() == original_fen);
+        Move move(E1, E2);
+        Savepos save;
+
+        // should be able to make/undo move multiple times just fine
+        for (int i = 0; i < 5; ++i) {
+            position.make_move(save, move);
+            std::string expected = "rnbqkbnr/ppp1pppp/3p4/8/4P3/8/PPPPKPPP/RNBQ1BNR b kq - 1 2";
+            REQUIRE(position.dump_fen() == expected);
+            position.undo_move(save, move);
+            REQUIRE(position.dump_fen() == original_fen);
+            REQUIRE(position == position_copy);
+        }
+    }
+
+    SECTION("Undo Flags=NONE capture") {
+        std::string original_fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPPKPPP/RNBQ1BNR w kq -";
+        Position position = Position::from_fen(original_fen);
+        Position position_copy = position;
+        Move move(E4, D5); // exd5
+        Savepos save;
+        position.make_move(save, move);
+        position.undo_move(save, move);
+        REQUIRE(position == position_copy);
+    }
+
+    SECTION("Undo Flags=NONE capture with black") {
+        std::string original_fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPPKPPP/RNBQ1BNR b kq - 0 1";
+        Position position = Position::from_fen(original_fen);
+        Position position_copy = position;
+        Move move(D5, E4); // dxe4
+        Savepos save;
+        position.make_move(save, move);
+        position.undo_move(save, move);
+        REQUIRE(position == position_copy);
+    }
 }
