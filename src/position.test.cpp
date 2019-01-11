@@ -397,4 +397,13 @@ TEST_CASE("Position::make_move") {
             REQUIRE(position.dump_fen() == fen);
         }
     }
+
+    SECTION("White promotion with capture") {
+        FEN starting_position = "4k1n1/7P/8/8/8/8/8/4K3 w - - 0 1";
+        Position position = Position::from_fen(starting_position);
+        Savepos save;
+        Move move(H7, G8, QUEEN);
+        position.make_move(save, move);
+        REQUIRE(position.dump_fen() == "4k1Q1/8/8/8/8/8/8/4K3 b - - 0 1");
+    }
 }
