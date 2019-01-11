@@ -2,6 +2,8 @@
 #include <cstring>
 #include <cstdlib>
 #include <stdexcept>
+#include <cstdio>
+#include <cinttypes>
 
 namespace {
 
@@ -344,18 +346,20 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         }
     } else if (flags == Move::Flags::ENPASSANT) {
         assert(enpassant_available() == true);
-        const Square target = side == WHITE ? to.value() + 8 ? to.value() - 8;
         assert(kind == PAWN);
         assert(captured.empty());
+        // TODO(peter): better name than epsq
+        // NOTE(peter): :epsq: is the square that the contra pawn is on.
+        const Square epsq = side == WHITE ? to.value() - 8 : to.value() + 8;
         *board &= ~from.mask();
         *board |= to.mask();
-        board[Piece(contra, PAWN).value()] &= ~target.mask();
-        sq2p[target.value()] = NO_PIECE;
+        boards[Piece(contra, PAWN).value()] &= ~epsq.mask();
         sq2p[from.value()] = NO_PIECE;
         sq2p[to.value()] = piece;
+        sq2p[epsq.value()] = NO_PIECE;
         sidemask[side] &= ~from.mask();
         sidemask[side] |= to.mask();
-        sidemask[contra] &= ~target.mask();
+        sidemask[contra] &= ~epsq.mask();
     } else if (flags == Move::Flags::PROMOTION) {
         const PieceKind promotion_kind = move.promotion();
         const Piece promotion_piece = Piece(side, promotion_kind);
@@ -484,6 +488,12 @@ void Position::_validate() const noexcept {
         }
     }
     u64 full_mask = white_mask | black_mask;
+    if (sidemask[BLACK] != black_mask) {
+        printf("sidemask   = %" PRIu64 "\n", sidemask[BLACK]);
+        printf("black_mask = %" PRIu64 "\n", black_mask);
+        printf("side - black = %" PRIu64 "\n", sidemask[BLACK] & ~black_mask);
+        printf("black - side = %" PRIu64 "\n", black_mask & ~sidemask[BLACK]);
+    }
     assert(sidemask[WHITE] == white_mask);
     assert(sidemask[BLACK] == black_mask);
     assert((white_mask & black_mask) == 0ull); // no bits should overlap
