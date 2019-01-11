@@ -339,6 +339,16 @@ TEST_CASE("Position::make_move") {
             { Move(F1, E2), "r1bqkbnr/pp1p1ppp/2n1p3/8/3NP3/8/PPP1BPPP/RNBQK2R b KQkq - 1 5" },
             { Move(G8, F6), "r1bqkb1r/pp1p1ppp/2n1pn2/8/3NP3/8/PPP1BPPP/RNBQK2R w KQkq - 2 6" },
             { Move::make_castle_move(Move::CastleKind::WHITE_KING_SIDE), "r1bqkb1r/pp1p1ppp/2n1pn2/8/3NP3/8/PPP1BPPP/RNBQ1RK1 b kq - 3 6", },
+            { Move(B7, B6), "r1bqkb1r/p2p1ppp/1pn1pn2/8/3NP3/8/PPP1BPPP/RNBQ1RK1 w kq - 0 7" },
+            { Move(F1, E1), "r1bqkb1r/p2p1ppp/1pn1pn2/8/3NP3/8/PPP1BPPP/RNBQR1K1 b kq - 1 7" },
+            { Move(C8, A6), "r2qkb1r/p2p1ppp/bpn1pn2/8/3NP3/8/PPP1BPPP/RNBQR1K1 w kq - 2 8" },
+            { Move(B1, C3), "r2qkb1r/p2p1ppp/bpn1pn2/8/3NP3/2N5/PPP1BPPP/R1BQR1K1 b kq - 3 8" },
+            { Move(D8, C7), "r3kb1r/p1qp1ppp/bpn1pn2/8/3NP3/2N5/PPP1BPPP/R1BQR1K1 w kq - 4 9" },
+            { Move(C1, G5), "r3kb1r/p1qp1ppp/bpn1pn2/6B1/3NP3/2N5/PPP1BPPP/R2QR1K1 b kq - 5 9" },
+            { Move::make_castle_move(Move::CastleKind::BLACK_QUEEN_SIDE), "2kr1b1r/p1qp1ppp/bpn1pn2/6B1/3NP3/2N5/PPP1BPPP/R2QR1K1 w - - 6 10" },
+            { Move(E4, E5), "2kr1b1r/p1qp1ppp/bpn1pn2/4P1B1/3N4/2N5/PPP1BPPP/R2QR1K1 b - - 0 10" },
+            { Move(D7, D5), "2kr1b1r/p1q2ppp/bpn1pn2/3pP1B1/3N4/2N5/PPP1BPPP/R2QR1K1 w - d6 0 11" },
+            { Move(E5, D6, ep_capture_tag{}), "2kr1b1r/p1q2ppp/bpnPpn2/6B1/3N4/2N5/PPP1BPPP/R2QR1K1 b - - 0 11" },
         };
 
         FEN starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
