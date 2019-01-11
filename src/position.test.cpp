@@ -412,6 +412,7 @@ TEST_CASE("Undo Move") {
     SECTION("Undo Flags=NONE with no capture") {
         std::string starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         Position position = Position::from_fen(starting_position);
+        Position position_copy = position;
         REQUIRE(position.dump_fen() == starting_position);
         Move move(E2, E4);
         Savepos save;
@@ -420,5 +421,6 @@ TEST_CASE("Undo Move") {
         REQUIRE(position.dump_fen() == position_1_e4);
         position.undo_move(save, move);
         REQUIRE(position.dump_fen() == starting_position);
+        REQUIRE(position == position_copy);
     }
 }

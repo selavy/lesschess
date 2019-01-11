@@ -456,6 +456,7 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
     if (side == BLACK) {
         --moves;
     }
+    wtm = side;
 
     if (flags == Move::Flags::NONE) {
         if (kind != KING) {
@@ -466,6 +467,7 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         }
         sidemask[side] |= from.mask();
         sidemask[side] &= ~to.mask();
+        sq2p[from.value()] = piece;
         sq2p[to.value()] = captured;
         if (!captured.empty()) {
             boards[captured.value()] |= to.mask();

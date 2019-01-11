@@ -27,6 +27,8 @@ struct Position {
     };
 
     Position() noexcept;
+    Position(const Position&) noexcept = default;
+    Position& operator=(const Position&) noexcept = default;
 
     static Position from_fen(std::string_view fen);
 
