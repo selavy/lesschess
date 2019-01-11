@@ -379,4 +379,22 @@ TEST_CASE("Position::make_move") {
             REQUIRE(position.dump_fen() == fen);
         }
     }
+
+    SECTION("Black promotion") {
+        FEN starting_position = "4k3/8/8/8/8/8/7p/4K3 b KQkq - 0 1";
+        Position position = Position::from_fen(starting_position);
+        Savepos save;
+
+        std::vector<TestCase> test_cases = {
+            { Move(H2, H1, KNIGHT), "4k3/8/8/8/8/8/8/4K2n w KQkq - 0 2" }, // h1=N
+            { Move(E1, D2), "4k3/8/8/8/8/8/3K4/7n b kq - 1 2" },           // Kd2
+        };
+
+        for (auto&& test_case: test_cases) {
+            auto&& move = std::get<0>(test_case);
+            auto&& fen = std::get<1>(test_case);
+            position.make_move(save, move);
+            REQUIRE(position.dump_fen() == fen);
+        }
+    }
 }
