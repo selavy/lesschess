@@ -466,6 +466,7 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
             sidemask[contra] |= to.mask();
         }
     } else if (flags == Move::Flags::CASTLE) {
+        assert(move.is_castle());
         Piece rook = Piece(side, ROOK);
         Piece king = Piece(side, KING);
         auto [ksq, rsq] = _get_castle_squares(to);
@@ -479,6 +480,20 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         // TODO(peter): verify only doing 1 load here
         boards[rook.value()] &= ~rsq.mask();
         boards[rook.value()] |= to.mask();
+    } else if (flags == Move::Flags::PROMOTION) {
+        assert(move.is_promotion());
+        Piece pawn = Piece(side, PAWN);
+        Piece promoted = Piece(side, move.promotion());
+        boards[pawn.value()] |= from.mask();
+        boards[promoted.value()] &= ~to.mask();
+        sq2p[to.value()] = captured;
+        sq2p[from.value()] = pawn;
+        sidemask[side] |= from.mask();
+        sidemask[side] &= ~to.mask();
+        if (!captured.empty()) {
+            boards[captured.value()] |= to.mask();
+            sidemask[contra] |= to.mask();
+        }
     }
 
     // const Color contra = static_cast<Color>(wtm);
