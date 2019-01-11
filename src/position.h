@@ -32,6 +32,8 @@ struct Position {
 
     static Position from_fen(std::string_view fen);
 
+    // Move move_from_san(std::string_view san) const;
+
     [[nodiscard]]
     std::string dump_fen() const noexcept;
 

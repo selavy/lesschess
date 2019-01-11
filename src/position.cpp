@@ -194,6 +194,64 @@ Position Position::from_fen(std::string_view fen) {
     return position;
 }
 
+constexpr PieceKind piece_kind_from_san(char c) noexcept {
+    switch (c) {
+        case 'K': case 'k': return KING;
+        case 'Q': case 'q': return QUEEN;
+        case 'B': case 'b': return BISHOP;
+        case 'N': case 'n': return KNIGHT;
+        default: return PAWN;
+    }
+}
+
+// Move Position::move_from_san(std::string_view san) const {
+//     Move result;
+//     PieceKind kind;
+//     int file;
+//     int rank;
+// 
+//     // Supporting:
+//     //   normal move:  [KNBRQknbrq]([a-h]|[0-9])?[a-h][0-9]
+//     //   pawn move:    (Pp)?[a-h][0-9]
+//     //   kside castle: O-O|o-o|0-0
+//     //   qside castle: O-O-O|o-o-o|0-0-0
+//     //   promotion:    (Pp)?[a-h][0-9]=[
+// 
+//     // Check if has piece: K, N, B, R, Q, P
+//     auto len = san.length();
+//     if (len < 2) {
+//         throw std::runtime_error("too short");
+//     } else if (san == "O-O") {
+//         // king side castle
+//         auto castle_kind = white_to_move() ?
+//             Move::CastleKind::WHITE_KING_SIDE :
+//             Move::CastleKind::BLACK_KING_SIDE ;
+//         return Move::make_castle_move(castle_kind);
+//     } else if (san == "O-O-O") {
+//         // queen side castle
+//         auto castle_kind = white_to_move() ?
+//             Move::CastleKind::WHITE_QUEEN_SIDE :
+//             Move::CastleKind::BLACK_QUEEN_SIDE ;
+//         return Move::make_castle_move(castle_kind);
+//     } else if (len == 2) {
+//         // pawn move
+//         if (!(san[0] >= 'a' && san[0] <= 'h')) {
+//             throw std::runtime_error("invalid file");
+//         }
+//         if (!(san[1] >= '1' && san[1] <= '8')) {
+//             throw std::runtime_error("invalid rank");
+//         }
+//         file = san[0] - 'a';
+//         rank = san[1] - '1';
+//         kind = PAWN;
+//     } else if (len == 3 && san[1] == 'x') {
+// 
+//     }
+// 
+// 
+//     return result;
+// }
+
 std::string Position::dump_fen() const noexcept {
     // std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
