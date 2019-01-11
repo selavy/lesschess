@@ -566,4 +566,24 @@ TEST_CASE("Undo Move") {
             REQUIRE(position == position_copy);
         }
     }
+
+    SECTION("Undo black promotion") {
+        std::string original_fen = "4k3/7P/8/8/8/8/p7/4K3 b - -";
+        Position position = Position::from_fen(original_fen);
+        Position position_copy = position;
+        Savepos save;
+
+        std::array<PieceKind, 4> kinds = {
+            QUEEN, ROOK, BISHOP, KNIGHT,
+        };
+
+        for (auto kind: kinds) {
+            position = position_copy;
+            Move move(A2, A1, kind);
+            position.make_move(save, move);
+            position.undo_move(save, move);
+            REQUIRE(position == position_copy);
+        }
+    }
+
 }
