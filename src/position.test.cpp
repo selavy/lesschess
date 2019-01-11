@@ -324,9 +324,9 @@ TEST_CASE("Position::make_move") {
         REQUIRE(position.dump_fen() == expected_fen);
     }
 
-    SECTION("Silician") {
-        using FEN = std::string;
-        using TestCase = std::pair<Move, FEN>;
+    using FEN = std::string;
+    using TestCase = std::pair<Move, FEN>;
+    SECTION("Silician to start + en passant") {
         std::vector<TestCase> test_cases = {
 			{ Move(E2, E4), "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1" },
 			{ Move(C7, C5), "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2" },
@@ -354,6 +354,24 @@ TEST_CASE("Position::make_move") {
         FEN starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         Position position = Position::from_fen(starting_position);
         Savepos save;
+        for (auto&& test_case: test_cases) {
+            auto&& move = std::get<0>(test_case);
+            auto&& fen = std::get<1>(test_case);
+            position.make_move(save, move);
+            REQUIRE(position.dump_fen() == fen);
+        }
+    }
+
+    SECTION("White promotion") {
+        FEN starting_position = "4k3/7P/8/8/8/8/8/4K3 w KQkq - 0 1";
+        Position position = Position::from_fen(starting_position);
+        Savepos save;
+
+        std::vector<TestCase> test_cases = {
+            { Move(H7, H8, ROOK), "4k2R/8/8/8/8/8/8/4K3 b KQkq - 0 1" }, // h8=R
+            { Move(E8, D7), "7R/3k4/8/8/8/8/8/4K3 w KQ - 1 2" },         // Kd7
+        };
+
         for (auto&& test_case: test_cases) {
             auto&& move = std::get<0>(test_case);
             auto&& fen = std::get<1>(test_case);

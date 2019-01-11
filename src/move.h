@@ -218,7 +218,6 @@ std::ostream& operator<<(std::ostream& os, Square sq) noexcept;
 
 struct ep_capture_tag {};
 struct castle_tag {};
-struct promotion_tag {}; // NOTE(peter): for symmetry
 
 class Move {
 public:
