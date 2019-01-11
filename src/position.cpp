@@ -344,7 +344,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         }
     } else if (flags == Move::Flags::ENPASSANT) {
         assert(enpassant_available() == true);
-        const Square target = enpassant_target_square();
+        const Square target = side == WHITE ? to.value() + 8 ? to.value() - 8;
         assert(kind == PAWN);
         assert(captured.empty());
         *board &= ~from.mask();
