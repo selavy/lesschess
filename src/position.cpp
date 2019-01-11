@@ -301,7 +301,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     assert(to != from);
     assert(captured.kind() != KING);
     assert(piece.color() == side);
-    assert(captured.empty() || captured.color() == contra);
+    assert(captured.empty() || captured.color() == contra || (move.is_castle() && captured.color() == side));
 
     sp.halfmoves = halfmoves;
     sp.ep_target = ep_target;
@@ -380,17 +380,21 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
              case H1:
                  ksq = Square(G1);
                  rsq = Square(F1);
+                 break;
              case A1:
                  ksq = Square(C1);
                  rsq = Square(D1);
+                 break;
              case H8:
                  ksq = Square(G8);
                  rsq = Square(F8);
+                 break;
              case A8:
                  ksq = Square(C8);
                  rsq = Square(D8);
+                 break;
              default:
-                 assert(0);
+                 assert(0 && "invalid castle target square");
                  __builtin_unreachable();
          }
          kings[side] = ksq;
@@ -414,7 +418,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
      }
 
     wtm = contra;
-    if (kind == PAWN || !captured.empty()) {
+    if (kind == PAWN || !captured.empty() && !move.is_castle()) {
         halfmoves = 0;
     } else {
         ++halfmoves;

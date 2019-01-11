@@ -28,11 +28,60 @@ TEST_CASE("Move", "move representation construction checks") {
      }
 
      SECTION("Castle move") {
-         constexpr Move move{E1, G1, castle_tag{}};
+         constexpr Move move{E1, H1, castle_tag{}};
          REQUIRE(move.from() == E1);
-         REQUIRE(move.to()   == G1);
+         REQUIRE(move.to()   == H1);
          static_assert(move.from() == E1, "");
-         static_assert(move.to()   == G1, "");
+         static_assert(move.to()   == H1, "");
+         REQUIRE(move.flags() == Move::Flags::CASTLE);
+         REQUIRE(move.is_enpassant() == false);
+         REQUIRE(move.is_castle()    == true);
+         REQUIRE(move.is_promotion() == false);
+     }
+
+     SECTION("White King side castle move") {
+         constexpr Move move = Move::make_castle_move(Move::CastleKind::WHITE_KING_SIDE);
+         REQUIRE(move.from() == E1);
+         REQUIRE(move.to()   == H1);
+         static_assert(move.from() == E1, "");
+         static_assert(move.to()   == H1, "");
+         REQUIRE(move.flags() == Move::Flags::CASTLE);
+         REQUIRE(move.is_enpassant() == false);
+         REQUIRE(move.is_castle()    == true);
+         REQUIRE(move.is_promotion() == false);
+     }
+
+     SECTION("White Queen side castle move") {
+         constexpr Move move = Move::make_castle_move(Move::CastleKind::WHITE_QUEEN_SIDE);
+         REQUIRE(move.from() == E1);
+         REQUIRE(move.to()   == A1);
+         static_assert(move.from() == E1, "");
+         static_assert(move.to()   == A1, "");
+         REQUIRE(move.flags() == Move::Flags::CASTLE);
+         REQUIRE(move.is_enpassant() == false);
+         REQUIRE(move.is_castle()    == true);
+         REQUIRE(move.is_promotion() == false);
+     }
+
+
+     SECTION("Black King side castle move") {
+         constexpr Move move = Move::make_castle_move(Move::CastleKind::BLACK_KING_SIDE);
+         REQUIRE(move.from() == E8);
+         REQUIRE(move.to()   == H8);
+         static_assert(move.from() == E8, "");
+         static_assert(move.to()   == H8, "");
+         REQUIRE(move.flags() == Move::Flags::CASTLE);
+         REQUIRE(move.is_enpassant() == false);
+         REQUIRE(move.is_castle()    == true);
+         REQUIRE(move.is_promotion() == false);
+     }
+
+     SECTION("Black Queen side castle move") {
+         constexpr Move move = Move::make_castle_move(Move::CastleKind::BLACK_QUEEN_SIDE);
+         REQUIRE(move.from() == E8);
+         REQUIRE(move.to()   == A8);
+         static_assert(move.from() == E8, "");
+         static_assert(move.to()   == A8, "");
          REQUIRE(move.flags() == Move::Flags::CASTLE);
          REQUIRE(move.is_enpassant() == false);
          REQUIRE(move.is_castle()    == true);

@@ -227,6 +227,13 @@ public:
         CASTLE    = 3,
     };
 
+    enum class CastleKind {
+        WHITE_KING_SIDE,
+        WHITE_QUEEN_SIDE,
+        BLACK_KING_SIDE,
+        BLACK_QUEEN_SIDE,
+    };
+
     Move() noexcept = default;
 
     constexpr Move(u8 from, u8 to) noexcept
@@ -245,13 +252,29 @@ public:
         assert(flags() == Flags::ENPASSANT);
     }
 
+    [[nodiscard]]
+    constexpr static Move make_castle_move(CastleKind kind) noexcept {
+        switch (kind) {
+            case CastleKind::WHITE_KING_SIDE: return Move(E1, H1, castle_tag{});
+            case CastleKind::WHITE_QUEEN_SIDE: return Move(E1, A1, castle_tag{});
+            case CastleKind::BLACK_KING_SIDE: return Move(E8, H8, castle_tag{});
+            case CastleKind::BLACK_QUEEN_SIDE: return Move(E8, A8, castle_tag{});
+        }
+        // assert(0);
+        // __builtin_unreachable();
+        return Move();
+    }
+
     constexpr Move(u8 from, u8 to, castle_tag) noexcept
         : rep_((to << 0u) | (from << 6u) | (Flags::CASTLE << 14u))
     {
-        assert((from == E1 && to == G1) ||
-               (from == E1 && to == C1) ||
-               (from == E8 && to == G8) ||
-               (from == E8 && to == C8));
+        // TODO(peter): move intuitive to add ctor Move(castle_type)
+        // NOTE(peter): For castle representation, :to: is the square of the rook
+        // so I can reuse a mask in make_move()/undo_move()
+        assert((from == E1 && to == H1) ||
+               (from == E1 && to == A1) ||
+               (from == E8 && to == H8) ||
+               (from == E8 && to == A8));
         assert(flags() == Flags::CASTLE);
     }
 
