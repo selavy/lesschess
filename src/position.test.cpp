@@ -407,3 +407,18 @@ TEST_CASE("Position::make_move") {
         REQUIRE(position.dump_fen() == "4k1Q1/8/8/8/8/8/8/4K3 b - - 0 1");
     }
 }
+
+TEST_CASE("Undo Move") {
+    SECTION("Undo Flags=NONE with no capture") {
+        std::string starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        Position position = Position::from_fen(starting_position);
+        REQUIRE(position.dump_fen() == starting_position);
+        Move move(E2, E4);
+        Savepos save;
+        position.make_move(save, move);
+        std::string position_1_e4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+        REQUIRE(position.dump_fen() == position_1_e4);
+        position.undo_move(save, move);
+        REQUIRE(position.dump_fen() == starting_position);
+    }
+}

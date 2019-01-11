@@ -8,7 +8,7 @@ struct Savepos {
     u8 halfmoves;
     u8 ep_target;
     u8 castle;
-    Piece capture;
+    Piece captured;
 };
 static_assert(std::is_trivially_copyable<Savepos>::value == true, "");
 
