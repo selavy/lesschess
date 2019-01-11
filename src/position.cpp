@@ -467,8 +467,9 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         }
     } else if (flags == Move::Flags::CASTLE) {
         Piece rook = Piece(side, ROOK);
+        Piece king = Piece(side, KING);
         auto [ksq, rsq] = _get_castle_squares(to);
-        sq2p[from.value()] = piece;
+        sq2p[from.value()] = king;
         sq2p[to.value()] = rook;
         sq2p[ksq.value()] = NO_PIECE;
         sq2p[rsq.value()] = NO_PIECE;
