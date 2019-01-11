@@ -494,6 +494,22 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
             boards[captured.value()] |= to.mask();
             sidemask[contra] |= to.mask();
         }
+    } else if (flags == Move::Flags::ENPASSANT) {
+        // TODO(peter): better name for :epsq:
+        Square epsq = side == WHITE ? to.value() - 8 : to.value() + 8;
+        Piece opp_pawn = Piece(contra, PAWN);
+        sq2p[from.value()] = piece;
+        *board |= from.mask();
+        *board &= ~to.mask();
+        sidemask[side] |= from.mask();
+        sidemask[side] &= ~to.mask();
+        sidemask[contra] |= epsq.mask();
+        sq2p[to.value()] = NO_PIECE;
+        sq2p[epsq.value()] = opp_pawn;
+        boards[opp_pawn.value()] |= epsq.mask();
+    } else {
+        assert(0);
+        __builtin_unreachable();
     }
 
     // const Color contra = static_cast<Color>(wtm);

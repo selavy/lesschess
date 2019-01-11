@@ -586,4 +586,26 @@ TEST_CASE("Undo Move") {
         }
     }
 
+    SECTION("Undo white en passant") {
+        std::string fen = "4k3/8/8/6pP/pP6/8/8/4K3 w - g6";
+        Position position = Position::from_fen(fen);
+        Position position_copy = position;
+        Savepos save;
+        Move move(H5, G6, ep_capture_tag{});
+        position.make_move(save, move);
+        position.undo_move(save, move);
+        REQUIRE(position == position_copy);
+    }
+
+    SECTION("Undo black en passant") {
+        std::string fen = "4k3/8/8/6pP/pP6/8/8/4K3 b - b3";
+        Position position = Position::from_fen(fen);
+        Position position_copy = position;
+        Savepos save;
+        Move move(A4, B3, ep_capture_tag{});
+        position.make_move(save, move);
+        position.undo_move(save, move);
+        REQUIRE(position == position_copy);
+    }
+
 }
