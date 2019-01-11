@@ -323,4 +323,28 @@ TEST_CASE("Position::make_move") {
         std::string expected_fen = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2";
         REQUIRE(position.dump_fen() == expected_fen);
     }
+
+    SECTION("Silician") {
+        using FEN = std::string;
+        using TestCase = std::pair<Move, FEN>;
+        std::vector<TestCase> test_cases = {
+			{ Move(E2, E4), "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1" },
+			{ Move(C7, C5), "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2" },
+			{ Move(G1, F3), "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2" },
+			{ Move(B8, C6), "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3" },
+			{ Move(D2, D4), "r1bqkbnr/pp1ppppp/2n5/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq d3 0 3" },
+            { Move(C5, D4), "r1bqkbnr/pp1ppppp/2n5/8/3pP3/5N2/PPP2PPP/RNBQKB1R w KQkq - 0 4" },
+            { Move(F3, D4), "r1bqkbnr/pp1ppppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R b KQkq - 0 4"}
+        };
+
+        FEN starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        Position position = Position::from_fen(starting_position);
+        Savepos save;
+        for (auto&& test_case: test_cases) {
+            auto&& move = std::get<0>(test_case);
+            auto&& fen = std::get<1>(test_case);
+            position.make_move(save, move);
+            REQUIRE(position.dump_fen() == fen);
+        }
+    }
 }
