@@ -17,10 +17,6 @@ struct Savepos {
 };
 static_assert(std::is_trivially_copyable<Savepos>::value == true, "");
 
-// // TEMP: move these to static in cpp
-// [[nodiscard]] inline Move*
-// generate_knight_moves(u64 knights, const u64 targets, Move* moves) noexcept;
-
 struct Position {
     enum {
         CASTLE_NONE             = 0,
@@ -41,9 +37,6 @@ struct Position {
 
     static Position from_fen(std::string_view fen);
 
-    // TODO(peter): implement
-    // outcome::result<Move> move_from_san(std::string_view san) const;
-
     [[nodiscard]]
     std::string dump_fen() const noexcept;
 
@@ -54,10 +47,6 @@ struct Position {
     [[nodiscard]]
     Square enpassant_target_square() const noexcept {
         assert(enpassant_available());
-        // NOTE(peter): If white to move, then last move must have been
-        //              black therefore, target square must be on black
-        //              side.
-        // return white_to_move() ? epsq + A6 : epsq + A3;
         return Square(ep_target);
     }
 
