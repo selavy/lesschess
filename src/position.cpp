@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <cstdio>
 #include <cinttypes>
+#include "detail/magic_tables.generated.h"
 
 namespace lesschess {
 
@@ -701,6 +702,39 @@ void Position::_validate() const noexcept {
     assert(counts[Piece(WHITE, PAWN).value()] <= 8);
     assert(counts[Piece(BLACK, PAWN).value()] <= 8);
 #endif
+}
+
+bool Position::attacks(Color side, Square square) const noexcept
+{
+    Color contra = flip_color(side);
+    u64 occupied = _occupied();
+    int rook = Piece(side, ROOK).value();
+    int queen = Piece(side, QUEEN).value();
+    int knight = Piece(side, KNIGHT).value();
+    int bishop = Piece(side, BISHOP).value();
+    int pawn = Piece(side, PAWN).value();
+    u64 pieces = boards_[rook] | boards_[queen];
+    int sq = square.value();
+    if ((rook_attacks(sq, occupied) & pieces) != 0) {
+        return true;
+    }
+    pieces = boards_[bishop] | boards_[queen];
+    if ((bishop_attacks(sq, occupied) & pieces) != 0) {
+        return true;
+    }
+    pieces = boards_[knight];
+    if ((knight_attacks(sq) & pieces) != 0) {
+        return true;
+    }
+    pieces = boards_[pawn];
+    if ((pawn_attacks(contra, sq) & pieces) != 0) {
+        return true;
+    }
+    pieces = kings_[side].mask();
+    if ((king_attacks(sq) & pieces) != 0) {
+        return true;
+    }
+    return false;
 }
 
 } // ~namespace lesschess

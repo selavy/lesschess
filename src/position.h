@@ -111,6 +111,9 @@ public:
     bool is_legal_move(Move move) const noexcept
     { return false; }
 
+    [[nodiscard]]
+    bool attacks(Color side, Square square) const noexcept;
+
 private:
     void _set_white_to_move(bool white_to_move) noexcept
     { wtm_ = white_to_move ? WHITE : BLACK; }
@@ -124,6 +127,10 @@ private:
     }
 
     void _validate() const noexcept;
+
+    [[nodiscard]]
+    u64 _occupied() const noexcept
+    { return sidemask_[WHITE] | sidemask_[BLACK]; }
 
 private:
     std::array<u64, 10> boards_;

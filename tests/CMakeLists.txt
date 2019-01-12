@@ -4,10 +4,11 @@
 
 add_executable(unittest
     catch_main.cpp
-    ../src/move.cpp
-    ../src/move.test.cpp
-    ../src/position.cpp
-    ../src/position.test.cpp
+    "${PROJECT_SOURCE_DIR}/src/move.cpp"
+    "${PROJECT_SOURCE_DIR}/src/move.test.cpp"
+    "${PROJECT_SOURCE_DIR}/src/position.cpp"
+    "${PROJECT_SOURCE_DIR}/src/position.test.cpp"
+    "${PROJECT_SOURCE_DIR}/src/detail/magic_tables.generated.cpp"
     )
 set_target_properties(unittest PROPERTIES CXX_STANDARD 17)
 target_include_directories(unittest PUBLIC "${PROJECT_SOURCE_DIR}/third_party/catch")

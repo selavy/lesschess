@@ -17,8 +17,8 @@ using s32 = int32_t;
 using s64 = int64_t;
 
 enum PieceKind {
-    // Must have this order so promotion piece can
-    // be represented in 2-bits
+    // NOTE(peter): Must have this order so promotion piece
+    // can be represented in 2-bits
     KNIGHT = 0,
     BISHOP = 1,
     ROOK   = 2,
