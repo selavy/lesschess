@@ -12,7 +12,7 @@
 struct Savepos {
     u8 halfmoves;
     u8 ep_target;
-    u8 castle;
+    u8 castle_rights;
     Piece captured;
 };
 static_assert(std::is_trivially_copyable<Savepos>::value == true, "");
@@ -45,46 +45,42 @@ struct Position {
     void undo_move(const Savepos& sp, Move move) noexcept;
 
     [[nodiscard]]
-    Square enpassant_target_square() const noexcept {
+    Square enpassant_target_square() const noexcept
+    {
         assert(enpassant_available());
         return Square(ep_target);
     }
 
     [[nodiscard]]
-    bool enpassant_available() const noexcept {
-        return ep_target != ENPASSANT_NONE;
-    }
+    bool enpassant_available() const noexcept
+    { return ep_target != ENPASSANT_NONE; }
 
     [[nodiscard]]
-    Piece piece_on_square(Square square) const noexcept {
-        return piece_on_square(square.value());
-    }
+    Piece piece_on_square(Square square) const noexcept
+    { return piece_on_square(square.value()); }
 
     [[nodiscard]]
-    Piece piece_on_square(u8 square) const noexcept {
+    Piece piece_on_square(u8 square) const noexcept
+    {
         assert(square >= A1 && square <= H8);
         return Piece(sq2p[square]);
     }
 
     [[nodiscard]]
-    bool white_to_move() const noexcept {
-        return wtm == WHITE;
-    }
+    bool white_to_move() const noexcept
+    { return wtm == WHITE; }
 
     [[nodiscard]]
-    u8 castle_flags() const noexcept {
-        return castle;
-    }
+    u8 castle_flags() const noexcept
+    { return castle_rights; }
 
     [[nodiscard]]
-    int move_number() const noexcept {
-        return moves;
-    }
+    int move_number() const noexcept
+    { return moves; }
 
     [[nodiscard]]
-    int fifty_move_rule_moves() const noexcept {
-        return halfmoves;
-    }
+    int fifty_move_rule_moves() const noexcept
+    { return halfmoves; }
 
     [[nodiscard]]
     bool operator==(const Position& rhs) const noexcept;
@@ -92,16 +88,35 @@ struct Position {
     [[nodiscard]]
     bool operator!=(const Position& rhs) const noexcept;
 
+    // TODO(peter): this is probably what the interface should look like:
+    // template <class OutputIter>
+    // OutputIter generate_legal_moves(OutputIter) const noexcept;
+
+    // TODO(peter): implement
+    [[nodiscard]]
+    Move* generate_legal_moves(Move* moves) const noexcept
+    { return nullptr; }
+
+    // TODO(peter): implement
+    [[nodiscard]]
+    bool in_check(Color side) const noexcept
+    { return false; }
+
+
+    // TODO(peter): implement
+    [[nodiscard]]
+    bool is_legal_move(Move move) const noexcept
+    { return false; }
+
 private:
-    void _set_white_to_move(bool white_to_move) noexcept {
-        wtm = white_to_move ? WHITE : BLACK;
-    }
+    void _set_white_to_move(bool white_to_move) noexcept
+    { wtm = white_to_move ? WHITE : BLACK; }
 
-    void _set_castle_flags(u8 flags) noexcept {
-        castle = flags;
-    }
+    void _set_castle_flags(u8 flags) noexcept
+    { castle_rights = flags; }
 
-    void _set_enpassant_square(u8 sq) noexcept {
+    void _set_enpassant_square(u8 sq) noexcept
+    {
         ep_target = sq;
         assert(ep_target == Position::ENPASSANT_NONE ||
               (ep_target >= A3 && ep_target <= H3) ||
@@ -119,5 +134,5 @@ private:
     u8 halfmoves;
     u8 wtm;
     u8 ep_target;
-    u8 castle;
+    u8 castle_rights;
 };

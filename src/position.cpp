@@ -71,7 +71,7 @@ Position::Position() noexcept
     , halfmoves(0u)
     , wtm(1u)
     , ep_target(Position::ENPASSANT_NONE)
-    , castle(Position::CASTLE_NONE)
+    , castle_rights(Position::CASTLE_NONE)
 {
     boards.fill(0ull);
     sidemask.fill(0ull);
@@ -326,19 +326,19 @@ std::string Position::dump_fen() const noexcept
     result += wtm == WHITE ? 'w' : 'b';
     result += ' ';
 
-    if ((castle & Position::CASTLE_WHITE_KING_SIDE) != 0) {
+    if ((castle_rights & Position::CASTLE_WHITE_KING_SIDE) != 0) {
         result += 'K';
     }
-    if ((castle & Position::CASTLE_WHITE_QUEEN_SIDE) != 0) {
+    if ((castle_rights & Position::CASTLE_WHITE_QUEEN_SIDE) != 0) {
         result += 'Q';
     }
-    if ((castle & Position::CASTLE_BLACK_KING_SIDE) != 0) {
+    if ((castle_rights & Position::CASTLE_BLACK_KING_SIDE) != 0) {
         result += 'k';
     }
-    if ((castle & Position::CASTLE_BLACK_QUEEN_SIDE) != 0) {
+    if ((castle_rights & Position::CASTLE_BLACK_QUEEN_SIDE) != 0) {
         result += 'q';
     }
-    if (castle == Position::CASTLE_NONE) {
+    if (castle_rights == Position::CASTLE_NONE) {
         result += '-';
     }
     result += ' ';
@@ -402,7 +402,6 @@ _get_castle_squares(Square to) noexcept {
             assert(0 && "invalid castle target square");
             __builtin_unreachable();
     }
-    // return std::make_pair(Square(), Square());
 }
 
 void Position::make_move(Savepos& sp, Move move) noexcept {
@@ -427,7 +426,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
 
     sp.halfmoves = halfmoves;
     sp.ep_target = ep_target;
-    sp.castle = castle;
+    sp.castle_rights = castle_rights;
     sp.captured = captured;
 
     if (flags == Move::Flags::NONE) {
@@ -437,9 +436,9 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         } else {
             kings[side] = to; // to.value();
             if (side == WHITE) {
-                castle &= ~Position::CASTLE_WHITE;
+                castle_rights &= ~Position::CASTLE_WHITE;
             } else {
-                castle &= ~Position::CASTLE_BLACK;
+                castle_rights &= ~Position::CASTLE_BLACK;
             }
         }
         sq2p[from.value()] = NO_PIECE;
@@ -450,7 +449,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         if (!captured.empty()) {
             boards[captured.value()] &= ~to.mask();
             sidemask[contra] &= ~to.mask();
-            castle &= ~rook_square_to_castle_flag(to);
+            castle_rights &= ~rook_square_to_castle_flag(to);
         } else if (kind == PAWN && is_rank2(side, from) && is_enpassant_square(side, to)) {
             u8 target = side == WHITE ? to.value() - 8 : to.value() + 8;
             new_ep_target = target;
@@ -458,7 +457,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         }
 
         if (kind == ROOK) {
-            castle &= ~rook_square_to_castle_flag(from);
+            castle_rights &= ~rook_square_to_castle_flag(from);
         }
     } else if (flags == Move::Flags::ENPASSANT) {
         assert(enpassant_available() == true);
@@ -489,7 +488,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         if (!captured.empty()) {
             boards[captured.value()] &= ~to.mask();
             sidemask[contra] &= ~to.mask();
-            castle &= ~rook_square_to_castle_flag(to);
+            castle_rights &= ~rook_square_to_castle_flag(to);
         }
     } else if (flags == Move::Flags::CASTLE) {
         assert(kind == KING);
@@ -506,9 +505,9 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         sidemask[side] &= ~(to.mask() | from.mask());
         sidemask[side] |= ksq.mask() | rsq.mask();
         if (side == WHITE) {
-            castle &= ~Position::CASTLE_WHITE;
+            castle_rights &= ~Position::CASTLE_WHITE;
         } else {
-            castle &= ~Position::CASTLE_BLACK;
+            castle_rights &= ~Position::CASTLE_BLACK;
         }
     } else {
         assert(0);
@@ -546,7 +545,7 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
 
     halfmoves = save.halfmoves;
     ep_target = save.ep_target;
-    castle = save.castle;
+    castle_rights = save.castle_rights;
     if (side == BLACK) {
         --moves;
     }
@@ -627,7 +626,7 @@ bool Position::operator==(const Position& rhs) const noexcept {
             (lhs.halfmoves == rhs.halfmoves) &&
             (lhs.wtm == rhs.wtm) &&
             (lhs.ep_target == rhs.ep_target) &&
-            (lhs.castle == rhs.castle));
+            (lhs.castle_rights == rhs.castle_rights));
 }
 
 bool Position::operator!=(const Position& rhs) const noexcept {

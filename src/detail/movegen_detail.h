@@ -1,5 +1,9 @@
 #pragma once
 
+// NOTE(peter): these function are NOT part of the public interface
+//              they are structured this way to be available for unit
+//              tests
+
 #include "../position.h"
 
 // u64 generate_checkers(const Position *const pos, u8 side) noexcept;
