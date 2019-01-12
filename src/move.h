@@ -35,6 +35,10 @@ enum Color {
     BLACK = 1,
 };
 
+constexpr Color flip_color(Color c) noexcept {
+    return static_cast<Color>(c ^ 1);
+}
+
 enum {
     N_ROWS = 8,
     N_COLS = 8,
