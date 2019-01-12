@@ -118,9 +118,6 @@ int main(int argc, char** argv) {
         if (outcome::result<int> r = convert(input)) {
             printf("'%s' converted to %d\n", input.c_str(), r.assume_value());
         } else {
-            // std::stringstream ss;
-            // ss << r.assume_error();
-            // printf("'%s' failed to convert: %s\n", input.c_str(), ss.str().c_str());
             printf("'%s' failed to convert: %s\n", input.c_str(), r.assume_error().message().c_str());
         }
     }
