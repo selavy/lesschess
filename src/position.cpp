@@ -4,10 +4,33 @@
 #include <stdexcept>
 #include <cstdio>
 #include <cinttypes>
+#include "detail/magic_tables.generated.h"
 
-namespace {
 
-Piece translate_fen_piece(char c) {
+#define lsb __builtin_ctzll
+#define popcountll __builtin_popcountll
+
+[[nodiscard]]
+constexpr u64 clear_lsb(u64 b) noexcept {
+    return b & (b - 1);
+}
+
+[[nodiscard]]
+constexpr bool is_power_of_two(u64 b) noexcept {
+    return b & (b - 1);
+}
+
+[[nodiscard]]
+constexpr bool more_than_one_piece(u64 b) noexcept {
+    return is_power_of_two(b);
+}
+
+
+namespace
+{
+
+Piece translate_fen_piece(char c)
+{
     Color color = std::isupper(c) ? WHITE : BLACK;
     c = std::tolower(c);
     PieceKind piece;
@@ -25,6 +48,25 @@ Piece translate_fen_piece(char c) {
 
 } // ~anonymous namespace
 
+[[nodiscard]] Move*
+generate_knight_moves(u64 knights, const u64 targets, Move* moves) noexcept
+{
+    int from;
+    int to;
+    uint64_t posmoves;
+    while (knights) {
+        from = lsb(knights);
+        posmoves = knight_attacks(from) & targets;
+        while (posmoves) {
+            to = lsb(posmoves);
+            *moves++ = Move(from, to);
+            posmoves = clear_lsb(posmoves);
+        }
+        knights = clear_lsb(knights);
+    }
+    return moves;
+}
+
 Position::Position() noexcept
     : moves(1u)
     , halfmoves(0u)
@@ -37,7 +79,8 @@ Position::Position() noexcept
     sq2p.fill(NO_PIECE);
 }
 
-Position Position::from_fen(std::string_view fen) {
+Position Position::from_fen(std::string_view fen)
+{
     Position position;
     auto it = fen.begin();
     const auto last = fen.end();
@@ -194,7 +237,8 @@ Position Position::from_fen(std::string_view fen) {
     return position;
 }
 
-constexpr PieceKind piece_kind_from_san(char c) noexcept {
+constexpr PieceKind piece_kind_from_san(char c) noexcept
+{
     switch (c) {
         case 'K': case 'k': return KING;
         case 'Q': case 'q': return QUEEN;
@@ -252,9 +296,8 @@ constexpr PieceKind piece_kind_from_san(char c) noexcept {
 //     return result;
 // }
 
-std::string Position::dump_fen() const noexcept {
-    // std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
+std::string Position::dump_fen() const noexcept
+{
     std::string result;
     int emptys = 0;
     for (int rank = RANK_8; rank >= RANK_1; --rank) {
@@ -316,7 +359,8 @@ std::string Position::dump_fen() const noexcept {
 }
 
 [[nodiscard]]
-constexpr u8 rook_square_to_castle_flag(Square square) noexcept {
+constexpr u8 rook_square_to_castle_flag(Square square) noexcept
+{
     switch (square.value()) {
         case A8: return Position::CASTLE_BLACK_QUEEN_SIDE;
         case H8: return Position::CASTLE_BLACK_KING_SIDE;
@@ -327,7 +371,8 @@ constexpr u8 rook_square_to_castle_flag(Square square) noexcept {
 }
 
 [[nodiscard]]
-constexpr bool is_rank2(u8 side, Square square) noexcept {
+constexpr bool is_rank2(u8 side, Square square) noexcept
+{
     constexpr u64 SECOND_RANK{0xff00ull};
     constexpr u64 SEVENTH_RANK{0xff000000000000ull};
     u64 mask = side == WHITE ? SECOND_RANK : SEVENTH_RANK;

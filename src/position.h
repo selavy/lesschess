@@ -4,6 +4,11 @@
 #include <string_view>
 #include <array>
 
+// TODO(peter): add namespace
+//   +lesschess
+//   +lc
+//   +lchess
+
 struct Savepos {
     u8 halfmoves;
     u8 ep_target;
@@ -11,6 +16,10 @@ struct Savepos {
     Piece captured;
 };
 static_assert(std::is_trivially_copyable<Savepos>::value == true, "");
+
+// TEMP: move these to static in cpp
+[[nodiscard]] inline Move*
+generate_knight_moves(u64 knights, const u64 targets, Move* moves) noexcept;
 
 struct Position {
     enum {
@@ -32,7 +41,8 @@ struct Position {
 
     static Position from_fen(std::string_view fen);
 
-    // Move move_from_san(std::string_view san) const;
+    // TODO(peter): implement
+    // outcome::result<Move> move_from_san(std::string_view san) const;
 
     [[nodiscard]]
     std::string dump_fen() const noexcept;
