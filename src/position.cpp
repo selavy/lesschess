@@ -373,7 +373,7 @@ constexpr u8 rook_square_to_castle_flag(Square square) noexcept
 }
 
 [[nodiscard]]
-constexpr bool is_rank2(u8 side, Square square) noexcept
+constexpr bool is_rank2(Color side, Square square) noexcept
 {
     constexpr u64 SECOND_RANK{0xff00ull};
     constexpr u64 SEVENTH_RANK{0xff000000000000ull};
@@ -382,8 +382,8 @@ constexpr bool is_rank2(u8 side, Square square) noexcept
 }
 
 [[nodiscard]]
-constexpr bool is_rank7(u8 side, Square square) noexcept {
-    return is_rank2(side ^ 1, square);
+constexpr bool is_rank7(Color side, Square square) noexcept {
+    return is_rank2(flip_color(side), square);
 }
 
 [[nodiscard]]
@@ -412,7 +412,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
 
     assert(wtm_ == WHITE || wtm_ == BLACK);
     const Color side = static_cast<Color>(wtm_);
-    const Color contra = static_cast<Color>(side ^ 1);
+    const Color contra = flip_color(side);
     const Square from = move.from();
     const Square to = move.to();
     const Piece piece = piece_on_square(from);
@@ -537,7 +537,7 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
     assert(wtm_ == WHITE || wtm_ == BLACK);
 
     const Color contra = static_cast<Color>(wtm_);
-    const Color side = static_cast<Color>(contra ^ 1);
+    const Color side = flip_color(contra);
     const Square from = move.from();
     const Square to = move.to();
     const Move::Flags flags = move.flags();
