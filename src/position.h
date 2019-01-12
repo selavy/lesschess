@@ -17,9 +17,9 @@ struct Savepos {
 };
 static_assert(std::is_trivially_copyable<Savepos>::value == true, "");
 
-// TEMP: move these to static in cpp
-[[nodiscard]] inline Move*
-generate_knight_moves(u64 knights, const u64 targets, Move* moves) noexcept;
+// // TEMP: move these to static in cpp
+// [[nodiscard]] inline Move*
+// generate_knight_moves(u64 knights, const u64 targets, Move* moves) noexcept;
 
 struct Position {
     enum {
@@ -80,11 +80,6 @@ struct Position {
     [[nodiscard]]
     bool white_to_move() const noexcept {
         return wtm == WHITE;
-    }
-
-    // TODO(peter): make this private, should only be called on make_move/undo_move
-    void flip_to_move() noexcept {
-        wtm ^= 1;
     }
 
     [[nodiscard]]

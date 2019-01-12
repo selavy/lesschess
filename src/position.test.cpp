@@ -46,12 +46,6 @@ TEST_CASE("Position from FEN") {
 
         // flip side to move a couple times to verify that...
         REQUIRE(position.white_to_move() == true);
-        position.flip_to_move();
-        REQUIRE(position.white_to_move() == false);
-        position.flip_to_move();
-        REQUIRE(position.white_to_move() == true);
-        position.flip_to_move();
-        REQUIRE(position.white_to_move() == false);
         REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
         REQUIRE(position.enpassant_available() == false);
     }

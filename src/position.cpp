@@ -4,26 +4,25 @@
 #include <stdexcept>
 #include <cstdio>
 #include <cinttypes>
-#include "detail/magic_tables.generated.h"
 
 
-#define lsb __builtin_ctzll
-#define popcountll __builtin_popcountll
-
-[[nodiscard]]
-constexpr u64 clear_lsb(u64 b) noexcept {
-    return b & (b - 1);
-}
-
-[[nodiscard]]
-constexpr bool is_power_of_two(u64 b) noexcept {
-    return b & (b - 1);
-}
-
-[[nodiscard]]
-constexpr bool more_than_one_piece(u64 b) noexcept {
-    return is_power_of_two(b);
-}
+// #define lsb __builtin_ctzll
+// #define popcountll __builtin_popcountll
+// 
+// [[nodiscard]]
+// constexpr u64 clear_lsb(u64 b) noexcept {
+//     return b & (b - 1);
+// }
+// 
+// [[nodiscard]]
+// constexpr bool is_power_of_two(u64 b) noexcept {
+//     return b & (b - 1);
+// }
+// 
+// [[nodiscard]]
+// constexpr bool more_than_one_piece(u64 b) noexcept {
+//     return is_power_of_two(b);
+// }
 
 
 namespace
@@ -48,24 +47,24 @@ Piece translate_fen_piece(char c)
 
 } // ~anonymous namespace
 
-[[nodiscard]] Move*
-generate_knight_moves(u64 knights, const u64 targets, Move* moves) noexcept
-{
-    int from;
-    int to;
-    uint64_t posmoves;
-    while (knights) {
-        from = lsb(knights);
-        posmoves = knight_attacks(from) & targets;
-        while (posmoves) {
-            to = lsb(posmoves);
-            *moves++ = Move(from, to);
-            posmoves = clear_lsb(posmoves);
-        }
-        knights = clear_lsb(knights);
-    }
-    return moves;
-}
+// [[nodiscard]] Move*
+// generate_knight_moves(u64 knights, const u64 targets, Move* moves) noexcept
+// {
+//     int from;
+//     int to;
+//     uint64_t posmoves;
+//     while (knights) {
+//         from = lsb(knights);
+//         posmoves = knight_attacks(from) & targets;
+//         while (posmoves) {
+//             to = lsb(posmoves);
+//             *moves++ = Move(from, to);
+//             posmoves = clear_lsb(posmoves);
+//         }
+//         knights = clear_lsb(knights);
+//     }
+//     return moves;
+// }
 
 Position::Position() noexcept
     : moves(1u)
