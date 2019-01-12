@@ -17,7 +17,8 @@ struct Savepos {
 };
 static_assert(std::is_trivially_copyable<Savepos>::value == true, "");
 
-struct Position {
+class Position {
+public:
     enum {
         CASTLE_NONE             = 0,
         CASTLE_WHITE_KING_SIDE  = 1 << 0,
@@ -48,12 +49,12 @@ struct Position {
     Square enpassant_target_square() const noexcept
     {
         assert(enpassant_available());
-        return Square(ep_target);
+        return Square(ep_target_);
     }
 
     [[nodiscard]]
     bool enpassant_available() const noexcept
-    { return ep_target != ENPASSANT_NONE; }
+    { return ep_target_ != ENPASSANT_NONE; }
 
     [[nodiscard]]
     Piece piece_on_square(Square square) const noexcept
@@ -63,24 +64,24 @@ struct Position {
     Piece piece_on_square(u8 square) const noexcept
     {
         assert(square >= A1 && square <= H8);
-        return Piece(sq2p[square]);
+        return Piece(sq2pc_[square]);
     }
 
     [[nodiscard]]
     bool white_to_move() const noexcept
-    { return wtm == WHITE; }
+    { return wtm_ == WHITE; }
 
     [[nodiscard]]
     u8 castle_flags() const noexcept
-    { return castle_rights; }
+    { return castle_rights_; }
 
     [[nodiscard]]
     int move_number() const noexcept
-    { return moves; }
+    { return moves_; }
 
     [[nodiscard]]
     int fifty_move_rule_moves() const noexcept
-    { return halfmoves; }
+    { return halfmoves_; }
 
     [[nodiscard]]
     bool operator==(const Position& rhs) const noexcept;
@@ -110,26 +111,26 @@ struct Position {
 
 private:
     void _set_white_to_move(bool white_to_move) noexcept
-    { wtm = white_to_move ? WHITE : BLACK; }
+    { wtm_ = white_to_move ? WHITE : BLACK; }
 
     void _set_enpassant_square(u8 sq) noexcept
     {
-        ep_target = sq;
-        assert(ep_target == Position::ENPASSANT_NONE ||
-              (ep_target >= A3 && ep_target <= H3) ||
-              (ep_target >= A6 && ep_target <= H6));
+        ep_target_ = sq;
+        assert(ep_target_ == Position::ENPASSANT_NONE ||
+              (ep_target_ >= A3 && ep_target_ <= H3) ||
+              (ep_target_ >= A6 && ep_target_ <= H6));
     }
 
     void _validate() const noexcept;
 
 private:
-    std::array<u64, 10> boards;
-    std::array<u64, 2> sidemask;
-    std::array<Piece, 64> sq2p;
-    std::array<Square, 2> kings;
-    u16 moves;
-    u8 halfmoves;
-    u8 wtm;
-    u8 ep_target;
-    u8 castle_rights;
+    std::array<u64, 10> boards_;
+    std::array<u64, 2> sidemask_;
+    std::array<Piece, 64> sq2pc_;
+    std::array<Square, 2> kings_;
+    u16 moves_;
+    u8 halfmoves_;
+    u8 wtm_;
+    u8 ep_target_;
+    u8 castle_rights_;
 };
