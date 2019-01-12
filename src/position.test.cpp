@@ -3,6 +3,8 @@
 #include <iostream>
 #include <map>
 
+using namespace lesschess;
+
 TEST_CASE("Position from FEN") {
     SECTION("Starting position") {
         std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

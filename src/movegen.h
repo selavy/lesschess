@@ -3,3 +3,6 @@
 #include "position.h"
 
 
+namespace lesschess {
+
+} // ~namespace lesschess

@@ -2,6 +2,8 @@
 #include "move.h"
 #include <cstring>
 
+using namespace lesschess;
+
 TEST_CASE("Move", "move representation construction checks") {
      SECTION("Normal move") {
          constexpr Move move{A1, A2};

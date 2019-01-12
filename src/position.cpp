@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cinttypes>
 
+namespace lesschess {
 
 // #define lsb __builtin_ctzll
 // #define popcountll __builtin_popcountll
@@ -30,6 +31,7 @@ namespace
 
 Piece translate_fen_piece(char c)
 {
+
     Color color = std::isupper(c) ? WHITE : BLACK;
     c = std::tolower(c);
     PieceKind piece;
@@ -46,7 +48,6 @@ Piece translate_fen_piece(char c)
 }
 
 } // ~anonymous namespace
-
 
 
 // [[nodiscard]] Move*
@@ -702,4 +703,4 @@ void Position::_validate() const noexcept {
 #endif
 }
 
-
+} // ~namespace lesschess

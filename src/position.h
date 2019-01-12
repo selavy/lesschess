@@ -9,6 +9,8 @@
 //   +lc
 //   +lchess
 
+namespace lesschess {
+
 struct Savepos {
     u8 halfmoves;
     u8 ep_target;
@@ -134,3 +136,5 @@ private:
     u8 ep_target_;
     u8 castle_rights_;
 };
+
+} // ~namespace lesschess
