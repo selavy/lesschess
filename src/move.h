@@ -39,14 +39,6 @@ constexpr Color flip_color(Color c) noexcept {
     return static_cast<Color>(c ^ 1);
 }
 
-enum {
-    N_ROWS = 8,
-    N_COLS = 8,
-    N_SQUARES = N_ROWS*N_COLS,
-
-    NO_ENPASSANT = 16,
-};
-
 // clang-format off
 enum {
     A1, B1, C1, D1, E1, F1, G1, H1,
