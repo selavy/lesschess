@@ -112,9 +112,6 @@ private:
     void _set_white_to_move(bool white_to_move) noexcept
     { wtm = white_to_move ? WHITE : BLACK; }
 
-    void _set_castle_flags(u8 flags) noexcept
-    { castle_rights = flags; }
-
     void _set_enpassant_square(u8 sq) noexcept
     {
         ep_target = sq;

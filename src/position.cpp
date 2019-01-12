@@ -152,7 +152,7 @@ Position Position::from_fen(std::string_view fen)
     if (it == last) {
         throw std::runtime_error("Expected castling availability specification");
     } else if (*it == '-') {
-        position._set_castle_flags(Position::CASTLE_NONE);
+        position.castle_rights = Position::CASTLE_NONE;
         ++it;
     } else {
         u8 flags = 0;
@@ -175,7 +175,7 @@ Position Position::from_fen(std::string_view fen)
                 throw std::runtime_error("Invalid character in castling specification");
             }
         }
-        position._set_castle_flags(flags);
+        position.castle_rights = flags;
     }
     it = expect(it, ' ');
 
