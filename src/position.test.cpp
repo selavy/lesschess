@@ -755,7 +755,7 @@ TEST_CASE("Undo Move")
 }
 
 
-TEST_CASE("FEN to ASCII")
+TEST_CASE("FEN to ASCII and back")
 {
     std::vector<std::pair<std::string, std::string>> fens = {
         {
@@ -827,4 +827,30 @@ TEST_CASE("FEN to ASCII")
         REQUIRE(Position::from_fen(fen).dump_ascii()   == ascii);
         REQUIRE(Position::from_ascii(ascii) == Position::from_fen(fen));
     }
+}
+
+TEST_CASE("Square is Attacked?")
+{
+    std::string position =
+            "\n"                  \
+            "|r| |b|k| | | |r|\n" \
+            "|p| | |p|B|p|N|p|\n" \
+            "|n| | | | |n| | |\n" \
+            "| |p| |N|P| | |P|\n" \
+            "| | | | | | |P| |\n" \
+            "| | | |P| | | | |\n" \
+            "|P| |P| |K| | | |\n" \
+            "|q| | | | | |b| |\n" \
+            "b - - 0 1";
+    auto p = Position::from_ascii(position);
+
+    REQUIRE(p.attacks(WHITE, F3) == true);
+    REQUIRE(p.attacks(WHITE, H1) == false);
+    REQUIRE(p.attacks(WHITE, E1) == true);
+    REQUIRE(p.attacks(BLACK, B1) == true);
+    REQUIRE(p.attacks(BLACK, H1) == false);
+    REQUIRE(p.attacks(BLACK, C1) == true);
+    REQUIRE(p.attacks(WHITE, B4) == true);
+    REQUIRE(p.attacks(BLACK, B4) == true);
+    REQUIRE(p.attacks(WHITE, A8) == false);
 }
