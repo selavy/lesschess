@@ -252,29 +252,16 @@ public:
     }
 
     [[nodiscard]]
-    constexpr static Move make_castle_move(CastleKind kind) noexcept {
+    constexpr static Move make_castle(CastleKind kind) noexcept {
         switch (kind) {
             case CastleKind::WHITE_KING_SIDE: return Move(E1, H1, castle_tag{});
             case CastleKind::WHITE_QUEEN_SIDE: return Move(E1, A1, castle_tag{});
             case CastleKind::BLACK_KING_SIDE: return Move(E8, H8, castle_tag{});
             case CastleKind::BLACK_QUEEN_SIDE: return Move(E8, A8, castle_tag{});
         }
-        // assert(0);
-        // __builtin_unreachable();
+        assert((kind != CastleKind::WHITE_KING_SIDE) && "invalid castle type");
+        __builtin_unreachable();
         return Move();
-    }
-
-    constexpr Move(u8 from, u8 to, castle_tag) noexcept
-        : rep_((to << 0u) | (from << 6u) | (Flags::CASTLE << 14u))
-    {
-        // TODO(peter): move intuitive to add ctor Move(castle_type)
-        // NOTE(peter): For castle representation, :to: is the square of the rook
-        // so I can reuse a mask in make_move()/undo_move()
-        assert((from == E1 && to == H1) ||
-               (from == E1 && to == A1) ||
-               (from == E8 && to == H8) ||
-               (from == E8 && to == A8));
-        assert(flags() == Flags::CASTLE);
     }
 
     constexpr Move(u8 from, u8 to, u8 promo) noexcept
@@ -325,6 +312,19 @@ public:
     }
 
 private:
+    constexpr Move(u8 from, u8 to, castle_tag) noexcept
+        : rep_((to << 0u) | (from << 6u) | (Flags::CASTLE << 14u))
+    {
+        // TODO(peter): move intuitive to add ctor Move(castle_type)
+        // NOTE(peter): For castle representation, :to: is the square of the rook
+        // so I can reuse a mask in make_move()/undo_move()
+        assert((from == E1 && to == H1) ||
+               (from == E1 && to == A1) ||
+               (from == E8 && to == H8) ||
+               (from == E8 && to == A8));
+        assert(flags() == Flags::CASTLE);
+    }
+
     u16 rep_;
 };
 static_assert(sizeof(Move) == 2, "");
