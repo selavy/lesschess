@@ -895,14 +895,12 @@ TEST_CASE("Legal Move Check")
             "| | | | | | | | |\n" \
             "|P|P|P|P| |P|P|P|\n" \
             "|R|N|B|Q|K|B|N|R|\n" \
-            "w KQkq - 0 2",
+            "w KQkq d6 0 2",
             {
-                { Move(E5, E6, ep_capture_tag{}), true  },
+                { Move(E5, D6, ep_capture_tag{}), true  },
                 { Move(E5, F6, ep_capture_tag{}), false },
             }
         }
-
-
     };
 
     for (auto& p : tests) {

@@ -877,6 +877,9 @@ bool Position::is_legal_move(Move move) const noexcept
         //   + to square == epsq
         //   + captured piece is opposite color
         //   + after making the move there are no attacks on the king
+        if (tosq.value() != _ep_target) {
+            return false;
+        }
         auto capture_sq = Square(side == WHITE ? tosq.value() - 8 : tosq.value() + 8);
         auto capture_pc = piece_on_square(capture_sq);
         if (capture_pc.empty() || capture_pc.color() != contra) {
