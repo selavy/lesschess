@@ -8,24 +8,20 @@
 
 namespace lesschess {
 
-// #define lsb __builtin_ctzll
-// #define popcountll __builtin_popcountll
-// 
-// [[nodiscard]]
-// constexpr u64 clear_lsb(u64 b) noexcept {
-//     return b & (b - 1);
-// }
-// 
-// [[nodiscard]]
-// constexpr bool is_power_of_two(u64 b) noexcept {
-//     return b & (b - 1);
-// }
-// 
-// [[nodiscard]]
-// constexpr bool more_than_one_piece(u64 b) noexcept {
-//     return is_power_of_two(b);
-// }
+[[nodiscard]]
+constexpr u64 lsb(u64 x) noexcept { return __builtin_ctzll(x); }
 
+[[nodiscard]]
+constexpr int popcountll(u64 x) noexcept { return __builtin_popcountll(x); }
+
+[[nodiscard]]
+constexpr u64 clear_lsb(u64 b) noexcept { return b & (b - 1); }
+
+[[nodiscard]]
+constexpr bool is_power_of_two(u64 x) noexcept { return x & (x - 1); }
+
+[[nodiscard]]
+constexpr bool more_than_one_piece(u64 x) noexcept { return is_power_of_two(x); }
 
 namespace
 {
@@ -817,11 +813,29 @@ void Position::_validate() const noexcept {
 }
 
 [[nodiscard]]
-u64 Position::_generate_pinned(Color side, Color kingcolor) const noexcept
+u64 Position::_generate_pinned(Color blocker_color, Color king_color) const noexcept
 {
-    // u8 contra_king = flip_color(side);
-    // u64 pieces = _sidemask[]
-    return 0;
+    u64 ret = 0;
+    Color pinning_color = flip_color(blocker_color);
+    u64 blockers = _sidemask[blocker_color];
+    u64 occupied = _occupied();
+    u32 ksq = _kings[king_color].value();
+    u64 pinning_rooks = _bboard(pinning_color, ROOK);
+    u64 pinning_queens = _bboard(pinning_color, QUEEN);
+    u64 pinning_bishops = _bboard(pinning_color, BISHOP);
+    u64 straight_pinners = (pinning_rooks | pinning_queens) & rook_attacks(ksq, 0);
+    u64 diagonal_pinners = (pinning_bishops | pinning_queens) & bishop_attacks(ksq, 0);
+    u64 pinners = straight_pinners | diagonal_pinners;
+    while (pinners) {
+        int sq = lsb(pinners);
+        u64 bb = between_sqs(sq, ksq) & occupied;
+        // is this the only piece between the attackers and the king?
+        if (!more_than_one_piece(bb)) {
+            ret |= bb & blockers;
+        }
+        pinners = clear_lsb(pinners);
+    }
+    return ret;
 }
 
 bool Position::attacks(Color side, Square square) const noexcept

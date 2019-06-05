@@ -139,6 +139,10 @@ private:
     template <class Iter>
     friend void parse_fen_spec(Iter it, Iter last, Position& position);
 
+    [[nodiscard]]
+        u64 _bboard(Color c, PieceKind p) const noexcept
+    { return _boards[Piece(c, p).value()]; }
+
 private:
     std::array<u64, 10>   _boards;
     std::array<u64, 2>    _sidemask;
