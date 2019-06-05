@@ -105,11 +105,8 @@ public:
     bool in_check(Color side) const noexcept
     { return false; }
 
-
-    // TODO(peter): implement
     [[nodiscard]]
-    bool is_legal_move(Move move) const noexcept
-    { return false; }
+    bool is_legal_move(Move move) const noexcept;
 
     [[nodiscard]]
     bool attacks(Color side, Square square) const noexcept;
@@ -140,8 +137,11 @@ private:
     friend void parse_fen_spec(Iter it, Iter last, Position& position);
 
     [[nodiscard]]
-        u64 _bboard(Color c, PieceKind p) const noexcept
+    u64 _bboard(Color c, PieceKind p) const noexcept
     { return _boards[Piece(c, p).value()]; }
+
+    [[nodiscard]]
+    bool _is_legal(u64 pinned, Move m) const noexcept;
 
 private:
     std::array<u64, 10>   _boards;

@@ -838,37 +838,95 @@ u64 Position::_generate_pinned(Color blocker_color, Color king_color) const noex
     return ret;
 }
 
+bool Position::is_legal_move(Move move) const noexcept
+{
+    return false;
+#if 0
+    Color side = wtm();
+    Square ksq = _kings[side];
+    u64 pinned = generate_pinned(pos, side, side);
+
+    if (m.is_enpassant()) {
+        auto capture_sq = Square(side == WHITE ? tosq.value() - 8 : tosq.value() + 8);
+        u64 prev_occupied = _occupied();
+        u64 queens = _bboard(contra, QUEEN);
+        u64 rooks = _bboard(contra, ROOK);
+        u64 bishops = _bboard(contra, BISHOP);
+        u64 occupied = (prev_occupied ^ frsq.mask() ^ capture_sq.mask()) | tosq.mask();
+        u64 straight_attacks = rook_attacks(ksq.value(), occupied) & (queens | rooks);
+        u64 diagonal_attacks = bishop_attacks(ksq.value(), occupied) & (queens | bishops);
+        return (straight_attacks | diagonal_attacks) == 0;
+    }
+
+    if (m.is_castle()) {
+        
+    }
+#endif
+}
+
 bool Position::attacks(Color side, Square square) const noexcept
 {
     Color contra = flip_color(side);
     u64 occupied = _occupied();
-    int rook = Piece(side, ROOK).value();
-    int queen = Piece(side, QUEEN).value();
-    int knight = Piece(side, KNIGHT).value();
-    int bishop = Piece(side, BISHOP).value();
-    int pawn = Piece(side, PAWN).value();
-    u64 pieces = _boards[rook] | _boards[queen];
+    u64 queens = _bboard(side, QUEEN);
+    u64 rooks = _bboard(side, ROOK);
+    u64 knights = _bboard(side, KNIGHT);
+    u64 bishops = _bboard(side, BISHOP);
+    u64 pawns = _bboard(side, PAWN);
+    u64 king = _kings[side].mask();
     int sq = square.value();
-    if ((rook_attacks(sq, occupied) & pieces) != 0) {
+
+    if ((rook_attacks(sq, occupied) & (queens | rooks)) != 0) {
         return true;
     }
-    pieces = _boards[bishop] | _boards[queen];
-    if ((bishop_attacks(sq, occupied) & pieces) != 0) {
+    if ((bishop_attacks(sq, occupied) & (queens | bishops)) != 0) {
         return true;
     }
-    pieces = _boards[knight];
-    if ((knight_attacks(sq) & pieces) != 0) {
+    if ((knight_attacks(sq) & knights) != 0) {
         return true;
     }
-    pieces = _boards[pawn];
-    if ((pawn_attacks(contra, sq) & pieces) != 0) {
+    if ((pawn_attacks(contra, sq) & pawns) != 0) {
         return true;
     }
-    pieces = _kings[side].mask();
-    if ((king_attacks(sq) & pieces) != 0) {
+    if ((king_attacks(sq) & king) != 0) {
         return true;
     }
     return false;
+}
+
+bool Position::_is_legal(u64 pinned, Move m) const noexcept
+{
+    Color side = Color(_wtm);
+    Color contra = flip_color(side);
+    Piece piece = piece_on_square(m.from());
+    Square tosq = m.to();
+    Square frsq = m.from();
+    Square ksq = _kings[side];
+
+    if (m.is_castle()) {
+        return true;
+    } else if (m.is_enpassant()){
+        auto capture_sq = Square(side == WHITE ? tosq.value() - 8 : tosq.value() + 8);
+        u64 prev_occupied = _occupied();
+        u64 queens = _bboard(contra, QUEEN);
+        u64 rooks = _bboard(contra, ROOK);
+        u64 bishops = _bboard(contra, BISHOP);
+        u64 occupied = (prev_occupied ^ frsq.mask() ^ capture_sq.mask()) | tosq.mask();
+        u64 straight_attacks = rook_attacks(ksq.value(), occupied) & (queens | rooks);
+        u64 diagonal_attacks = bishop_attacks(ksq.value(), occupied) & (queens | bishops);
+        return (straight_attacks | diagonal_attacks) == 0;
+    } else if (piece.kind() == KING){
+        return !attacks(contra, m.to());
+    } else {
+        // legal if either:
+        //   + nothing is pinned
+        //   + piece being moved isn't a pinned piece
+        //   + moving on the same ray as the king OR
+        //   + will still be blocking after moving
+        return !pinned ||    // REVISIT: is it worth checking this?
+               (pinned & frsq.mask()) == 0 ||
+               lined_up(frsq.value(), tosq.value(), ksq.value());
+    }
 }
 
 } // ~namespace lesschess
