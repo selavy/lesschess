@@ -913,14 +913,39 @@ TEST_CASE("Legal Move Check")
             REQUIRE(position.is_legal_move(move) == exp);
         }
     }
+}
 
+TEST_CASE("Basic move generation")
+{
+    std::string desc =
+        "\n"                  \
+        "|r|n|b| |k|b|n|r|\n" \
+        "|p|p|p|p|p|p|p|p|\n" \
+        "| | | | |q| | | |\n" \
+        "| | | | | | | | |\n" \
+        "| | | | | | | | |\n" \
+        "| | | | | | | | |\n" \
+        "|P|P|P|P| |P|P|P|\n" \
+        "|R|N|B|Q|K|B|N|R|\n" \
+        "w KQkq - 0 2";
 
-    // std::vector<std::pair<std::string,
+    std::vector<Move> expected = {
+        Move(F1, E2),
+        Move(D1, E2),
+        Move(G1, E2),
+    };
 
+    Position position = Position::from_ascii(desc);
+    // TODO: make data type to hide this magic number for max number of
+    //       moves in a  position.
+    std::vector<Move> moves(256);
+    int nmoves = position.generate_legal_moves(moves.data());
 
-    // std::string desc =
-    // Move move(E2, E4);
+    for (int i = 0; i < nmoves; ++i) {
+        auto found = std::find(expected.begin(), expected.end(), moves[i]);
+        REQUIRE(found != expected.end());
+        REQUIRE(moves[i] == *found);
+    }
 
-    // Position position = Position::from_ascii(desc);
-    // REQUIRE(position.is_legal_move(move) == true);
+    REQUIRE(expected.empty());
 }

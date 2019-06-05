@@ -29,7 +29,6 @@ enum PieceKind {
     EMPTY_SQUARE = N_PIECES*2,
 };
 
-
 enum Color {
     WHITE = 0,
     BLACK = 1,
@@ -52,13 +51,9 @@ enum {
 };
 // clang-format on
 
-enum {
-    FILE_A=0, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H,
-};
+enum { FILE_A=0, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H };
 
-enum {
-    RANK_1=0, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8,
-};
+enum { RANK_1=0, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8 };
 
 struct Piece {
     static constexpr const char* const names[] = {
@@ -324,6 +319,15 @@ public:
         return flags() == Flags::ENPASSANT;
     }
 
+    bool operator<(Move rhs) const noexcept
+    { return this->rep_ < rhs.rep_; }
+
+    bool operator==(Move rhs) const noexcept
+    { return this->rep_ == rhs.rep_; }
+
+    bool operator!=(Move rhs) const noexcept
+    { return this->rep_ != rhs.rep_; }
+
 private:
     constexpr Move(u8 from, u8 to, castle_tag) noexcept
         : rep_((to << 0u) | (from << 6u) | (Flags::CASTLE << 14u))
@@ -342,5 +346,6 @@ private:
 };
 static_assert(sizeof(Move) == 2, "");
 static_assert(std::is_pod<Move>::value == true, "");
+
 
 } // ~namespace lesschess

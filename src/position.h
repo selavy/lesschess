@@ -101,8 +101,7 @@ public:
 
     // TODO(peter): implement
     [[nodiscard]]
-    Move* generate_legal_moves(Move* moves) const noexcept
-    { return nullptr; }
+    int generate_legal_moves(Move* moves) const noexcept;
 
     // TODO(peter): implement
     [[nodiscard]]
@@ -140,6 +139,12 @@ private:
     u64 _generate_pinned(Color side, Color kingcolor) const noexcept;
 
     [[nodiscard]]
+    Move* _generate_evasions(u64 checkers, Move* moves) const noexcept;
+
+    [[nodiscard]]
+    Move* _generate_non_evasions(Move* moves) const noexcept;
+
+    [[nodiscard]]
     u64 _occupied() const noexcept
     { return _sidemask[WHITE] | _sidemask[BLACK]; }
 
@@ -153,12 +158,11 @@ private:
     [[nodiscard]]
     bool _is_legal(u64 pinned, Move m) const noexcept;
 
-
     static Move* _generate_knight_moves(u64 knights, u64 targets, Move* moves);
     static Move* _generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves);
     static Move* _generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves);
     static Move* _generate_king_moves(int ksq, u64 targets, Move* moves);
-    u64 _generate_checkers(Color side);
+    u64 _generate_checkers(Color side) const noexcept;
 
 private:
     std::array<u64, 10>   _boards;
