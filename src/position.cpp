@@ -82,6 +82,128 @@ Position::Position() noexcept
     sq2pc_.fill(NO_PIECE);
 }
 
+template <class Iter>
+void parse_fen_spec(Iter it, Iter last, Position& position)
+{
+    auto expect = [&it, last](char c) {
+        if (it == last || *it != c) {
+            std::string msg = "Expected '";
+            msg += c;
+            msg += "', received '";
+            if (it == last) {
+                msg += "<eof>";
+            } else {
+                msg += *it;
+            }
+            msg += "'";
+            throw std::runtime_error(msg.c_str());
+        }
+        ++it;
+    };
+
+    // Active Color
+    if (it == last) {
+        throw std::runtime_error("Expected color specification");
+    }
+    switch (*it++) {
+        case 'W':
+        case 'w':
+            position._set_white_to_move(true);
+            break;
+        case 'B':
+        case 'b':
+            position._set_white_to_move(false);
+            break;
+        default:
+            throw std::runtime_error("Invalid character in color specification");
+    }
+    expect(' ');
+
+    // Castling Availability
+    if (it == last) {
+        throw std::runtime_error("Expected castling availability specification");
+    } else if (*it == '-') {
+        position.castle_rights_ = Position::CASTLE_NONE;
+        ++it;
+    } else {
+        u8 flags = 0;
+        while (it < last && *it != ' ') {
+            char c = *it++;
+            switch (c) {
+            case 'K':
+                flags |= Position::CASTLE_WHITE_KING_SIDE;
+                break;
+            case 'k':
+                flags |= Position::CASTLE_BLACK_KING_SIDE;
+                break;
+            case 'Q':
+                flags |= Position::CASTLE_WHITE_QUEEN_SIDE;
+                break;
+            case 'q':
+                flags |= Position::CASTLE_BLACK_QUEEN_SIDE;
+                break;
+            default:
+                throw std::runtime_error("Invalid character in castling specification");
+            }
+        }
+        position.castle_rights_ = flags;
+    }
+    expect(' ');
+
+    // En passant Target Square
+    if (it == last) {
+        throw std::runtime_error("Expected en passant target square");
+    } else if (*it == '-') {
+        position._set_enpassant_square(Position::ENPASSANT_NONE);
+        ++it;
+    } else {
+        char c = *it++;
+        if (!(c >= 'a' && c <= 'h')) {
+            throw std::runtime_error("Invalid file for enpassant target square");
+        }
+        u8 file = c - 'a';
+        u8 rank = *it++ - '1';
+        assert(file >= 0 && file <= 7);
+        assert(rank >= 0 && rank <= 7);
+        Square square{file, rank};
+        if (rank == RANK_3) {
+            assert(square.value() >= A3 && square.value() <= H3);
+            position._set_enpassant_square(square.value());
+        } else if (rank == RANK_6) {
+            assert(square.value() >= A6 && square.value() <= H6);
+            position._set_enpassant_square(square.value());
+        } else {
+            throw std::runtime_error("Invalid rank for enpassant target square");
+        }
+    }
+
+    // may or may not have halfmove and move specifications
+    bool has_halfmove = it != last && *it++ == ' ';
+    if (has_halfmove && it != last) {
+        // Halfmove spec (50-move rule)
+        while (it != last && *it != ' ') {
+            if (*it < '0' && *it > '9') {
+                throw std::runtime_error("Invalid halfmove specification");
+            }
+            position.halfmoves_ *= 10;
+            position.halfmoves_ += *it - '0';
+            ++it;
+        }
+
+        // assuming that if halfmove is there then move spec is also there
+        expect(' ');
+        position.moves_ = 0;
+        while (it != last && *it != ' ') {
+            if (*it < '0' && *it > '9') {
+                throw std::runtime_error("Invalid move specification");
+            }
+            position.moves_ *= 10;
+            position.moves_ += *it - '0';
+            ++it;
+        }
+    }
+}
+
 Position Position::from_ascii(std::string_view ascii)
 {
     Position position;
@@ -128,6 +250,7 @@ Position Position::from_ascii(std::string_view ascii)
         expect('\n');
     }
 
+    parse_fen_spec(it, end, position);
     position._validate();
     return position;
 }
@@ -184,107 +307,7 @@ Position Position::from_fen(std::string_view fen)
     }
     it = expect(it, ' ');
 
-    // Active Color
-    if (it == last) {
-        throw std::runtime_error("Expected color specification");
-    }
-    switch (*it++) {
-        case 'W':
-        case 'w':
-            position._set_white_to_move(true);
-            break;
-        case 'B':
-        case 'b':
-            position._set_white_to_move(false);
-            break;
-        default:
-            throw std::runtime_error("Invalid character in color specification");
-    }
-    it = expect(it, ' ');
-
-    // Castling Availability
-    if (it == last) {
-        throw std::runtime_error("Expected castling availability specification");
-    } else if (*it == '-') {
-        position.castle_rights_ = Position::CASTLE_NONE;
-        ++it;
-    } else {
-        u8 flags = 0;
-        while (it < last && *it != ' ') {
-            char c = *it++;
-            switch (c) {
-            case 'K':
-                flags |= Position::CASTLE_WHITE_KING_SIDE;
-                break;
-            case 'k':
-                flags |= Position::CASTLE_BLACK_KING_SIDE;
-                break;
-            case 'Q':
-                flags |= Position::CASTLE_WHITE_QUEEN_SIDE;
-                break;
-            case 'q':
-                flags |= Position::CASTLE_BLACK_QUEEN_SIDE;
-                break;
-            default:
-                throw std::runtime_error("Invalid character in castling specification");
-            }
-        }
-        position.castle_rights_ = flags;
-    }
-    it = expect(it, ' ');
-
-    // En passant Target Square
-    if (it == last) {
-        throw std::runtime_error("Expected en passant target square");
-    } else if (*it == '-') {
-        position._set_enpassant_square(Position::ENPASSANT_NONE);
-        ++it;
-    } else {
-        char c = *it++;
-        if (!(c >= 'a' && c <= 'h')) {
-            throw std::runtime_error("Invalid file for enpassant target square");
-        }
-        u8 file = c - 'a';
-        u8 rank = *it++ - '1';
-        assert(file >= 0 && file <= 7);
-        assert(rank >= 0 && rank <= 7);
-        Square square{file, rank};
-        if (rank == RANK_3) {
-            assert(square.value() >= A3 && square.value() <= H3);
-            position._set_enpassant_square(square.value());
-        } else if (rank == RANK_6) {
-            assert(square.value() >= A6 && square.value() <= H6);
-            position._set_enpassant_square(square.value());
-        } else {
-            throw std::runtime_error("Invalid rank for enpassant target square");
-        }
-    }
-
-    // may or may not have halfmove and move specifications
-    bool has_halfmove = it != last && *it++ == ' ';
-    if (has_halfmove && it != last) {
-        // Halfmove spec (50-move rule)
-        while (it != last && *it != ' ') {
-            if (*it < '0' && *it > '9') {
-                throw std::runtime_error("Invalid halfmove specification");
-            }
-            position.halfmoves_ *= 10;
-            position.halfmoves_ += *it - '0';
-            ++it;
-        }
-
-        // assuming that if halfmove is there then move spec is also there
-        it = expect(it, ' ');
-        position.moves_ = 0;
-        while (it != last && *it != ' ') {
-            if (*it < '0' && *it > '9') {
-                throw std::runtime_error("Invalid move specification");
-            }
-            position.moves_ *= 10;
-            position.moves_ += *it - '0';
-            ++it;
-        }
-    }
+    parse_fen_spec(it, last, position);
 
     position._validate();
     return position;

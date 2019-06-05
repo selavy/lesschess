@@ -790,8 +790,8 @@ TEST_CASE("FEN to ASCII")
     };
 
     for (auto& p : fens) {
-        auto ascii = std::get<0>(p);
-        auto fen   = std::get<1>(p);
+        auto& ascii = std::get<0>(p);
+        auto& fen   = std::get<1>(p);
         REQUIRE(Position::from_ascii(ascii).dump_fen() == fen);
         REQUIRE(Position::from_fen(fen).dump_ascii()   == ascii);
         REQUIRE(Position::from_ascii(ascii) == Position::from_fen(fen));

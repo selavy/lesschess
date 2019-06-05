@@ -133,6 +133,9 @@ private:
     u64 _occupied() const noexcept
     { return sidemask_[WHITE] | sidemask_[BLACK]; }
 
+    template <class Iter>
+    friend void parse_fen_spec(Iter it, Iter last, Position& position);
+
 private:
     std::array<u64, 10>   boards_;
     std::array<u64, 2>    sidemask_;
