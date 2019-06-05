@@ -996,7 +996,7 @@ bool Position::_is_legal(u64 pinned, Move m) const noexcept
 #endif
 }
 
-Move* generate_knight_moves(u64 knights, u64 targets, Move* moves)
+Move* _generate_knight_moves(u64 knights, u64 targets, Move* moves)
 {
     while (knights) {
         int from = lsb(knights);
@@ -1011,7 +1011,7 @@ Move* generate_knight_moves(u64 knights, u64 targets, Move* moves)
     return moves;
 }
 
-Move* generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves)
+Move* _generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves)
 {
     while (bishops) {
         int from = lsb(bishops);
@@ -1026,7 +1026,8 @@ Move* generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves)
     return moves;
 }
 
-Move* generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves) {
+Move* _generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves)
+{
     while (rooks) {
         int from = lsb(rooks);
         u64 posmoves = rook_attacks(from, occupied) & targets;
@@ -1040,7 +1041,8 @@ Move* generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves) {
     return moves;
 }
 
-Move* generate_king_moves(int ksq, u64 targets, Move* moves) {
+Move* _generate_king_moves(int ksq, u64 targets, Move* moves)
+{
     u64 posmoves = king_attacks(ksq) & targets;
     while (posmoves) {
         int to = lsb(posmoves);
@@ -1048,6 +1050,28 @@ Move* generate_king_moves(int ksq, u64 targets, Move* moves) {
         posmoves = clear_lsb(posmoves);
     }
     return moves;
+}
+
+u64 Position::_generate_checkers(Color side)
+{
+    Color contra = flip_color(side);
+    Square king_sq = _kings[side];
+    u64 occupied = _occupied();
+    u64 knights = _bboard(contra, KNIGHT);
+    u64 bishops = _bboard(contra, BISHOP);
+    u64 rooks =   _bboard(contra, ROOK);
+    u64 queens =  _bboard(contra, QUEEN);
+    u64 pawns =   _bboard(contra, PAWN);
+    u64 king = king_sq.mask();
+    int ksq = king_sq.value();
+
+    u64 rval = 0;
+    rval |= rook_attacks(ksq, occupied) & (rooks | queens);
+    rval |= bishop_attacks(ksq, occupied) & (bishops | queens);
+    rval |= knight_attacks(ksq) & knights;
+    rval |= king_attacks(ksq) & king;
+    rval |= pawn_attacks(side, ksq) & pawns;
+    return 0;
 }
 
 } // ~namespace lesschess
