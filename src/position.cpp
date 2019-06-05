@@ -838,15 +838,31 @@ u64 Position::_generate_pinned(Color blocker_color, Color king_color) const noex
     return ret;
 }
 
+constexpr int castles_king_square(Move m) noexcept
+{
+    assert(m.is_castle());
+    switch (m.to().value()) {
+        case H1: return G1;
+        case H8: return G8;
+        case A1: return C1;
+        case A8: return C8;
+    }
+    __builtin_unreachable();
+    return G1;
+}
+
 bool Position::is_legal_move(Move move) const noexcept
 {
-    return false;
-#if 0
     Color side = wtm();
+    Color contra = flip_color(side);
     Square ksq = _kings[side];
-    u64 pinned = generate_pinned(pos, side, side);
+    Square tosq = move.to();
+    Square frsq = move.from();
+    u64 pinned = _generate_pinned(side, side);
 
-    if (m.is_enpassant()) {
+    if (move.is_enpassant()) {
+        // legal if
+        //   + after making the move there are no attacks on the king
         auto capture_sq = Square(side == WHITE ? tosq.value() - 8 : tosq.value() + 8);
         u64 prev_occupied = _occupied();
         u64 queens = _bboard(contra, QUEEN);
@@ -858,10 +874,27 @@ bool Position::is_legal_move(Move move) const noexcept
         return (straight_attacks | diagonal_attacks) == 0;
     }
 
-    if (m.is_castle()) {
-        
+    if (move.is_castle()) {
+        // legal if:
+        //   + doesn't castle into check
+        //   + doesn't castle out of check
+        //   + doesn't castle through check
+
+        Color contra = flip_color(side);
+        int from = frsq.value();
+        int to   = castles_king_square(move);
+        int step = to > from ? 1 : -1;
+        for (int sq = to; sq != from; sq += step) {
+            if (attacks(contra, Square(sq))) {
+                return false;
+            }
+        }
+
+        return true;
     }
-#endif
+
+    // TODO: finish
+    return true;
 }
 
 bool Position::attacks(Color side, Square square) const noexcept
@@ -894,8 +927,11 @@ bool Position::attacks(Color side, Square square) const noexcept
     return false;
 }
 
+
 bool Position::_is_legal(u64 pinned, Move m) const noexcept
 {
+    return false;
+#if 0
     Color side = Color(_wtm);
     Color contra = flip_color(side);
     Piece piece = piece_on_square(m.from());
@@ -927,6 +963,7 @@ bool Position::_is_legal(u64 pinned, Move m) const noexcept
                (pinned & frsq.mask()) == 0 ||
                lined_up(frsq.value(), tosq.value(), ksq.value());
     }
+#endif
 }
 
 } // ~namespace lesschess

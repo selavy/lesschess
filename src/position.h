@@ -111,6 +111,10 @@ public:
     [[nodiscard]]
     bool attacks(Color side, Square square) const noexcept;
 
+    [[nodiscard]]
+    constexpr Color wtm() const noexcept
+    { return Color(_wtm); };
+
 private:
     void _set_white_to_move(bool white_to_move) noexcept
     { _wtm = white_to_move ? WHITE : BLACK; }

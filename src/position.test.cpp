@@ -831,7 +831,9 @@ TEST_CASE("FEN to ASCII and back")
 
 TEST_CASE("Square is Attacked?")
 {
-    std::string position =
+    SECTION("Immortal Game Position")
+    {
+        std::string position =
             "\n"                  \
             "|r| |b|k| | | |r|\n" \
             "|p| | |p|B|p|N|p|\n" \
@@ -842,15 +844,61 @@ TEST_CASE("Square is Attacked?")
             "|P| |P| |K| | | |\n" \
             "|q| | | | | |b| |\n" \
             "b - - 0 1";
-    auto p = Position::from_ascii(position);
+        auto p = Position::from_ascii(position);
 
-    REQUIRE(p.attacks(WHITE, F3) == true);
-    REQUIRE(p.attacks(WHITE, H1) == false);
-    REQUIRE(p.attacks(WHITE, E1) == true);
-    REQUIRE(p.attacks(BLACK, B1) == true);
-    REQUIRE(p.attacks(BLACK, H1) == false);
-    REQUIRE(p.attacks(BLACK, C1) == true);
-    REQUIRE(p.attacks(WHITE, B4) == true);
-    REQUIRE(p.attacks(BLACK, B4) == true);
-    REQUIRE(p.attacks(WHITE, A8) == false);
+        REQUIRE(p.attacks(WHITE, F3) == true);
+        REQUIRE(p.attacks(WHITE, H1) == false);
+        REQUIRE(p.attacks(WHITE, E1) == true);
+        REQUIRE(p.attacks(BLACK, B1) == true);
+        REQUIRE(p.attacks(BLACK, H1) == false);
+        REQUIRE(p.attacks(BLACK, C1) == true);
+        REQUIRE(p.attacks(WHITE, B4) == true);
+        REQUIRE(p.attacks(BLACK, B4) == true);
+        REQUIRE(p.attacks(WHITE, A8) == false);
+    }
+}
+
+TEST_CASE("Legal Move Check")
+{
+    using TestMove = std::pair<Move, bool>;
+    std::vector<std::pair<std::string, std::vector<TestMove>>> tests = {
+        {
+            "\n"                  \
+            "|r|n|b|q|k|b|n|r|\n" \
+            "|p|p|p|p|p|p|p|p|\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P|P|P|P|P|P|\n" \
+            "|R|N|B|Q|K|B|N|R|\n" \
+            "w KQkq - 0 1",
+            {
+                { Move(E2, E4), true  },
+                { Move(E1, F2), false },
+            }
+        }
+
+    };
+
+    for (auto& p : tests) {
+        auto& desc = std::get<0>(p);
+        auto& tcs = std::get<1>(p);
+        auto  position = Position::from_ascii(desc);
+        for (auto& tc : tcs) {
+            auto& move = std::get<0>(tc);
+            auto  exp  = std::get<1>(tc);
+            REQUIRE(position.is_legal_move(move) == exp);
+        }
+    }
+
+
+    // std::vector<std::pair<std::string,
+
+
+    // std::string desc =
+    // Move move(E2, E4);
+
+    // Position position = Position::from_ascii(desc);
+    // REQUIRE(position.is_legal_move(move) == true);
 }
