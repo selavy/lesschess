@@ -875,7 +875,14 @@ TEST_CASE("Legal Move Check")
             "w KQkq - 0 1",
             {
                 { Move(E2, E4), true  },
-                { Move(E1, F2), false },
+                { Move(E8, F7), false },
+                { Move(E8, F7), false },
+                { Move(E4, E5), false },
+                { Move::make_castle(Move::CastleKind::WHITE_KING_SIDE), false },
+                { Move::make_castle(Move::CastleKind::WHITE_QUEEN_SIDE), false },
+
+                { Move::make_castle(Move::CastleKind::BLACK_KING_SIDE), false },
+                { Move::make_castle(Move::CastleKind::BLACK_QUEEN_SIDE), false },
             }
         }
 

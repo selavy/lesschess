@@ -275,6 +275,19 @@ public:
     }
 
     [[nodiscard]]
+    constexpr CastleKind castle_kind() const noexcept {
+        assert(is_castle());
+        switch (to().value()) {
+            case H1: return CastleKind::WHITE_KING_SIDE;
+            case H8: return CastleKind::BLACK_KING_SIDE;
+            case A1: return CastleKind::WHITE_QUEEN_SIDE;
+            case A8: return CastleKind::BLACK_QUEEN_SIDE;
+        }
+        __builtin_unreachable();
+        return CastleKind::WHITE_KING_SIDE;
+    }
+
+    [[nodiscard]]
     constexpr Square to() const noexcept {
         return Square((rep_ >> 0u) & 0x3f);
     }

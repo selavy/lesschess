@@ -840,15 +840,13 @@ u64 Position::_generate_pinned(Color blocker_color, Color king_color) const noex
 
 constexpr int castles_king_square(Move m) noexcept
 {
-    assert(m.is_castle());
-    switch (m.to().value()) {
-        case H1: return G1;
-        case H8: return G8;
-        case A1: return C1;
-        case A8: return C8;
+    switch (m.castle_kind()) {
+        case Move::CastleKind::WHITE_KING_SIDE:  return G1;
+        case Move::CastleKind::BLACK_KING_SIDE:  return G8;
+        case Move::CastleKind::WHITE_QUEEN_SIDE: return C1;
+        case Move::CastleKind::BLACK_QUEEN_SIDE: return C8;
     }
     __builtin_unreachable();
-    return G1;
 }
 
 bool Position::is_legal_move(Move move) const noexcept
@@ -858,7 +856,19 @@ bool Position::is_legal_move(Move move) const noexcept
     Square ksq = _kings[side];
     Square tosq = move.to();
     Square frsq = move.from();
+    Piece topc = piece_on_square(tosq);
+    Piece frpc = piece_on_square(frsq);
     u64 pinned = _generate_pinned(side, side);
+
+    // must move own piece
+    if (frpc.empty() || frpc.color() != side) {
+        return false;
+    }
+
+    // can't capture own piece
+    if (!topc.empty() && topc.color() == side) {
+        return false;
+    }
 
     if (move.is_enpassant()) {
         // legal if
@@ -876,9 +886,15 @@ bool Position::is_legal_move(Move move) const noexcept
 
     if (move.is_castle()) {
         // legal if:
+        //   + castling right existed before move
+        //   + no pieces between king and rook
         //   + doesn't castle into check
         //   + doesn't castle out of check
         //   + doesn't castle through check
+
+        if (!castle_kind_allowed(move.castle_kind())) {
+            return false;
+        }
 
         Color contra = flip_color(side);
         int from = frsq.value();
@@ -886,6 +902,9 @@ bool Position::is_legal_move(Move move) const noexcept
         int step = to > from ? 1 : -1;
         for (int sq = to; sq != from; sq += step) {
             if (attacks(contra, Square(sq))) {
+                return false;
+            }
+            if (sq != to && sq != from && !piece_on_square(Square(sq)).empty()) {
                 return false;
             }
         }

@@ -78,6 +78,10 @@ public:
     { return _castle_rights; }
 
     [[nodiscard]]
+    bool castle_kind_allowed(Move::CastleKind kind) const noexcept
+    { return (castle_flags() & static_cast<u8>(kind)) != 0; }
+
+    [[nodiscard]]
     int move_number() const noexcept
     { return _moves; }
 
@@ -105,6 +109,8 @@ public:
     bool in_check(Color side) const noexcept
     { return false; }
 
+    // strict legality checking of a move, for checking is a user
+    // input move is legal or not
     [[nodiscard]]
     bool is_legal_move(Move move) const noexcept;
 
