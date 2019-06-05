@@ -9,7 +9,7 @@
 namespace lesschess {
 
 [[nodiscard]]
-constexpr u64 lsb(u64 x) noexcept { return __builtin_ctzll(x); }
+constexpr int lsb(u64 x) noexcept { return __builtin_ctzll(x); }
 
 [[nodiscard]]
 constexpr int popcountll(u64 x) noexcept { return __builtin_popcountll(x); }
@@ -994,6 +994,60 @@ bool Position::_is_legal(u64 pinned, Move m) const noexcept
                lined_up(frsq.value(), tosq.value(), ksq.value());
     }
 #endif
+}
+
+Move* generate_knight_moves(u64 knights, u64 targets, Move* moves)
+{
+    while (knights) {
+        int from = lsb(knights);
+        u64 posmoves = knight_attacks(from) & targets;
+        while (posmoves) {
+            int to = lsb(posmoves);
+            *moves++ = Move(from, to);
+            posmoves = clear_lsb(posmoves);
+        }
+        knights = clear_lsb(knights);
+    }
+    return moves;
+}
+
+Move* generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves)
+{
+    while (bishops) {
+        int from = lsb(bishops);
+        u64 posmoves = bishop_attacks(from, occupied) & targets;
+        while (posmoves) {
+            int to = lsb(posmoves);
+            *moves = Move(from, to);
+            posmoves = clear_lsb(posmoves);
+        }
+        bishops = clear_lsb(bishops);
+    }
+    return moves;
+}
+
+Move* generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves) {
+    while (rooks) {
+        int from = lsb(rooks);
+        u64 posmoves = rook_attacks(from, occupied) & targets;
+        while (posmoves) {
+            int to = lsb(posmoves);
+            *moves++ = Move(from, to);
+            posmoves = clear_lsb(posmoves);
+        }
+        rooks = clear_lsb(rooks);
+    }
+    return moves;
+}
+
+Move* generate_king_moves(int ksq, u64 targets, Move* moves) {
+    u64 posmoves = king_attacks(ksq) & targets;
+    while (posmoves) {
+        int to = lsb(posmoves);
+        *moves++ = Move(ksq, to);
+        posmoves = clear_lsb(posmoves);
+    }
+    return moves;
 }
 
 } // ~namespace lesschess
