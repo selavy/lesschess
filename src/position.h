@@ -4,11 +4,6 @@
 #include <string_view>
 #include <array>
 
-// TODO(peter): add namespace
-//   +lesschess
-//   +lc
-//   +lchess
-
 namespace lesschess {
 
 struct Savepos {
@@ -38,10 +33,16 @@ public:
     Position(const Position&) noexcept = default;
     Position& operator=(const Position&) noexcept = default;
 
+	[[nodiscard]]
     static Position from_fen(std::string_view fen);
+    [[nodiscard]]
+    static Position from_ascii(std::string_view ascii);
 
     [[nodiscard]]
     std::string dump_fen() const noexcept;
+
+    [[nodiscard]]
+    std::string dump_ascii() const noexcept;
 
     void make_move(Savepos& sp, Move move) noexcept;
 
@@ -133,8 +134,8 @@ private:
     { return sidemask_[WHITE] | sidemask_[BLACK]; }
 
 private:
-    std::array<u64, 10> boards_;
-    std::array<u64, 2> sidemask_;
+    std::array<u64, 10>   boards_;
+    std::array<u64, 2>    sidemask_;
     std::array<Piece, 64> sq2pc_;
     std::array<Square, 2> kings_;
     u16 moves_;

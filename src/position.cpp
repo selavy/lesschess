@@ -82,6 +82,56 @@ Position::Position() noexcept
     sq2pc_.fill(NO_PIECE);
 }
 
+Position Position::from_ascii(std::string_view ascii)
+{
+    Position position;
+    auto it = ascii.begin();
+    auto end = ascii.end();
+
+    auto expect = [&it, end](char c) {
+        if (it == end || *it != c) {
+            std::string msg = "Expected '";
+            msg += c;
+            msg += "', received '";
+            if (it == end) {
+                msg += "<eof>";
+            } else {
+                msg += *it;
+            }
+            msg += "'";
+            throw std::runtime_error(msg.c_str());
+        }
+        ++it;
+    };
+
+    expect('\n');
+    for (int rank = 7; rank >= 0; --rank) {
+        for (int file = 0; file < 8; ++file) {
+            if (it == end) {
+                throw std::runtime_error("Board specification too short");
+            }
+            expect('|');
+            if (*it != ' ') {
+                Piece piece = translate_fen_piece(*it);
+                Square sq(static_cast<u8>(file), static_cast<u8>(rank));
+                position.sq2pc_[sq.value()] = piece;
+                position.sidemask_[piece.color()] |= sq.mask();
+                if (piece.kind() == KING) {
+                    position.kings_[piece.color()] = sq;
+                } else {
+                    position.boards_[piece.value()] |= sq.mask();
+                }
+            }
+            ++it;
+        }
+        expect('|');
+        expect('\n');
+    }
+
+    position._validate();
+    return position;
+}
+
 Position Position::from_fen(std::string_view fen)
 {
     Position position;
@@ -359,6 +409,45 @@ std::string Position::dump_fen() const noexcept
     result += std::to_string(move_number());
 
     return result;
+}
+
+std::string fen_to_ascii(std::string fen) {
+    std::string result = "\n|";
+    int rows = 0;
+    auto it = fen.begin();
+    for (; it != fen.end(); ++it) {
+        char c = *it;
+        if (c == ' ') {
+            result += '\n';
+            ++it;
+            while (it != fen.end()) {
+                result += *it++;
+            }
+            break;
+        } else if (c == '/') {
+            result += "\n|";
+            ++rows;
+        } else if (c >= '1' && c <= '8') {
+            int skip = c - '1';
+            while (skip-- >= 0) {
+                result += " |";
+            }
+        } else if (c >= 'a' && c <= 'z') {
+            result += c;
+            result += '|';
+        } else if (c >= 'A' && c <= 'Z') {
+            result += c;
+            result += '|';
+        } else {
+            throw std::runtime_error("invalid character in FEN");
+        }
+    }
+    return result;
+}
+
+[[nodiscard]]
+std::string Position::dump_ascii() const noexcept {
+    return fen_to_ascii(dump_fen());
 }
 
 [[nodiscard]]

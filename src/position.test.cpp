@@ -5,8 +5,18 @@
 
 using namespace lesschess;
 
-TEST_CASE("Position from FEN") {
+TEST_CASE("Position from FEN")
+{
     SECTION("Starting position") {
+        // |r|n|b|q|k|b|n|r|
+        // |p|p|p|p|p|p|p|p|
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // |P|P|P|P|P|P|P|P|
+        // |R|N|B|Q|K|B|N|R|
+        // w KQkq - 0 1
         std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         Position position = Position::from_fen(fen);
 
@@ -53,6 +63,15 @@ TEST_CASE("Position from FEN") {
     }
 
     SECTION("After 1.e4") {
+        // |r|n|b|q|k|b|n|r|
+        // |p|p|p|p|p|p|p|p|
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | |P| | | |
+        // | | | | | | | | |
+        // |P|P|P|P| |P|P|P|
+        // |R|N|B|Q|K|B|N|R|
+        // b KQkq e3 0 1
         std::string fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
 		Position position = Position::from_fen(fen);
 
@@ -91,6 +110,15 @@ TEST_CASE("Position from FEN") {
     }
 
     SECTION("After 1.e4 c5") {
+        // |r|n|b|q|k|b|n|r|
+        // |p|p| |p|p|p|p|p|
+        // | | | | | | | | |
+        // | | |p| | | | | |
+        // | | | | |P| | | |
+        // | | | | | | | | |
+        // |P|P|P|P| |P|P|P|
+        // |R|N|B|Q|K|B|N|R|
+        // w KQkq c6 0 2
         std::string fen = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2";
         Position position = Position::from_fen(fen);
 
@@ -145,6 +173,15 @@ TEST_CASE("Position from FEN") {
     }
 
     SECTION("Kiwipete position") {
+        // |r| | | |k| | |r|
+        // |p| |p|p|q|p|b| |
+        // |b|n| | |p|n|p| |
+        // | | | |P|N| | | |
+        // | |p| | |P| | | |
+        // | | |N| | |Q| |p|
+        // |P|P|P|B|B|P|P|P|
+        // |R| | | |K| | |R|
+        // w KQkq -
         std::string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -";
         Position position = Position::from_fen(fen);
 
@@ -172,6 +209,15 @@ TEST_CASE("Position from FEN") {
     }
 
     SECTION("Position #3") {
+        // | | | | | | | | |
+        // | | |p| | | | | |
+        // | | | |p| | | | |
+        // |K|P| | | | | |r|
+        // | |R| | | |p| |k|
+        // | | | | | | | | |
+        // | | | | |P| |P| |
+        // | | | | | | | | |
+        // w - -
         std::string fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -";
         Position position = Position::from_fen(fen);
 
@@ -201,6 +247,15 @@ TEST_CASE("Position from FEN") {
     }
 
     SECTION("Position #4") {
+        // |r|n|b|q| |k| |r|
+        // |p|p| |P|b|p|p|p|
+        // | | |p| | | | | |
+        // | | | | | | | | |
+        // | | |B| | | | | |
+        // | | | | | | | | |
+        // |P|P|P| |N|n|P|P|
+        // |R|N|B|Q|K| | |R|
+        // w KQ - 1 8
         std::string fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
         Position position = Position::from_fen(fen);
 
@@ -251,6 +306,15 @@ TEST_CASE("Position from FEN") {
     }
 
     SECTION("Position #5") {
+        // |r|n|b|q| |k| |r|
+        // |p|p| |P|b|p|p|p|
+        // | | |p| | | | | |
+        // | | | | | | | | |
+        // | | |B| | | | | |
+        // | | | | | | | | |
+        // |P|P|P| |N|n|P|P|
+        // |R|N|B|Q|K| | |R|
+        // w KQ - 1 8
         std::string fen = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
         Position position = Position::from_fen(fen);
 
@@ -262,7 +326,8 @@ TEST_CASE("Position from FEN") {
 
 }
 
-TEST_CASE("Position::dump_fen") {
+TEST_CASE("Position::dump_fen")
+{
     using FEN = std::string;
     std::vector<FEN> test_cases = {
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
@@ -281,8 +346,18 @@ TEST_CASE("Position::dump_fen") {
     }
 }
 
-TEST_CASE("Position::make_move") {
+TEST_CASE("Position::make_move")
+{
     SECTION("1.e4") {
+        // |r|n|b|q|k|b|n|r|
+        // |p|p|p|p|p|p|p|p|
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // |P|P|P|P|P|P|P|P|
+        // |R|N|B|Q|K|B|N|R|
+        // w KQkq - 0 1
         std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         Position position = Position::from_fen(fen);
         Move move(E2, E4); // 1. e4
@@ -305,12 +380,30 @@ TEST_CASE("Position::make_move") {
         REQUIRE(position.enpassant_available() == true);
         REQUIRE(position.enpassant_target_square() == E3);
 
+        // |r|n|b|q|k|b|n|r|
+        // |p|p|p|p|p|p|p|p|
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | |P| | | |
+        // | | | | | | | | |
+        // |P|P|P|P| |P|P|P|
+        // |R|N|B|Q|K|B|N|R|
+        // b KQkq e3 0 1
         std::string expect_fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
         Position expected = Position::from_fen(expect_fen);
         REQUIRE(position == expected);
     }
 
     SECTION("1.e4 c5") {
+        // |r|n|b|q|k|b|n|r|
+        // |p|p|p|p|p|p|p|p|
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | |P| | | |
+        // | | | | | | | | |
+        // |P|P|P|P| |P|P|P|
+        // |R|N|B|Q|K|B|N|R|
+        // b KQkq e3 0 1
         std::string fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
         Position position = Position::from_fen(fen);
         Move move(C7, C5);
@@ -347,6 +440,15 @@ TEST_CASE("Position::make_move") {
             { Move(E5, D6, ep_capture_tag{}), "2kr1b1r/p1q2ppp/bpnPpn2/6B1/3N4/2N5/PPP1BPPP/R2QR1K1 b - - 0 11" },
         };
 
+		// |r|n|b|q|k|b|n|r|
+		// |p|p|p|p|p|p|p|p|
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// |P|P|P|P|P|P|P|P|
+		// |R|N|B|Q|K|B|N|R|
+		// w KQkq - 0 1
         FEN starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         Position position = Position::from_fen(starting_position);
         Savepos save;
@@ -359,13 +461,22 @@ TEST_CASE("Position::make_move") {
     }
 
     SECTION("White promotion") {
+		// | | | | |k| | | |
+		// | | | | | | | |P|
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | |K| | | |
+		// w KQkq - 0 1
         FEN starting_position = "4k3/7P/8/8/8/8/8/4K3 w KQkq - 0 1";
         Position position = Position::from_fen(starting_position);
         Savepos save;
 
         std::vector<TestCase> test_cases = {
             { Move(H7, H8, ROOK), "4k2R/8/8/8/8/8/8/4K3 b KQkq - 0 1" }, // h8=R
-            { Move(E8, D7), "7R/3k4/8/8/8/8/8/4K3 w KQ - 1 2" },         // Kd7
+            { Move(E8, D7),       "7R/3k4/8/8/8/8/8/4K3 w KQ - 1 2"   }, // Kd7
         };
 
         for (auto&& test_case: test_cases) {
@@ -377,13 +488,22 @@ TEST_CASE("Position::make_move") {
     }
 
     SECTION("Black promotion") {
+		// | | | | |k| | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | |p|
+		// | | | | |K| | | |
+		// b KQkq - 0 1
         FEN starting_position = "4k3/8/8/8/8/8/7p/4K3 b KQkq - 0 1";
         Position position = Position::from_fen(starting_position);
         Savepos save;
 
         std::vector<TestCase> test_cases = {
             { Move(H2, H1, KNIGHT), "4k3/8/8/8/8/8/8/4K2n w KQkq - 0 2" }, // h1=N
-            { Move(E1, D2), "4k3/8/8/8/8/8/3K4/7n b kq - 1 2" },           // Kd2
+            { Move(E1, D2),         "4k3/8/8/8/8/8/3K4/7n b kq - 1 2"   }, // Kd2
         };
 
         for (auto&& test_case: test_cases) {
@@ -395,6 +515,15 @@ TEST_CASE("Position::make_move") {
     }
 
     SECTION("White promotion with capture") {
+		// | | | | |k| |n| |
+		// | | | | | | | |P|
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | |K| | | |
+		// w - - 0 1
         FEN starting_position = "4k1n1/7P/8/8/8/8/8/4K3 w - - 0 1";
         Position position = Position::from_fen(starting_position);
         Savepos save;
@@ -404,6 +533,15 @@ TEST_CASE("Position::make_move") {
     }
 
     SECTION("Make move white castle") {
+		// |r| | | |k| | |r|
+		// |p|p|p|p|p|p|p|p|
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// |P|P|P|P|P|P|P|P|
+		// |R| | | |K| | |R|
+		// w KQkq - 0 1
         std::string original_fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
 
         using FEN = std::string;
@@ -425,6 +563,15 @@ TEST_CASE("Position::make_move") {
     }
 
     SECTION("Make move black castle") {
+		// |r| | | |k| | |r|
+		// |p|p|p|p|p|p|p|p|
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// | | | | | | | | |
+		// |P|P|P|P|P|P|P|P|
+		// |R| | | |K| | |R|
+		// w KQkq - 0 1
         std::string original_fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1";
 
         using FEN = std::string;
@@ -447,7 +594,8 @@ TEST_CASE("Position::make_move") {
 
 }
 
-TEST_CASE("Undo Move") {
+TEST_CASE("Undo Move")
+{
     SECTION("Undo Flags=NONE with no capture") {
         std::string starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         Position position = Position::from_fen(starting_position);
@@ -604,4 +752,48 @@ TEST_CASE("Undo Move") {
         REQUIRE(position == position_copy);
     }
 
+}
+
+
+TEST_CASE("FEN to ASCII")
+{
+    std::vector<std::pair<std::string, std::string>> fens = {
+        {
+            "\n"                  \
+            "|r| |b|k| | | |r|\n" \
+            "|p| | |p|B|p|N|p|\n" \
+            "|n| | | | |n| | |\n" \
+            "| |p| |N|P| | |P|\n" \
+            "| | | | | | |P| |\n" \
+            "| | | |P| | | | |\n" \
+            "|P| |P| |K| | | |\n" \
+            "|q| | | | | |b| |\n" \
+            "b - - 0 1",
+
+            "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b - - 0 1"
+        },
+
+        {
+            "\n"                  \
+            "|r|n|b|q|k|b|n|r|\n" \
+            "|p|p|p|p|p|p|p|p|\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P|P|P|P|P|P|\n" \
+            "|R|N|B|Q|K|B|N|R|\n" \
+            "w KQkq - 0 1",
+
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        }
+    };
+
+    for (auto& p : fens) {
+        auto ascii = std::get<0>(p);
+        auto fen   = std::get<1>(p);
+        REQUIRE(Position::from_ascii(ascii).dump_fen() == fen);
+        REQUIRE(Position::from_fen(fen).dump_ascii()   == ascii);
+        REQUIRE(Position::from_ascii(ascii) == Position::from_fen(fen));
+    }
 }
