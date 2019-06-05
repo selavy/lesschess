@@ -40,7 +40,6 @@ public:
 
     [[nodiscard]]
     std::string dump_fen() const noexcept;
-
     [[nodiscard]]
     std::string dump_ascii() const noexcept;
 
@@ -52,12 +51,12 @@ public:
     Square enpassant_target_square() const noexcept
     {
         assert(enpassant_available());
-        return Square(ep_target_);
+        return Square(_ep_target);
     }
 
     [[nodiscard]]
     bool enpassant_available() const noexcept
-    { return ep_target_ != ENPASSANT_NONE; }
+    { return _ep_target != ENPASSANT_NONE; }
 
     [[nodiscard]]
     Piece piece_on_square(Square square) const noexcept
@@ -67,24 +66,24 @@ public:
     Piece piece_on_square(u8 square) const noexcept
     {
         assert(square >= A1 && square <= H8);
-        return Piece(sq2pc_[square]);
+        return Piece(_sq2pc[square]);
     }
 
     [[nodiscard]]
     bool white_to_move() const noexcept
-    { return wtm_ == WHITE; }
+    { return _wtm == WHITE; }
 
     [[nodiscard]]
     u8 castle_flags() const noexcept
-    { return castle_rights_; }
+    { return _castle_rights; }
 
     [[nodiscard]]
     int move_number() const noexcept
-    { return moves_; }
+    { return _moves; }
 
     [[nodiscard]]
     int fifty_move_rule_moves() const noexcept
-    { return halfmoves_; }
+    { return _halfmoves; }
 
     [[nodiscard]]
     bool operator==(const Position& rhs) const noexcept;
@@ -117,35 +116,39 @@ public:
 
 private:
     void _set_white_to_move(bool white_to_move) noexcept
-    { wtm_ = white_to_move ? WHITE : BLACK; }
+    { _wtm = white_to_move ? WHITE : BLACK; }
 
     void _set_enpassant_square(u8 sq) noexcept
     {
-        ep_target_ = sq;
-        assert(ep_target_ == Position::ENPASSANT_NONE ||
-              (ep_target_ >= A3 && ep_target_ <= H3) ||
-              (ep_target_ >= A6 && ep_target_ <= H6));
+        _ep_target = sq;
+        assert(_ep_target == Position::ENPASSANT_NONE ||
+              (_ep_target >= A3 && _ep_target <= H3) ||
+              (_ep_target >= A6 && _ep_target <= H6));
     }
 
     void _validate() const noexcept;
 
+    // bitboard of pieces from `side` that are blocking checking on `kingcolor` king
+    [[nodiscard]]
+    u64 _generate_pinned(Color side, Color kingcolor) const noexcept;
+
     [[nodiscard]]
     u64 _occupied() const noexcept
-    { return sidemask_[WHITE] | sidemask_[BLACK]; }
+    { return _sidemask[WHITE] | _sidemask[BLACK]; }
 
     template <class Iter>
     friend void parse_fen_spec(Iter it, Iter last, Position& position);
 
 private:
-    std::array<u64, 10>   boards_;
-    std::array<u64, 2>    sidemask_;
-    std::array<Piece, 64> sq2pc_;
-    std::array<Square, 2> kings_;
-    u16 moves_;
-    u8 halfmoves_;
-    u8 wtm_;
-    u8 ep_target_;
-    u8 castle_rights_;
+    std::array<u64, 10>   _boards;
+    std::array<u64, 2>    _sidemask;
+    std::array<Piece, 64> _sq2pc;
+    std::array<Square, 2> _kings;
+    u16 _moves;
+    u8 _halfmoves;
+    u8 _wtm;
+    u8 _ep_target;
+    u8 _castle_rights;
 };
 
 } // ~namespace lesschess
