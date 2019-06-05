@@ -878,13 +878,30 @@ TEST_CASE("Legal Move Check")
                 { Move(E8, F7), false },
                 { Move(E8, F7), false },
                 { Move(E4, E5), false },
-                { Move::make_castle(Move::CastleKind::WHITE_KING_SIDE), false },
+                { Move::make_castle(Move::CastleKind::WHITE_KING_SIDE),  false },
                 { Move::make_castle(Move::CastleKind::WHITE_QUEEN_SIDE), false },
-
-                { Move::make_castle(Move::CastleKind::BLACK_KING_SIDE), false },
+                { Move::make_castle(Move::CastleKind::BLACK_KING_SIDE),  false },
                 { Move::make_castle(Move::CastleKind::BLACK_QUEEN_SIDE), false },
             }
+        },
+
+        {
+            "\n"                  \
+            "|r|n|b|q|k|b|n|r|\n" \
+            "|p|p|p| |p|p|p|p|\n" \
+            "| | | | | | | | |\n" \
+            "| | | |p|P| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P|P| |P|P|P|\n" \
+            "|R|N|B|Q|K|B|N|R|\n" \
+            "w KQkq - 0 2",
+            {
+                { Move(E5, E6, ep_capture_tag{}), true  },
+                { Move(E5, F6, ep_capture_tag{}), false },
+            }
         }
+
 
     };
 

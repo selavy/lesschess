@@ -851,6 +851,8 @@ constexpr int castles_king_square(Move m) noexcept
 
 bool Position::is_legal_move(Move move) const noexcept
 {
+    // XXX: probably just switch this to generate all moves then
+    //      check if `move` is one of them.
     Color side = wtm();
     Color contra = flip_color(side);
     Square ksq = _kings[side];
@@ -872,8 +874,14 @@ bool Position::is_legal_move(Move move) const noexcept
 
     if (move.is_enpassant()) {
         // legal if
+        //   + to square == epsq
+        //   + captured piece is opposite color
         //   + after making the move there are no attacks on the king
         auto capture_sq = Square(side == WHITE ? tosq.value() - 8 : tosq.value() + 8);
+        auto capture_pc = piece_on_square(capture_sq);
+        if (capture_pc.empty() || capture_pc.color() != contra) {
+            return false;
+        }
         u64 prev_occupied = _occupied();
         u64 queens = _bboard(contra, QUEEN);
         u64 rooks = _bboard(contra, ROOK);
