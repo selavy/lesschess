@@ -852,8 +852,11 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
     // 3. en passant could remove the attacker
 
     Color side = wtm();
+    Color contra = flip_color(side);
     Square ksq = _kings[side];
-    u64 attacked = generate_attacked
+    u64 attacked = _generate_attacked(contra);
+    u64 safe = ~_sidemasks[side] & ~attacked
+
 
     // generate king moves to squares that are not under attack
     moves = _generate_king_moves(ksq, safe, moves);

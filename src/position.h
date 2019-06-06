@@ -122,6 +122,7 @@ public:
 
     // XXX: move this back to private and remove tests
     u64 _generate_attacked(Color side) const noexcept;
+    u64 _generate_checkers(Color side) const noexcept;
 
 private:
     void _set_white_to_move(bool white_to_move) noexcept
@@ -160,7 +161,6 @@ private:
     Move* _generate_evasions(u64 checkers, Move* moves) const noexcept;
     Move* _generate_non_evasions(Move* moves) const noexcept;
     u64 _generate_pinned(Color side, Color kingcolor) const noexcept;
-    u64 _generate_checkers(Color side) const noexcept;
 
 private:
     std::array<u64, 10>   _boards;

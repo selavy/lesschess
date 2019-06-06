@@ -937,6 +937,68 @@ std::set<std::string> BB2SQs(u64 bb)
     return result;
 }
 
+TEST_CASE("_generate_checkers")
+{
+    using Squares = std::initializer_list<int>;
+    std::vector<std::tuple<std::string, Color, Squares>> ts = {
+        {
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | |Q| | | |\n" \
+            "| | | | |K| | | |\n" \
+            "w - - 0 2",
+            BLACK,
+            { E2 }
+        },
+        {
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | |Q| | | |\n" \
+            "| | | | |K| | | |\n" \
+            "w - - 0 2",
+            WHITE,
+            {}
+        },
+    };
+
+    for (auto& t : ts) {
+        auto position = Position::from_ascii(std::get<0>(t));
+        auto side = std::get<1>(t);
+        auto expect = BB2SQs(BB(std::get<2>(t)));
+        auto result = BB2SQs(position._generate_checkers(side));
+        REQUIRE(result == expect);
+    }
+
+#if 0
+    std::string desc =
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | |Q| | | |\n" \
+            "| | | | |K| | | |\n" \
+            "w - - 0 2";
+    auto position = Position::from_ascii(desc);
+    Color side = BLACK;
+    auto result = position._generate_checkers(side);
+    auto expect = BB({ E2 });
+    REQUIRE(BB2SQs(result) == BB2SQs(expect));
+#endif
+}
+
 // TODO: move to private and remove tests
 TEST_CASE("_generate_attacked")
 {
