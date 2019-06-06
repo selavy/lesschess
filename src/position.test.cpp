@@ -2,6 +2,7 @@
 #include "position.h"
 #include <iostream>
 #include <map>
+#include <set>
 
 using namespace lesschess;
 
@@ -915,6 +916,105 @@ TEST_CASE("Legal Move Check")
     }
 }
 
+u64 BB(std::initializer_list<int> sqs)
+{
+    u64 result = 0;
+    for (auto sq : sqs) {
+        assert(sq >= 0 && sq < 64);
+        result |= (1ull << sq);
+    }
+    return result;
+}
+
+std::set<std::string> BB2SQs(u64 bb)
+{
+    std::set<std::string> result;
+    for (int i = 0; i < 64; ++i) {
+        if ((bb & (1ull << i)) != 0) {
+            result.insert(Square::names[i]);
+        }
+    }
+    return result;
+}
+
+// TODO: move to private and remove tests
+TEST_CASE("_generate_attacked")
+{
+    using Squares = std::initializer_list<int>;
+    std::vector<std::tuple<std::string, Color, Squares>> tcs = {
+        {
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | |K| | | |\n" \
+            "w - - 0 2",
+
+            WHITE,
+            { D1, D2, E2, F2, F1 }
+        },
+        {
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | |K| | | |\n" \
+            "b - - 0 2",
+
+            BLACK,
+            { D8, D7, E7, F7, F8 }
+        }
+    };
+
+    for (auto& tc : tcs) {
+        auto position = Position::from_ascii(std::get<0>(tc));
+        auto attacker = std::get<1>(tc);
+        auto expect = BB2SQs(BB(std::get<2>(tc)));
+        auto result = BB2SQs(position._generate_attacked(attacker));
+        REQUIRE(result == expect);
+    }
+
+#if 0
+    std::string desc =
+        "\n"                  \
+        "| | | | |k| | | |\n" \
+        "| | | | | | | | |\n" \
+        "| | | | | | | | |\n" \
+        "| | | | | | | | |\n" \
+        "| | | | | | | | |\n" \
+        "| | | | | | | | |\n" \
+        "| | | | | | | | |\n" \
+        "| | | | |K| | | |\n" \
+        "w - - 0 2";
+    Position position = Position::from_ascii(desc);
+
+    SECTION("White attacks") {
+        u64 result = position._generate_attacked(WHITE);
+        u64 expect = BB({ D1, D2, E2, F2 /*, F1 */ });
+        // REQUIRE(result == expect);
+        auto r = BB2SQs(result);
+        auto e = BB2SQs(expect);
+        REQUIRE(r == e);
+    }
+
+    SECTION("Black attacks") {
+        u64 result = position._generate_attacked(BLACK);
+        u64 expect = BB({ D8, D7, E7, F7, F8 });
+        REQUIRE(result == expect);
+    }
+#endif
+}
+
+// XXX: turn back on
+#if 0
 TEST_CASE("Basic move generation")
 {
     std::string desc =
@@ -949,3 +1049,4 @@ TEST_CASE("Basic move generation")
 
     REQUIRE(expected.empty());
 }
+#endif

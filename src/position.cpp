@@ -1184,23 +1184,6 @@ Move* _generate_king_moves(Square ksq, u64 targets, Move* moves)
     return moves;
 }
 
-void dump_bitboard(u64 bb) {
-    printf("|");
-    for (int row = 7; row >= 0; --row) {
-        for (int col = 0; col < 8; ++col) {
-            Square sq(col, row);
-            // u64 sq = 8*row + col;
-            // u64 msk = 1ull << sq;
-            int d = (bb & sq.mask()) != 0;
-            printf("%d|", d);
-        }
-        printf("\n");
-        if (row != 0) {
-            printf("|");
-        }
-    }
-}
-
 u64 Position::_generate_checkers(Color side) const noexcept
 {
     Color contra = flip_color(side);

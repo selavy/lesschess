@@ -350,5 +350,23 @@ private:
 static_assert(sizeof(Move) == 2, "");
 static_assert(std::is_pod<Move>::value == true, "");
 
+// TEMP TEMP
+inline void dump_bitboard(u64 bb) {
+    printf("|");
+    for (int row = 7; row >= 0; --row) {
+        for (int col = 0; col < 8; ++col) {
+            Square sq(col, row);
+            // u64 sq = 8*row + col;
+            // u64 msk = 1ull << sq;
+            int d = (bb & sq.mask()) != 0;
+            printf("%d|", d);
+        }
+        printf("\n");
+        if (row != 0) {
+            printf("|");
+        }
+    }
+}
+
 
 } // ~namespace lesschess
