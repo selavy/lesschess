@@ -222,6 +222,23 @@ constexpr bool operator!=(Square lhs, Square rhs) noexcept {
     return !(lhs == rhs);
 }
 
+// Move into the Square class?
+constexpr int pawn_forward(Color side, int x, int ranks=1) noexcept {
+    return side == WHITE ? x + 8*ranks : x - 8*ranks;
+}
+
+constexpr int pawn_backward(Color side, int x, int ranks=1) noexcept {
+    return side == WHITE ? x - 8*ranks : x + 8*ranks;
+}
+
+constexpr int pawn_capture_backward_left(Color side, int x) noexcept {
+    return side == WHITE ? x - 7 : x + 9;
+}
+
+constexpr int pawn_capture_backward_right(Color side, int x) noexcept {
+    return side == WHITE ? x - 9 : x + 7;
+}
+
 std::ostream& operator<<(std::ostream& os, Square sq) noexcept;
 
 struct ep_capture_tag {};

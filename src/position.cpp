@@ -26,6 +26,19 @@ constexpr bool more_than_one_piece(u64 x) noexcept { return is_power_of_two(x); 
 namespace
 {
 
+Move* add_pawn_moves_to_square(int tosq, int frsq, Move* moves) noexcept
+{
+    if (tosq >= A8 || tosq <= H1)  { // promotion
+        *moves++ = Move::make_promotion(frsq, tosq, KNIGHT);
+        *moves++ = Move::make_promotion(frsq, tosq, BISHOP);
+        *moves++ = Move::make_promotion(frsq, tosq, ROOK);
+        *moves++ = Move::make_promotion(frsq, tosq, QUEEN);
+    } else {
+        *moves++ = Move(frsq, tosq);
+    }
+    return moves;
+}
+
 Piece translate_fen_piece(char c)
 {
 
@@ -881,16 +894,9 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
             u64 posmoves = (side == WHITE ? pawns << 8 : pawns >> 8) & between;
             while (posmoves) {
                 int tosq = lsb(posmoves);
-                int frsq = side == WHITE ? tosq - 8 : tosq + 8;
+                int frsq = pawn_backward(side, tosq);
                 assert(piece_on_square(frsq) == Piece(side, PAWN));
-                if (tosq >= A8 || tosq <= H1) { // promotion
-                    *moves++ = Move::make_promotion(frsq, tosq, KNIGHT);
-                    *moves++ = Move::make_promotion(frsq, tosq, BISHOP);
-                    *moves++ = Move::make_promotion(frsq, tosq, ROOK);
-                    *moves++ = Move::make_promotion(frsq, tosq, QUEEN);
-                } else {
-                    *moves++ = Move(frsq, tosq);
-                }
+                moves = add_pawn_moves_to_square(tosq, frsq, moves);
                 posmoves = clear_lsb(posmoves);
             }
         }
@@ -904,7 +910,7 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
                 int frsq = side == WHITE ? tosq - 16 : tosq + 16;
                 assert(piece_on_square(frsq) == Piece(side, PAWN));
                 // TODO: do this with a bitmask
-                if (piece_on_square(side == WHITE ? tosq - 8 : tosq + 8).empty()) {
+                if (piece_on_square(pawn_backward(side, tosq)).empty()) {
                     *moves++ = Move(frsq, tosq);
                 }
                 posmoves = clear_lsb(posmoves);
@@ -927,14 +933,7 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
             int tosq = lsb(posmoves);
             int frsq = side == WHITE ? tosq - 7 : tosq + 9;
             assert(piece_on_square(frsq) == Piece(side, PAWN));
-            if (tosq >= A8 || tosq <= H1) { // promotion
-                *moves++ = Move::make_promotion(frsq, tosq, KNIGHT);
-                *moves++ = Move::make_promotion(frsq, tosq, BISHOP);
-                *moves++ = Move::make_promotion(frsq, tosq, ROOK);
-                *moves++ = Move::make_promotion(frsq, tosq, QUEEN);
-            } else {
-                *moves++ = Move(frsq, tosq);
-            }
+            moves = add_pawn_moves_to_square(tosq, frsq, moves);
             posmoves = clear_lsb(posmoves);
         }
     }
@@ -947,14 +946,7 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
             int tosq = lsb(posmoves);
             int frsq = side == WHITE ? tosq - 9 : tosq + 7;
             assert(piece_on_square(frsq) == Piece(side, PAWN));
-            if (tosq >= A8 || tosq <= H1) { // promotion
-                *moves++ = Move::make_promotion(frsq, tosq, KNIGHT);
-                *moves++ = Move::make_promotion(frsq, tosq, BISHOP);
-                *moves++ = Move::make_promotion(frsq, tosq, ROOK);
-                *moves++ = Move::make_promotion(frsq, tosq, QUEEN);
-            } else {
-                *moves++ = Move(frsq, tosq);
-            }
+            moves = add_pawn_moves_to_square(tosq, frsq, moves);
             posmoves = clear_lsb(posmoves);
         }
     }
@@ -965,11 +957,11 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
 // TODO: implement
 Move* Position::_generate_non_evasions(Move* moves) const noexcept
 {
-#if 0
     Color side = wtm();
     Color contra = flip_color(side);
     u64 occupied = _occupied();
-    u64 opp_or_empty = ~sidemask[side];
+    u64 targets = _sidemask[contra];
+    u64 opp_or_empty = ~_sidemask[side];
     u64 knights = _bboard(side, KNIGHT);
     u64 bishops = _bboard(side, BISHOP);
     u64 rooks   = _bboard(side, ROOK);
@@ -981,8 +973,81 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
     moves = _generate_bishop_moves(bishops | queens, occupied, opp_or_empty, moves);
     moves = _generate_rook_moves(rooks | queens, occupied, opp_or_empty, moves);
     moves = _generate_king_moves(ksq, opp_or_empty, moves);
-    moves = _generate_castling(pos, side, ksq.value(), moves);
-#endif
+    moves = _generate_castling(side, ksq.value(), moves);
+
+    // 1-square pawn moves
+    {
+        u64 posmoves = (side == WHITE ? pawns << 8 : pawns >> 8) & ~occupied;
+        while (posmoves) {
+            int tosq = lsb(posmoves);
+            int frsq = pawn_backward(side, tosq);
+            assert(piece_on_square(frsq) == Piece(side, PAWN));
+            moves = add_pawn_moves_to_square(tosq, frsq, moves);
+        }
+    }
+
+    // 2-square pawn moves
+    {
+        u64 posmoves = pawns & RANK2(side);
+        posmoves = (side == WHITE ? posmoves << 16 : posmoves >> 16) & ~occupied;
+        while (posmoves) {
+            int tosq = lsb(posmoves);
+            int frsq = pawn_backward(side, tosq, /*ranks*/2);
+            assert(piece_on_square(frsq) == Piece(side, PAWN));
+            if (piece_on_square(pawn_backward(side, tosq)).empty()) {
+                *moves = Move(frsq, tosq);
+            }
+            posmoves = clear_lsb(posmoves);
+        }
+    }
+
+    // pawn capture left
+    {
+        u64 posmoves = pawns & ~A_FILE;
+        posmoves = (side == WHITE ? posmoves << 7 : posmoves >> 9) & targets;
+        while (posmoves) {
+            int tosq = lsb(posmoves);
+            int frsq = pawn_capture_backward_left(side, tosq);
+            assert(piece_on_square(frsq) == Piece(side, PAWN));
+            assert(piece_on_square(tosq).empty() == false);
+            moves = add_pawn_moves_to_square(tosq, frsq, moves);
+        }
+    }
+
+    // pawn capture right
+    {
+        u64 posmoves = pawns & ~H_FILE;
+        posmoves = (side == WHITE ? posmoves << 9 : posmoves >> 7) & targets;
+        while (posmoves) {
+            int tosq = lsb(posmoves);
+            int frsq = pawn_capture_backward_right(side, tosq);
+            assert(piece_on_square(frsq) == Piece(side, PAWN));
+            assert(piece_on_square(tosq).empty() == false);
+            moves = add_pawn_moves_to_square(tosq, frsq, moves);
+        }
+    }
+
+    // en passant captures
+    if (_ep_target != Position::ENPASSANT_NONE) {
+        assert(piece_on_square(_ep_target).empty() == true);
+
+        // capture left
+        if (_ep_target != H6 && _ep_target != H3) {
+            int frsq = pawn_capture_backward_left(side, _ep_target);
+            if (piece_on_square(frsq) == Piece(side, PAWN)) {
+                *moves++ = Move(frsq, _ep_target, ep_capture_tag{});
+            }
+        }
+
+        // capture right
+        if (_ep_target != A6 && _ep_target != A3) {
+            int frsq = pawn_capture_backward_right(side, _ep_target);
+            if (piece_on_square(frsq) == Piece(side, PAWN)) {
+                *moves++ = Move(frsq, _ep_target, ep_capture_tag{});
+            }
+        }
+    }
+
     return moves;
 }
 
@@ -1290,7 +1355,7 @@ Move* Position::_generate_king_moves(Square ksq, u64 targets, Move* moves) noexc
     return moves;
 }
 
-Move* Position::_generate_castling(Color side, Square ksq, Move* moves) noexcept
+Move* Position::_generate_castling(Color side, Square ksq, Move* moves) const noexcept
 {
     Color contra = flip_color(side);
 
