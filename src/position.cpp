@@ -46,26 +46,6 @@ Piece translate_fen_piece(char c)
 
 } // ~anonymous namespace
 
-
-// [[nodiscard]] Move*
-// generate_knight_moves(u64 knights, const u64 targets, Move* moves) noexcept
-// {
-//     int from;
-//     int to;
-//     uint64_t posmoves;
-//     while (knights) {
-//         from = lsb(knights);
-//         posmoves = knight_attacks(from) & targets;
-//         while (posmoves) {
-//             to = lsb(posmoves);
-//             *moves++ = Move(from, to);
-//             posmoves = clear_lsb(posmoves);
-//         }
-//         knights = clear_lsb(knights);
-//     }
-//     return moves;
-// }
-
 Position::Position() noexcept
     : _moves(1u)
     , _halfmoves(0u)
@@ -845,7 +825,8 @@ u64 Position::_generate_attacked(Color side) const noexcept
 // TODO: implement
 Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
 {
-#if 0
+    assert(checkers != 0 && "_generate_evasions should only be called if in check");
+
     // 0. General case: either move king, capture piece, or block
     // 1. Knight or pawn check: either move king, or capture knight
     // 2. If more than 1 checker, then must move king
@@ -855,19 +836,21 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
     Color contra = flip_color(side);
     Square ksq = _kings[side];
     u64 attacked = _generate_attacked(contra);
-    u64 safe = ~_sidemasks[side] & ~attacked
-
+    u64 safe = ~_sidemask[side] & ~attacked;
 
     // generate king moves to squares that are not under attack
     moves = _generate_king_moves(ksq, safe, moves);
 
-    if (!more_than_one_piece(checkers)) {
-
+    if (more_than_one_piece(checkers)) {
+        // if more than 1 checker, then only option is to move the king
+        return moves;
     }
-#endif
+
+    // u64 targets = checkers;
+    // Piece checking_piece = piece_on_square(lsb(checkers));
 
     assert(0);
-    return nullptr;
+    return moves;
 }
 
 // TODO: implement
@@ -1131,7 +1114,7 @@ bool Position::_is_legal(u64 pinned, Move move) const noexcept
     return !lined_up(frsq.value(), tosq.value(), _kings[side].value());
 }
 
-Move* _generate_knight_moves(u64 knights, u64 targets, Move* moves)
+Move* Position::_generate_knight_moves(u64 knights, u64 targets, Move* moves) noexcept
 {
     while (knights) {
         int from = lsb(knights);
@@ -1146,7 +1129,7 @@ Move* _generate_knight_moves(u64 knights, u64 targets, Move* moves)
     return moves;
 }
 
-Move* _generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves)
+Move* Position::_generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves) noexcept
 {
     while (bishops) {
         int from = lsb(bishops);
@@ -1161,7 +1144,7 @@ Move* _generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves
     return moves;
 }
 
-Move* _generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves)
+Move* Position::_generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves) noexcept
 {
     while (rooks) {
         int from = lsb(rooks);
@@ -1176,7 +1159,7 @@ Move* _generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves)
     return moves;
 }
 
-Move* _generate_king_moves(Square ksq, u64 targets, Move* moves)
+Move* Position::_generate_king_moves(Square ksq, u64 targets, Move* moves) noexcept
 {
     u64 posmoves = king_attacks(ksq.value()) & targets;
     while (posmoves) {

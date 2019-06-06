@@ -153,10 +153,10 @@ private:
     [[nodiscard]]
     bool _is_legal(u64 pinned, Move m) const noexcept;
 
-    static Move* _generate_knight_moves(u64 knights, u64 targets, Move* moves);
-    static Move* _generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves);
-    static Move* _generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves);
-    static Move* _generate_king_moves(int ksq, u64 targets, Move* moves);
+    static Move* _generate_knight_moves(u64 knights, u64 targets, Move* moves) noexcept;
+    static Move* _generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves) noexcept;
+    static Move* _generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves) noexcept;
+    static Move* _generate_king_moves(Square ksq, u64 targets, Move* moves) noexcept;
     // bitboard of pieces from `side` that are blocking checking on `kingcolor` king
     Move* _generate_evasions(u64 checkers, Move* moves) const noexcept;
     Move* _generate_non_evasions(Move* moves) const noexcept;

@@ -1034,25 +1034,6 @@ TEST_CASE("_generate_checkers")
         auto result = BB2SQs(position._generate_checkers(side));
         REQUIRE(result == expect);
     }
-
-#if 0
-    std::string desc =
-            "\n"                  \
-            "| | | | |k| | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | |Q| | | |\n" \
-            "| | | | |K| | | |\n" \
-            "w - - 0 2";
-    auto position = Position::from_ascii(desc);
-    Color side = BLACK;
-    auto result = position._generate_checkers(side);
-    auto expect = BB({ E2 });
-    REQUIRE(BB2SQs(result) == BB2SQs(expect));
-#endif
 }
 
 // TODO: move to private and remove tests
@@ -1219,6 +1200,47 @@ TEST_CASE("_generate_attacked")
         auto expect = BB2SQs(BB(std::get<2>(tc)));
         auto result = BB2SQs(position._generate_attacked(attacker));
         REQUIRE(result == expect);
+    }
+}
+
+TEST_CASE("generate_evasions")
+{
+    using MoveList = std::set<Move>;
+
+    auto gen_moves = [](const Position& position) -> MoveList
+    {
+        std::vector<Move> moves(256);
+        int nmoves = position.generate_legal_moves(moves.data());
+        MoveList result;
+        for (int i = 0; i < nmoves; ++i) {
+            result.insert(moves[i]);
+        }
+        return result;
+    };
+
+    SECTION("More than 1 checker")
+    {
+        std::string desc =
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | |B| | |N| | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | |P|P|P| | |\n" \
+            "| | | | |K| | | |\n" \
+            "b - - 0 2";
+        auto side = WHITE;
+        auto position = Position::from_ascii(desc);
+        MoveList expect{
+            Move(E8, D8),
+            Move(E8, E7),
+            Move(E8, F8),
+            Move(E8, F7),
+        };
+        auto result = gen_moves(position);
+        REQUIRE(expect == result);
     }
 }
 
