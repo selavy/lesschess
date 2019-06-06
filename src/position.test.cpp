@@ -1205,43 +1205,49 @@ TEST_CASE("_generate_attacked")
 
 TEST_CASE("generate_evasions")
 {
-    using MoveList = std::set<Move>;
+    using MoveList = std::vector<Move>;
 
     auto gen_moves = [](const Position& position) -> MoveList
     {
         std::vector<Move> moves(256);
         int nmoves = position.generate_legal_moves(moves.data());
-        MoveList result;
-        for (int i = 0; i < nmoves; ++i) {
-            result.insert(moves[i]);
-        }
-        return result;
+        moves.erase(moves.begin() + nmoves, moves.end());
+        std::sort(moves.begin(), moves.end());
+        return moves;
     };
 
     SECTION("More than 1 checker")
     {
-        std::string desc =
-            "\n"                  \
-            "| | | | |k| | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | |B| | |N| | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | |P|P|P| | |\n" \
-            "| | | | |K| | | |\n" \
-            "b - - 0 2";
-        auto side = WHITE;
-        auto position = Position::from_ascii(desc);
-        MoveList expect{
-            Move(E8, D8),
-            Move(E8, E7),
-            Move(E8, F8),
-            Move(E8, F7),
+        std::vector<std::pair<std::string, MoveList>> ts = {
+            {
+                "\n"                  \
+                "| | | | |k| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | |B| | |N| | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | |P|P|P| | |\n" \
+                "| | | | |K| | | |\n" \
+                "b - - 0 2",
+                {
+                    Move(E8, D8),
+                    Move(E8, E7),
+                    Move(E8, F8),
+                    Move(E8, F7),
+                }
+            },
         };
-        auto result = gen_moves(position);
-        REQUIRE(expect == result);
+
+        for (auto& t : ts) {
+            auto position = Position::from_ascii(std::get<0>(t));
+            auto expect = std::get<1>(t);
+            std::sort(expect.begin(), expect.end());
+            auto result = gen_moves(position);
+            REQUIRE(expect == result);
+        }
     }
+
 }
 
 // XXX: turn back on

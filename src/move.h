@@ -29,6 +29,15 @@ enum PieceKind {
     EMPTY_SQUARE = N_PIECES*2,
 };
 
+constexpr const char* const PieceKindNames[] = {
+    "knight",
+    "bishop",
+    "rook",
+    "queen",
+    "pawn",
+    "king",
+};
+
 enum Color {
     WHITE = 0,
     BLACK = 1,
@@ -349,6 +358,8 @@ private:
 };
 static_assert(sizeof(Move) == 2, "");
 static_assert(std::is_pod<Move>::value == true, "");
+
+std::ostream& operator<<(std::ostream& os, Move move) noexcept;
 
 // TEMP TEMP
 inline void dump_bitboard(u64 bb) {
