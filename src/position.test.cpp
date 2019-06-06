@@ -971,7 +971,7 @@ TEST_CASE("_generate_attacked")
 
             BLACK,
             { D8, D7, E7, F7, F8 }
-        }
+        },
     };
 
     for (auto& tc : tcs) {
@@ -981,36 +981,6 @@ TEST_CASE("_generate_attacked")
         auto result = BB2SQs(position._generate_attacked(attacker));
         REQUIRE(result == expect);
     }
-
-#if 0
-    std::string desc =
-        "\n"                  \
-        "| | | | |k| | | |\n" \
-        "| | | | | | | | |\n" \
-        "| | | | | | | | |\n" \
-        "| | | | | | | | |\n" \
-        "| | | | | | | | |\n" \
-        "| | | | | | | | |\n" \
-        "| | | | | | | | |\n" \
-        "| | | | |K| | | |\n" \
-        "w - - 0 2";
-    Position position = Position::from_ascii(desc);
-
-    SECTION("White attacks") {
-        u64 result = position._generate_attacked(WHITE);
-        u64 expect = BB({ D1, D2, E2, F2 /*, F1 */ });
-        // REQUIRE(result == expect);
-        auto r = BB2SQs(result);
-        auto e = BB2SQs(expect);
-        REQUIRE(r == e);
-    }
-
-    SECTION("Black attacks") {
-        u64 result = position._generate_attacked(BLACK);
-        u64 expect = BB({ D8, D7, E7, F7, F8 });
-        REQUIRE(result == expect);
-    }
-#endif
 }
 
 // XXX: turn back on
