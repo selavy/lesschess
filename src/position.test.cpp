@@ -1369,6 +1369,65 @@ TEST_CASE("generate_evasions")
                 Move(E1, F1),
             }
         },
+        {
+            "\n"                  \
+            "|r|n|b|q|k| | |r|\n" \
+            "|p|p|p| |p|p|p|p|\n" \
+            "| | | | | | | | |\n" \
+            "| |B| | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P|P|P|P|P|P|\n" \
+            "|R|N|B|Q|K| |N|R|\n" \
+            "b KQkq - 0 2",
+            {
+                Move(C7, C6),
+                Move(C8, D7),
+                Move(D8, D7),
+                Move(E8, F8),
+                Move(B8, C6),
+                Move(B8, D7),
+            }
+        },
+        {
+            "\n"                  \
+            "|r|n|b|q|k| | |r|\n" \
+            "|p|p|p| |p|p|p|p|\n" \
+            "| | | | | | | | |\n" \
+            "| |Q| | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P|P|P|P|P|P|\n" \
+            "|R|N|B|Q|K| |N|R|\n" \
+            "b KQkq - 0 2",
+            {
+                Move(C7, C6),
+                Move(C8, D7),
+                Move(D8, D7),
+                Move(E8, F8),
+                Move(B8, C6),
+                Move(B8, D7),
+            }
+        },
+        {
+            "\n"                  \
+            "|r|n|b|q|k| | |r|\n" \
+            "|p|p|p| |p|p|p|p|\n" \
+            "| | | |N| | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P|P|P|P|P|P|\n" \
+            "|R|N|B|Q|K| |N|R|\n" \
+            "b KQkq - 0 2",
+            {
+                Move(C7, D6),
+                Move(E7, D6),
+                Move(D8, D6),
+                Move(E8, F8),
+                Move(E8, D7),
+            }
+        },
     };
 
     for (auto& t : ts) {
