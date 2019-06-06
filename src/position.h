@@ -38,6 +38,8 @@ public:
     [[nodiscard]]
     static Position from_ascii(std::string_view ascii);
 
+    Move from_san(std::string_view san) const;
+
     [[nodiscard]]
     std::string dump_fen() const noexcept;
     [[nodiscard]]

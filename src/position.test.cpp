@@ -1428,6 +1428,43 @@ TEST_CASE("generate_evasions")
                 Move(E8, D7),
             }
         },
+        {
+            "\n"                  \
+            "| |K| | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | |p|p|\n" \
+            "|R| | | | | | |k|\n" \
+            "b - - 0 2",
+            {
+                Move::make_promotion(G2, G1, KNIGHT),
+                Move::make_promotion(G2, G1, BISHOP),
+                Move::make_promotion(G2, G1, QUEEN),
+                Move::make_promotion(G2, G1, ROOK),
+            }
+        },
+        {
+            "\n"                  \
+            "|r| | | | | | |K|\n" \
+            "| | | | | | |P|P|\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| |k| | | | | | |\n" \
+            "w - - 0 2",
+            {
+                Move::make_promotion(G7, G8, KNIGHT),
+                Move::make_promotion(G7, G8, BISHOP),
+                Move::make_promotion(G7, G8, QUEEN),
+                Move::make_promotion(G7, G8, ROOK),
+            }
+        },
+
     };
 
     for (auto& t : ts) {
