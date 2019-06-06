@@ -969,6 +969,62 @@ TEST_CASE("_generate_checkers")
             WHITE,
             {}
         },
+        {
+            "\n"                  \
+            "|r|n|b|q|k|b|n|r|\n" \
+            "|p|p|p| |p|p|p|p|\n" \
+            "| | | | | | | | |\n" \
+            "| | | |p|P| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P|P| |P|P|P|\n" \
+            "|R|N|B|Q|K|B|N|R|\n" \
+            "w KQkq d6 0 2",
+            BLACK,
+            {}
+        },
+        {
+            "\n"                  \
+            "|r|n|b|q|k|b|n|r|\n" \
+            "|p|p|p| |p|p|p|p|\n" \
+            "| | | | | | | | |\n" \
+            "| |B| |p|P| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P|P| |P|P|P|\n" \
+            "|R|N|B|Q|K| |N|R|\n" \
+            "w KQkq - 0 2",
+            BLACK,
+            { B5 }
+        },
+        {
+            "\n"                  \
+            "|r|n|b|q|k|b|n|r|\n" \
+            "|p|p|p| |p|p|p|p|\n" \
+            "| | | | | |N| | |\n" \
+            "| |B| |p|P| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P|P| |P|P|P|\n" \
+            "|R|N|B|Q|K| |N|R|\n" \
+            "w KQkq - 0 2",
+            BLACK,
+            { B5, F6 }
+        },
+        {
+            "\n"                  \
+            "|r|n|b|q|k|b|n|r|\n" \
+            "|p|p|p| |p|p|p|p|\n" \
+            "| | | | | | | | |\n" \
+            "| | | |p|P| | | |\n" \
+            "| |b| | | | | | |\n" \
+            "| | | |n| | | | |\n" \
+            "|P|P|P| | |P|P|P|\n" \
+            "|R|N|B|Q|K| |N|R|\n" \
+            "w KQkq - 0 2",
+            WHITE,
+            { B4, D3 }
+        },
     };
 
     for (auto& t : ts) {
