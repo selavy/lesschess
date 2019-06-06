@@ -822,7 +822,6 @@ u64 Position::_generate_attacked(Color side) const noexcept
     return rval;
 }
 
-// TODO: implement
 Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
 {
     assert(checkers != 0 && "_generate_evasions should only be called if in check");
@@ -846,10 +845,46 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
         return moves;
     }
 
-    // u64 targets = checkers;
-    // Piece checking_piece = piece_on_square(lsb(checkers));
+    assert(more_than_one_piece(checkers) == false);
+    u64 targets = checkers;
+    Square check_square = lsb(checkers);
+    Piece  check_piece = piece_on_square(check_square);
+    u64 pawns = _bboard(side, PAWN);
+    u64 knights = _bboard(side, KNIGHT);
+    u64 bishops = _bboard(side, BISHOP);
+    u64 rooks   = _bboard(side, ROOK);
+    u64 queens  = _bboard(side, QUEEN);
+    u64 occupied = _occupied();
 
-    assert(0);
+    if (
+            check_piece.kind() == PAWN &&
+            _ep_target != Position::ENPASSANT_NONE &&
+            ep_capture_square() == check_square
+       )
+    {
+        // capture left
+        if (_ep_target != H6 && _ep_target != H3) {
+            int from = side == WHITE ? _ep_target - 7 : _ep_target + 9;
+            if (piece_on_square(from) == Piece(side, PAWN)) {
+                *moves++ = Move(from, _ep_target, ep_capture_tag{});
+            }
+        }
+
+        // capture right
+        if (_ep_target != A6 && _ep_target != A3) {
+            int from = side == WHITE ? _ep_target - 9 : _ep_target + 7;
+            if (piece_on_square(from) == Piece(side, PAWN)) {
+                *moves++ = Move(from, _ep_target, ep_capture_tag{});
+            }
+        }
+    }
+
+    moves = _generate_knight_moves(knights, targets, moves);
+    moves = _generate_bishop_moves(bishops | queens, occupied, targets, moves);
+    moves = _generate_rook_moves(rooks | queens, occupied, targets, moves);
+
+    // TODO: pawn captures to the left and right
+
     return moves;
 }
 

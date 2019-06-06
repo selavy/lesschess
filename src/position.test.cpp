@@ -1267,6 +1267,34 @@ TEST_CASE("generate_evasions")
                     Move(E1, D1),
                 }
             },
+            {
+                "\n"                  \
+                "| | | | |k| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | |P|p| | | |\n" \
+                "| | | | | |K| | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "w - e6 0 2",
+                {
+                    // e.p. capture
+                    Move(D5, E6, ep_capture_tag{}),
+
+                    // King Moves
+                    Move(F4, E4),
+                    Move(F4, E3),
+                    Move(F4, F3),
+                    Move(F4, G3),
+                    Move(F4, G4),
+                    Move(F4, F5),
+                    Move(F4, G5),
+
+                    // King captures pawn
+                    Move(F4, E5),
+                }
+            },
         };
 
         for (auto& t : ts) {

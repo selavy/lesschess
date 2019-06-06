@@ -136,6 +136,16 @@ private:
               (_ep_target >= A6 && _ep_target <= H6));
     }
 
+    Square ep_capture_square() const noexcept {
+        assert(_ep_target != Position::ENPASSANT_NONE);
+        return { _wtm == WHITE ? _ep_target - 8 : _ep_target + 8 };
+    }
+
+    Square ep_target() const noexcept {
+        assert(_ep_target != Position::ENPASSANT_NONE);
+        return { _ep_target };
+    }
+
     void _validate() const noexcept;
 
 
