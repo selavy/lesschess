@@ -1295,6 +1295,22 @@ TEST_CASE("generate_evasions")
                     Move(F4, E5),
                 }
             },
+            {
+                "\n"                  \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | |R| |\n" \
+                "| | | |k| | | | |\n" \
+                "| | | |p|P| |N| |\n" \
+                "| | | | | |P| | |\n" \
+                "| | | | | | | | |\n" \
+                "| | |R| |K| | | |\n" \
+                "b - e3 0 2",
+                {
+                    // e.p. capture
+                    Move(D4, E3, ep_capture_tag{}),
+                }
+            },
         };
 
         for (auto& t : ts) {
