@@ -779,9 +779,90 @@ int Position::generate_legal_moves(Move* moves) const noexcept
     return (int)(end - moves);
 }
 
+u64 Position::_generate_attacked(Color side) const noexcept
+{
+    Color contra = flip_color(side);
+    // XXX: why remove the king position?
+    u64 occupied = _occupied() & ~_kings[contra].mask();
+    u64 knights = _bboard(side, KNIGHT);
+    u64 bishops = _bboard(side, BISHOP);
+    u64 rooks   = _bboard(side, ROOK);
+    u64 queens  = _bboard(side, QUEEN);
+    u64 pawns   = _bboard(side, PAWN);
+
+    u64 rval = 0;
+
+    // knight attacks
+    {
+        u64 pieces = knights;
+        while (pieces) {
+            int from = lsb(pieces);
+            rval |= knight_attacks(from);
+            pieces = clear_lsb(pieces);
+        }
+    }
+
+    // diagonal attacks
+    {
+        u64 pieces = bishops | queens;
+        while (pieces) {
+            int from = lsb(pieces);
+            rval |= bishop_attacks(from, occupied);
+            pieces = clear_lsb(pieces);
+        }
+    }
+
+    // straight attacks
+    {
+        u64 pieces = rooks | queens;
+        while (pieces) {
+            int from = lsb(pieces);
+            rval |= rook_attacks(from, occupied);
+            pieces = clear_lsb(pieces);
+        }
+    }
+
+    // king attacks
+    rval |= king_attacks(_kings[side].value());
+
+    // pawn attacks - left
+    {
+        u64 pieces = pawns & ~A_FILE;
+        pieces = side == WHITE ? pieces << 7 : pieces >> 9;
+        rval |= pieces;
+    }
+
+    // pawn attacks - right
+    {
+        u64 pieces = pawns & ~H_FILE;
+        pieces = side == WHITE ? pieces << 9 : pieces >> 7;
+        rval |= pieces;
+    }
+
+    return rval;
+}
+
 // TODO: implement
 Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
 {
+#if 0
+    // 0. General case: either move king, capture piece, or block
+    // 1. Knight or pawn check: either move king, or capture knight
+    // 2. If more than 1 checker, then must move king
+    // 3. en passant could remove the attacker
+
+    Color side = wtm();
+    Square ksq = _kings[side];
+    u64 attacked = generate_attacked
+
+    // generate king moves to squares that are not under attack
+    moves = _generate_king_moves(ksq, safe, moves);
+
+    if (!more_than_one_piece(checkers)) {
+
+    }
+#endif
+
     assert(0);
     return nullptr;
 }
@@ -1092,12 +1173,12 @@ Move* _generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves)
     return moves;
 }
 
-Move* _generate_king_moves(int ksq, u64 targets, Move* moves)
+Move* _generate_king_moves(Square ksq, u64 targets, Move* moves)
 {
-    u64 posmoves = king_attacks(ksq) & targets;
+    u64 posmoves = king_attacks(ksq.value()) & targets;
     while (posmoves) {
         int to = lsb(posmoves);
-        *moves++ = Move(ksq, to);
+        *moves++ = Move(ksq.value(), to);
         posmoves = clear_lsb(posmoves);
     }
     return moves;

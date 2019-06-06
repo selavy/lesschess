@@ -55,6 +55,9 @@ enum { FILE_A=0, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H };
 
 enum { RANK_1=0, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8 };
 
+constexpr u64 A_FILE = 0x101010101010101ULL;
+constexpr u64 H_FILE = 0x8080808080808080ULL;
+
 struct Piece {
     static constexpr const char* const names[] = {
         "white knight", "black knight",

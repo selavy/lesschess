@@ -134,15 +134,6 @@ private:
 
     void _validate() const noexcept;
 
-    // bitboard of pieces from `side` that are blocking checking on `kingcolor` king
-    [[nodiscard]]
-    u64 _generate_pinned(Color side, Color kingcolor) const noexcept;
-
-    [[nodiscard]]
-    Move* _generate_evasions(u64 checkers, Move* moves) const noexcept;
-
-    [[nodiscard]]
-    Move* _generate_non_evasions(Move* moves) const noexcept;
 
     [[nodiscard]]
     u64 _occupied() const noexcept
@@ -162,7 +153,12 @@ private:
     static Move* _generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves);
     static Move* _generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves);
     static Move* _generate_king_moves(int ksq, u64 targets, Move* moves);
+    // bitboard of pieces from `side` that are blocking checking on `kingcolor` king
+    Move* _generate_evasions(u64 checkers, Move* moves) const noexcept;
+    Move* _generate_non_evasions(Move* moves) const noexcept;
+    u64 _generate_pinned(Color side, Color kingcolor) const noexcept;
     u64 _generate_checkers(Color side) const noexcept;
+    u64 _generate_attacked(Color side) const noexcept;
 
 private:
     std::array<u64, 10>   _boards;
