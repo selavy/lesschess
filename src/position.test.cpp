@@ -1216,139 +1216,167 @@ TEST_CASE("generate_evasions")
         return moves;
     };
 
-    SECTION("More than 1 checker")
-    {
-        std::vector<std::pair<std::string, MoveList>> ts = {
+    std::vector<std::pair<std::string, MoveList>> ts = {
+        //
+        // more than 1 checker
+        //
+        {
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | |B| | |N| | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | |P|P|P| | |\n" \
+            "| | | | |K| | | |\n" \
+            "b - - 0 2",
             {
-                "\n"                  \
-                "| | | | |k| | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | |B| | |N| | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | |P|P|P| | |\n" \
-                "| | | | |K| | | |\n" \
-                "b - - 0 2",
-                {
-                    Move(E8, D8),
-                    Move(E8, E7),
-                    Move(E8, F8),
-                    Move(E8, F7),
-                }
-            },
+                Move(E8, D8),
+                Move(E8, E7),
+                Move(E8, F8),
+                Move(E8, F7),
+            }
+        },
+        {
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | |p|p|p| | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| |b| |n| |n| | |\n" \
+            "| | | |P|P|P| | |\n" \
+            "| | | | |K| | | |\n" \
+            "w - - 0 2",
             {
-                "\n"                  \
-                "| | | | |k| | | |\n" \
-                "| | | |p|p|p| | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "| |b| |n| |n| | |\n" \
-                "| | | |P|P|P| | |\n" \
-                "| | | | |K| | | |\n" \
-                "w - - 0 2",
-                {
-                    Move(E1, F1),
-                }
-            },
+                Move(E1, F1),
+            }
+        },
+        {
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | |p|p|p| | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | |n| |n| |b|\n" \
+            "| | | |P|P| | | |\n" \
+            "| | | | |K| | | |\n" \
+            "w - - 0 2",
             {
-                "\n"                  \
-                "| | | | |k| | | |\n" \
-                "| | | |p|p|p| | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | |n| |n| |b|\n" \
-                "| | | |P|P| | | |\n" \
-                "| | | | |K| | | |\n" \
-                "w - - 0 2",
-                {
-                    Move(E1, D1),
-                }
-            },
-            {
-                "\n"                  \
-                "| | | | |k| | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | |P|p| | | |\n" \
-                "| | | | | |K| | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "w - e6 0 2",
-                {
-                    Move(D5, E6, ep_capture_tag{}),
+                Move(E1, D1),
+            }
+        },
 
-                    // King Moves
-                    Move(F4, E4),
-                    Move(F4, E3),
-                    Move(F4, F3),
-                    Move(F4, G3),
-                    Move(F4, G4),
-                    Move(F4, F5),
-                    Move(F4, G5),
+        //
+        // evade with en passant capture
+        //
+        {
+            "\n"                  \
+            "| | | | |k| | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | |P|p| | | |\n" \
+            "| | | | | |K| | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "w - e6 0 2",
+            {
+                Move(D5, E6, ep_capture_tag{}),
 
-                    // King captures pawn
-                    Move(F4, E5),
-                }
-            },
-            {
-                "\n"                  \
-                "| | | | | | | | |\n" \
-                "| | | | | | | | |\n" \
-                "| | | | | | |R| |\n" \
-                "| | | |k| | | | |\n" \
-                "| | | |p|P| |N| |\n" \
-                "| | | | | |P| | |\n" \
-                "| | | | | | | | |\n" \
-                "| | |R| |K| | | |\n" \
-                "b - e3 0 2",
-                {
-                    Move(D4, E3, ep_capture_tag{}),
-                }
-            },
-            {
-                "\n"                  \
-                "| | | | | | | | |\n" \
-                "| |N| | | | | | |\n" \
-                "| | | | | | |R| |\n" \
-                "| |k| | | | | | |\n" \
-                "|P|p| |p|P| |N| |\n" \
-                "| | |P| | |P| | |\n" \
-                "| | | | | | | | |\n" \
-                "|Q| |R| |K| | | |\n" \
-                "b - a3 0 2",
-                {
-                    Move(B4, A3, ep_capture_tag{}),
-                    Move(B5, C4),
-                }
-            },
-            {
-                "\n"                  \
-                "| | | | | | | |R|\n" \
-                "| | |N| | | | | |\n" \
-                "|R| | | | | | | |\n" \
-                "| | | | | | |k| |\n" \
-                "| | | |p|P| |p|P|\n" \
-                "| | |P| | |P|P| |\n" \
-                "| | | | | | | | |\n" \
-                "| | |R| |K| | | |\n" \
-                "b - h3 0 2",
-                {
-                    Move(G4, H3, ep_capture_tag{}),
-                }
-            },
-        };
+                // King Moves
+                Move(F4, E4),
+                Move(F4, E3),
+                Move(F4, F3),
+                Move(F4, G3),
+                Move(F4, G4),
+                Move(F4, F5),
+                Move(F4, G5),
 
-        for (auto& t : ts) {
-            auto position = Position::from_ascii(std::get<0>(t));
-            auto expect = std::get<1>(t);
-            std::sort(expect.begin(), expect.end());
-            auto result = gen_moves(position);
-            REQUIRE(expect == result);
-        }
+                // King captures pawn
+                Move(F4, E5),
+            }
+        },
+        {
+            "\n"                  \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | |R| |\n" \
+            "| | | |k| | | | |\n" \
+            "| | | |p|P| |N| |\n" \
+            "| | | | | |P| | |\n" \
+            "| | | | | | | | |\n" \
+            "| | |R| |K| | | |\n" \
+            "b - e3 0 2",
+            {
+                Move(D4, E3, ep_capture_tag{}),
+            }
+        },
+        {
+            "\n"                  \
+            "| | | | | | | | |\n" \
+            "| |N| | | | | | |\n" \
+            "| | | | | | |R| |\n" \
+            "| |k| | | | | | |\n" \
+            "|P|p| |p|P| |N| |\n" \
+            "| | |P| | |P| | |\n" \
+            "| | | | | | | | |\n" \
+            "|Q| |R| |K| | | |\n" \
+            "b - a3 0 2",
+            {
+                Move(B4, A3, ep_capture_tag{}),
+                Move(B5, C4),
+            }
+        },
+        {
+            "\n"                  \
+            "| | | | | | | |R|\n" \
+            "| | |N| | | | | |\n" \
+            "|R| | | | | | | |\n" \
+            "| | | | | | |k| |\n" \
+            "| | | |p|P| |p|P|\n" \
+            "| | |P| | |P|P| |\n" \
+            "| | | | | | | | |\n" \
+            "| | |R| |K| | | |\n" \
+            "b - h3 0 2",
+            {
+                Move(G4, H3, ep_capture_tag{}),
+            }
+        },
+
+        //
+        // evade by blocking
+        //
+        {
+            "\n"                  \
+            "|r|n|b|q|k|b|n|r|\n" \
+            "|p|p|p|p|p|p|p|p|\n" \
+            "| | | | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "| |b| | | | | | |\n" \
+            "| | | | | | | | |\n" \
+            "|P|P|P| |P|P|P|P|\n" \
+            "|R|N|B|Q|K| | |R|\n" \
+            "w KQkq - 0 2",
+            {
+                Move(C2, C3),
+                Move(C1, D2),
+                Move(D1, D2),
+                Move(B1, D2),
+                Move(B1, C3),
+                Move(E1, F1),
+            }
+        },
+    };
+
+    for (auto& t : ts) {
+        auto position = Position::from_ascii(std::get<0>(t));
+        auto expect = std::get<1>(t);
+        std::sort(expect.begin(), expect.end());
+        auto result = gen_moves(position);
+        REQUIRE(expect == result);
     }
 
 }

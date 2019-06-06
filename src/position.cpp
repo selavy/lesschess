@@ -749,8 +749,7 @@ int Position::generate_legal_moves(Move* moves) const noexcept
         //   + there are pinned pieces
         //   + the move is en passant
         if (must_double_check(*cur) && !_is_legal(pinned, *cur)) {
-            // swap with last element
-            *cur = *(--end);
+            *cur = *(--end); // swap and pop idiom
         } else {
             ++cur;
         }
@@ -856,34 +855,109 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
     u64 queens  = _bboard(side, QUEEN);
     u64 occupied = _occupied();
 
-    if (
-            check_piece.kind() == PAWN &&
-            _ep_target != Position::ENPASSANT_NONE &&
-            ep_capture_square() == check_square
-       )
-    {
-        // capture left
-        if (_ep_target != H6 && _ep_target != H3) {
-            int from = side == WHITE ? _ep_target - 7 : _ep_target + 9;
-            if (piece_on_square(from) == Piece(side, PAWN)) {
-                *moves++ = Move(from, _ep_target, ep_capture_tag{});
+    if (check_piece.kind() == PAWN) {
+        if (_ep_target != Position::ENPASSANT_NONE && ep_capture_square() == check_square) {
+            // capture left
+            if (_ep_target != H6 && _ep_target != H3) {
+                int from = side == WHITE ? _ep_target - 7 : _ep_target + 9;
+                if (piece_on_square(from) == Piece(side, PAWN)) {
+                    *moves++ = Move(from, _ep_target, ep_capture_tag{});
+                }
+            }
+
+            // capture right
+            if (_ep_target != A6 && _ep_target != A3) {
+                int from = side == WHITE ? _ep_target - 9 : _ep_target + 7;
+                if (piece_on_square(from) == Piece(side, PAWN)) {
+                    *moves++ = Move(from, _ep_target, ep_capture_tag{});
+                }
+            }
+        }
+    } else if (check_piece.kind() != KNIGHT) {
+        u64 between = between_sqs(check_square.value(), ksq.value());
+
+        // try to advance pawns 1 square to block
+        {
+            u64 posmoves = (side == WHITE ? pawns << 8 : pawns >> 8) & between;
+            while (posmoves) {
+                int tosq = lsb(posmoves);
+                int frsq = side == WHITE ? tosq - 8 : tosq + 8;
+                assert(piece_on_square(frsq) == Piece(side, PAWN));
+                if (tosq >= A8 || tosq <= H1) { // promotion
+                    *moves++ = Move::make_promotion(frsq, tosq, KNIGHT);
+                    *moves++ = Move::make_promotion(frsq, tosq, BISHOP);
+                    *moves++ = Move::make_promotion(frsq, tosq, ROOK);
+                    *moves++ = Move::make_promotion(frsq, tosq, QUEEN);
+                } else {
+                    *moves++ = Move(frsq, tosq);
+                }
+                posmoves = clear_lsb(posmoves);
             }
         }
 
-        // capture right
-        if (_ep_target != A6 && _ep_target != A3) {
-            int from = side == WHITE ? _ep_target - 9 : _ep_target + 7;
-            if (piece_on_square(from) == Piece(side, PAWN)) {
-                *moves++ = Move(from, _ep_target, ep_capture_tag{});
+        // for rank 2 pawns, try advancing 2 squares
+        {
+            u64 posmoves = pawns & RANK2(side);
+            posmoves = (side == WHITE ? posmoves << 16 : posmoves >> 16) & between;
+            while (posmoves) {
+                int tosq = lsb(posmoves);
+                int frsq = side == WHITE ? tosq - 16 : tosq + 16;
+                assert(piece_on_square(frsq) == Piece(side, PAWN));
+                // TODO: do this with a bitmask
+                if (piece_on_square(side == WHITE ? tosq - 8 : tosq + 8).empty()) {
+                    *moves++ = Move(frsq, tosq);
+                }
+                posmoves = clear_lsb(posmoves);
             }
         }
+
+        // includes blockers in target squares (because checker isn't a knight or pawn)
+        targets |= between;
     }
 
     moves = _generate_knight_moves(knights, targets, moves);
     moves = _generate_bishop_moves(bishops | queens, occupied, targets, moves);
     moves = _generate_rook_moves(rooks | queens, occupied, targets, moves);
 
-    // TODO: pawn captures to the left and right
+    // capture left
+    {
+        u64 posmoves = pawns & ~A_FILE;
+        posmoves = (side == WHITE ? posmoves << 7 : posmoves >> 9) & checkers;
+        while (posmoves) {
+            int tosq = lsb(posmoves);
+            int frsq = side == WHITE ? tosq - 7 : tosq + 9;
+            assert(piece_on_square(frsq) == Piece(side, PAWN));
+            if (tosq >= A8 || tosq <= H1) { // promotion
+                *moves++ = Move::make_promotion(frsq, tosq, KNIGHT);
+                *moves++ = Move::make_promotion(frsq, tosq, BISHOP);
+                *moves++ = Move::make_promotion(frsq, tosq, ROOK);
+                *moves++ = Move::make_promotion(frsq, tosq, QUEEN);
+            } else {
+                *moves++ = Move(frsq, tosq);
+            }
+            posmoves = clear_lsb(posmoves);
+        }
+    }
+
+    // capture right
+    {
+        u64 posmoves = pawns & ~H_FILE;
+        posmoves = (side == WHITE ? posmoves << 9 : posmoves >> 7) & checkers;
+        while (posmoves) {
+            int tosq = lsb(posmoves);
+            int frsq = side == WHITE ? tosq - 9 : tosq + 7;
+            assert(piece_on_square(frsq) == Piece(side, PAWN));
+            if (tosq >= A8 || tosq <= H1) { // promotion
+                *moves++ = Move::make_promotion(frsq, tosq, KNIGHT);
+                *moves++ = Move::make_promotion(frsq, tosq, BISHOP);
+                *moves++ = Move::make_promotion(frsq, tosq, ROOK);
+                *moves++ = Move::make_promotion(frsq, tosq, QUEEN);
+            } else {
+                *moves++ = Move(frsq, tosq);
+            }
+            posmoves = clear_lsb(posmoves);
+        }
+    }
 
     return moves;
 }
@@ -1171,7 +1245,7 @@ Move* Position::_generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, M
         u64 posmoves = bishop_attacks(from, occupied) & targets;
         while (posmoves) {
             int to = lsb(posmoves);
-            *moves = Move(from, to);
+            *moves++ = Move(from, to);
             posmoves = clear_lsb(posmoves);
         }
         bishops = clear_lsb(bishops);
