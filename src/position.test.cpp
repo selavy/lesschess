@@ -1279,7 +1279,6 @@ TEST_CASE("generate_evasions")
                 "| | | | | | | | |\n" \
                 "w - e6 0 2",
                 {
-                    // e.p. capture
                     Move(D5, E6, ep_capture_tag{}),
 
                     // King Moves
@@ -1307,8 +1306,38 @@ TEST_CASE("generate_evasions")
                 "| | |R| |K| | | |\n" \
                 "b - e3 0 2",
                 {
-                    // e.p. capture
                     Move(D4, E3, ep_capture_tag{}),
+                }
+            },
+            {
+                "\n"                  \
+                "| | | | | | | | |\n" \
+                "| |N| | | | | | |\n" \
+                "| | | | | | |R| |\n" \
+                "| |k| | | | | | |\n" \
+                "|P|p| |p|P| |N| |\n" \
+                "| | |P| | |P| | |\n" \
+                "| | | | | | | | |\n" \
+                "|Q| |R| |K| | | |\n" \
+                "b - a3 0 2",
+                {
+                    Move(B4, A3, ep_capture_tag{}),
+                    Move(B5, C4),
+                }
+            },
+            {
+                "\n"                  \
+                "| | | | | | | |R|\n" \
+                "| | |N| | | | | |\n" \
+                "|R| | | | | | | |\n" \
+                "| | | | | | |k| |\n" \
+                "| | | |p|P| |p|P|\n" \
+                "| | |P| | |P|P| |\n" \
+                "| | | | | | | | |\n" \
+                "| | |R| |K| | | |\n" \
+                "b - h3 0 2",
+                {
+                    Move(G4, H3, ep_capture_tag{}),
                 }
             },
         };
