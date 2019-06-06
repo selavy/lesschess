@@ -68,7 +68,7 @@ constexpr u64 A_FILE = 0x101010101010101ull;
 constexpr u64 H_FILE = 0x8080808080808080ull;
 constexpr u64 SECOND_RANK = 0xff00ull;
 constexpr u64 SEVENTH_RANK = 0xff000000000000ull;
-constexpr u64 RANK2(Color side) noexcept { return side == WHITE ? SEVENTH_RANK : SECOND_RANK; }
+constexpr u64 RANK2(Color side) noexcept { return side == WHITE ? SECOND_RANK : SEVENTH_RANK; }
 
 struct Piece {
     static constexpr const char* const names[] = {

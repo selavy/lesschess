@@ -1000,12 +1000,6 @@ void Position::_validate() const noexcept {
         }
     }
     u64 full_mask = white_mask | black_mask;
-    if (_sidemask[BLACK] != black_mask) {
-        printf("_sidemask   = %" PRIu64 "\n", _sidemask[BLACK]);
-        printf("black_mask = %" PRIu64 "\n", black_mask);
-        printf("side - black = %" PRIu64 "\n", _sidemask[BLACK] & ~black_mask);
-        printf("black - side = %" PRIu64 "\n", black_mask & ~_sidemask[BLACK]);
-    }
     assert(_sidemask[WHITE] == white_mask);
     assert(_sidemask[BLACK] == black_mask);
     assert((white_mask & black_mask) == 0ull); // no bits should overlap
