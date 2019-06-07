@@ -18,7 +18,7 @@ TEST_CASE("Move", "move representation construction checks") {
      }
 
      SECTION("En Passant move") {
-         constexpr Move move{E5, D6, ep_capture_tag{}};
+         constexpr auto move = Move::make_enpassant(E5, D6);
          REQUIRE(move.from() == E5);
          REQUIRE(move.to()   == D6);
          static_assert(move.from() == E5, "");

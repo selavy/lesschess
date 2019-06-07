@@ -886,7 +886,7 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
             if (_ep_target != H6 && _ep_target != H3) {
                 int from = side == WHITE ? _ep_target - 7 : _ep_target + 9;
                 if (piece_on_square(from) == Piece(side, PAWN)) {
-                    *moves++ = Move(from, _ep_target, ep_capture_tag{});
+                    *moves++ = Move::make_enpassant(from, _ep_target);
                 }
             }
 
@@ -894,7 +894,7 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
             if (_ep_target != A6 && _ep_target != A3) {
                 int from = side == WHITE ? _ep_target - 9 : _ep_target + 7;
                 if (piece_on_square(from) == Piece(side, PAWN)) {
-                    *moves++ = Move(from, _ep_target, ep_capture_tag{});
+                    *moves++ = Move::make_enpassant(from, _ep_target);
                 }
             }
         }
@@ -1048,7 +1048,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
         if (_ep_target != H6 && _ep_target != H3) {
             int frsq = pawn_capture_backward_left(side, _ep_target);
             if (piece_on_square(frsq) == Piece(side, PAWN)) {
-                *moves++ = Move(frsq, _ep_target, ep_capture_tag{});
+                *moves++ = Move::make_enpassant(frsq, _ep_target);
             }
         }
 
@@ -1056,7 +1056,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
         if (_ep_target != A6 && _ep_target != A3) {
             int frsq = pawn_capture_backward_right(side, _ep_target);
             if (piece_on_square(frsq) == Piece(side, PAWN)) {
-                *moves++ = Move(frsq, _ep_target, ep_capture_tag{});
+                *moves++ = Move::make_enpassant(frsq, _ep_target);
             }
         }
     }

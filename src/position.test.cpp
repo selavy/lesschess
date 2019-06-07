@@ -438,7 +438,7 @@ TEST_CASE("Position::make_move")
             { Move::make_castle(CastleKind::BLACK_QUEEN_SIDE), "2kr1b1r/p1qp1ppp/bpn1pn2/6B1/3NP3/2N5/PPP1BPPP/R2QR1K1 w - - 6 10" },
             { Move(E4, E5), "2kr1b1r/p1qp1ppp/bpn1pn2/4P1B1/3N4/2N5/PPP1BPPP/R2QR1K1 b - - 0 10" },
             { Move(D7, D5), "2kr1b1r/p1q2ppp/bpn1pn2/3pP1B1/3N4/2N5/PPP1BPPP/R2QR1K1 w - d6 0 11" },
-            { Move(E5, D6, ep_capture_tag{}), "2kr1b1r/p1q2ppp/bpnPpn2/6B1/3N4/2N5/PPP1BPPP/R2QR1K1 b - - 0 11" },
+            { Move::make_enpassant(E5, D6), "2kr1b1r/p1q2ppp/bpnPpn2/6B1/3N4/2N5/PPP1BPPP/R2QR1K1 b - - 0 11" },
         };
 
 		// |r|n|b|q|k|b|n|r|
@@ -736,7 +736,7 @@ TEST_CASE("Undo Move")
         Position position = Position::from_fen(fen);
         Position position_copy = position;
         Savepos save;
-        Move move(H5, G6, ep_capture_tag{});
+        auto move = Move::make_enpassant(H5, G6);
         position.make_move(save, move);
         position.undo_move(save, move);
         REQUIRE(position == position_copy);
@@ -747,7 +747,7 @@ TEST_CASE("Undo Move")
         Position position = Position::from_fen(fen);
         Position position_copy = position;
         Savepos save;
-        Move move(A4, B3, ep_capture_tag{});
+        auto move = Move::make_enpassant(A4, B3);
         position.make_move(save, move);
         position.undo_move(save, move);
         REQUIRE(position == position_copy);
@@ -891,8 +891,8 @@ TEST_CASE("Legal Move Check")
             "|R|N|B|Q|K|B|N|R|\n" \
             "w KQkq d6 0 2",
             {
-                { Move(E5, D6, ep_capture_tag{}), true  },
-                { Move(E5, F6, ep_capture_tag{}), false },
+                { Move::make_enpassant(E5, D6), true  },
+                { Move::make_enpassant(E5, F6), false },
             }
         }
     };
@@ -1249,7 +1249,7 @@ TEST_CASE("generate_legal_moves")
                 "| | | | | | | | |\n" \
                 "w - e6 0 2",
                 {
-                    Move(D5, E6, ep_capture_tag{}),
+                    Move::make_enpassant(D5, E6),
 
                     // King Moves
                     Move(F4, E4),
@@ -1275,7 +1275,7 @@ TEST_CASE("generate_legal_moves")
                 "| | |R| |K| | | |\n" \
                 "b - e3 0 2",
                 {
-                    Move(D4, E3, ep_capture_tag{}),
+                    Move::make_enpassant(D4, E3),
                 }
             },
             {
@@ -1289,7 +1289,7 @@ TEST_CASE("generate_legal_moves")
                 "|Q| |R| |K| | | |\n" \
                 "b - a3 0 2",
                 {
-                    Move(B4, A3, ep_capture_tag{}),
+                    Move::make_enpassant(B4, A3),
                     Move(B5, C4),
                 }
             },
@@ -1304,7 +1304,7 @@ TEST_CASE("generate_legal_moves")
                 "| | |R| |K| | | |\n" \
                 "b - h3 0 2",
                 {
-                    Move(G4, H3, ep_capture_tag{}),
+                    Move::make_enpassant(G4, H3),
                 }
             },
 
@@ -1615,7 +1615,7 @@ TEST_CASE("generate_legal_moves")
                     Move(E1, F1),
                     Move(E1, F2),
                     Move(E5, E6),
-                    Move(E5, D6, ep_capture_tag{}),
+                    Move::make_enpassant(E5, D6),
                 }
             },
             {

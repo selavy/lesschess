@@ -241,9 +241,6 @@ constexpr int pawn_capture_backward_right(Color side, int x) noexcept {
 
 std::ostream& operator<<(std::ostream& os, Square sq) noexcept;
 
-struct ep_capture_tag {};
-struct castle_tag {};
-
 // used as bitmask by Position
 enum class CastleKind : u8 {
     WHITE_KING_SIDE  = 1 << 0,
@@ -271,21 +268,8 @@ public:
         assert(flags() == Flags::NONE);
     }
 
-    constexpr Move(Square from, Square to, ep_capture_tag) noexcept
-        : rep_((to.value() << 0u) | (from.value() << 6u) | (Flags::ENPASSANT << 14u))
-    {
-        assert(
-            (
-                (from.value() >= A4 && from.value() <= H4) &&
-                (to.value()   >= A3 && to.value()   <= H3)
-            )
-            ||
-            (
-                (from.value() >= A5 && from.value() <= H5) &&
-                (to.value()   >= A6 && to.value()   <= H6)
-            ));
-        assert(flags() == Flags::ENPASSANT);
-    }
+    constexpr static Move make_enpassant(Square from, Square to) noexcept
+    { return Move(from, to, ep_capture_tag{}); }
 
     [[nodiscard]]
     constexpr static Move make_castle(CastleKind kind) noexcept {
@@ -363,6 +347,9 @@ public:
     { return this->rep_ != rhs.rep_; }
 
 private:
+    struct ep_capture_tag {};
+    struct castle_tag {};
+
     constexpr Move(Square from, Square to, castle_tag) noexcept
         : rep_((to.value() << 0u) | (from.value() << 6u) | (Flags::CASTLE << 14u))
     {
@@ -374,6 +361,23 @@ private:
                (from == E8 && to == A8));
         assert(flags() == Flags::CASTLE);
     }
+
+    constexpr Move(Square from, Square to, ep_capture_tag) noexcept
+        : rep_((to.value() << 0u) | (from.value() << 6u) | (Flags::ENPASSANT << 14u))
+    {
+        assert(
+            (
+                (from.value() >= A4 && from.value() <= H4) &&
+                (to.value()   >= A3 && to.value()   <= H3)
+            )
+            ||
+            (
+                (from.value() >= A5 && from.value() <= H5) &&
+                (to.value()   >= A6 && to.value()   <= H6)
+            ));
+        assert(flags() == Flags::ENPASSANT);
+    }
+
 
     constexpr Move(Square from, Square to, PieceKind promo) noexcept
         : rep_(
