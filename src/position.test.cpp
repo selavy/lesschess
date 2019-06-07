@@ -428,14 +428,14 @@ TEST_CASE("Position::make_move")
             { Move(E7, E6), "r1bqkbnr/pp1p1ppp/2n1p3/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq - 0 5" },
             { Move(F1, E2), "r1bqkbnr/pp1p1ppp/2n1p3/8/3NP3/8/PPP1BPPP/RNBQK2R b KQkq - 1 5" },
             { Move(G8, F6), "r1bqkb1r/pp1p1ppp/2n1pn2/8/3NP3/8/PPP1BPPP/RNBQK2R w KQkq - 2 6" },
-            { Move::make_castle(Move::CastleKind::WHITE_KING_SIDE), "r1bqkb1r/pp1p1ppp/2n1pn2/8/3NP3/8/PPP1BPPP/RNBQ1RK1 b kq - 3 6", },
+            { Move::make_castle(CastleKind::WHITE_KING_SIDE), "r1bqkb1r/pp1p1ppp/2n1pn2/8/3NP3/8/PPP1BPPP/RNBQ1RK1 b kq - 3 6", },
             { Move(B7, B6), "r1bqkb1r/p2p1ppp/1pn1pn2/8/3NP3/8/PPP1BPPP/RNBQ1RK1 w kq - 0 7" },
             { Move(F1, E1), "r1bqkb1r/p2p1ppp/1pn1pn2/8/3NP3/8/PPP1BPPP/RNBQR1K1 b kq - 1 7" },
             { Move(C8, A6), "r2qkb1r/p2p1ppp/bpn1pn2/8/3NP3/8/PPP1BPPP/RNBQR1K1 w kq - 2 8" },
             { Move(B1, C3), "r2qkb1r/p2p1ppp/bpn1pn2/8/3NP3/2N5/PPP1BPPP/R1BQR1K1 b kq - 3 8" },
             { Move(D8, C7), "r3kb1r/p1qp1ppp/bpn1pn2/8/3NP3/2N5/PPP1BPPP/R1BQR1K1 w kq - 4 9" },
             { Move(C1, G5), "r3kb1r/p1qp1ppp/bpn1pn2/6B1/3NP3/2N5/PPP1BPPP/R2QR1K1 b kq - 5 9" },
-            { Move::make_castle(Move::CastleKind::BLACK_QUEEN_SIDE), "2kr1b1r/p1qp1ppp/bpn1pn2/6B1/3NP3/2N5/PPP1BPPP/R2QR1K1 w - - 6 10" },
+            { Move::make_castle(CastleKind::BLACK_QUEEN_SIDE), "2kr1b1r/p1qp1ppp/bpn1pn2/6B1/3NP3/2N5/PPP1BPPP/R2QR1K1 w - - 6 10" },
             { Move(E4, E5), "2kr1b1r/p1qp1ppp/bpn1pn2/4P1B1/3N4/2N5/PPP1BPPP/R2QR1K1 b - - 0 10" },
             { Move(D7, D5), "2kr1b1r/p1q2ppp/bpn1pn2/3pP1B1/3N4/2N5/PPP1BPPP/R2QR1K1 w - d6 0 11" },
             { Move(E5, D6, ep_capture_tag{}), "2kr1b1r/p1q2ppp/bpnPpn2/6B1/3N4/2N5/PPP1BPPP/R2QR1K1 b - - 0 11" },
@@ -546,9 +546,9 @@ TEST_CASE("Position::make_move")
         std::string original_fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
 
         using FEN = std::string;
-        std::vector<std::pair<Move::CastleKind, FEN>> test_cases = {
-            { Move::CastleKind::WHITE_KING_SIDE, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kq - 1 1" },
-            { Move::CastleKind::WHITE_QUEEN_SIDE, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR3R b kq - 1 1"},
+        std::vector<std::pair<CastleKind, FEN>> test_cases = {
+            { CastleKind::WHITE_KING_SIDE, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kq - 1 1" },
+            { CastleKind::WHITE_QUEEN_SIDE, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR3R b kq - 1 1"},
         };
 
         for (auto&& test_case: test_cases) {
@@ -576,9 +576,9 @@ TEST_CASE("Position::make_move")
         std::string original_fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1";
 
         using FEN = std::string;
-        std::vector<std::pair<Move::CastleKind, FEN>> test_cases = {
-            { Move::CastleKind::BLACK_KING_SIDE, "r4rk1/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQ - 1 2" },
-            { Move::CastleKind::BLACK_QUEEN_SIDE, "2kr3r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQ - 1 2" },
+        std::vector<std::pair<CastleKind, FEN>> test_cases = {
+            { CastleKind::BLACK_KING_SIDE, "r4rk1/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQ - 1 2" },
+            { CastleKind::BLACK_QUEEN_SIDE, "2kr3r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQ - 1 2" },
         };
 
         for (auto&& test_case: test_cases) {
@@ -658,9 +658,9 @@ TEST_CASE("Undo Move")
         Position position = Position::from_fen(original_fen);
         Position position_copy = position;
 
-        std::array<Move::CastleKind, 2> kinds = {
-            Move::CastleKind::WHITE_KING_SIDE,
-            Move::CastleKind::WHITE_QUEEN_SIDE,
+        std::array<CastleKind, 2> kinds = {
+            CastleKind::WHITE_KING_SIDE,
+            CastleKind::WHITE_QUEEN_SIDE,
         };
 
         for (auto&& kind: kinds) {
@@ -678,9 +678,9 @@ TEST_CASE("Undo Move")
         Position position = Position::from_fen(original_fen);
         Position position_copy = position;
 
-        std::array<Move::CastleKind, 2> kinds = {
-            Move::CastleKind::BLACK_KING_SIDE,
-            Move::CastleKind::BLACK_QUEEN_SIDE,
+        std::array<CastleKind, 2> kinds = {
+            CastleKind::BLACK_KING_SIDE,
+            CastleKind::BLACK_QUEEN_SIDE,
         };
 
         for (auto&& kind: kinds) {
@@ -873,10 +873,10 @@ TEST_CASE("Legal Move Check")
                 { Move(E8, F7), false },
                 { Move(E8, F7), false },
                 { Move(E4, E5), false },
-                { Move::make_castle(Move::CastleKind::WHITE_KING_SIDE),  false },
-                { Move::make_castle(Move::CastleKind::WHITE_QUEEN_SIDE), false },
-                { Move::make_castle(Move::CastleKind::BLACK_KING_SIDE),  false },
-                { Move::make_castle(Move::CastleKind::BLACK_QUEEN_SIDE), false },
+                { Move::make_castle(CastleKind::WHITE_KING_SIDE),  false },
+                { Move::make_castle(CastleKind::WHITE_QUEEN_SIDE), false },
+                { Move::make_castle(CastleKind::BLACK_KING_SIDE),  false },
+                { Move::make_castle(CastleKind::BLACK_QUEEN_SIDE), false },
             }
         },
 
@@ -1661,7 +1661,7 @@ TEST_CASE("generate_legal_moves")
                     Move(G2, G4),
                     Move(H2, H3),
                     Move(H2, H4),
-                    Move::make_castle(Move::CastleKind::WHITE_KING_SIDE),
+                    Move::make_castle(CastleKind::WHITE_KING_SIDE),
                 }
             },
         };

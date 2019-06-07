@@ -18,10 +18,10 @@ class Position {
 public:
     enum {
         CASTLE_NONE             = 0,
-        CASTLE_WHITE_KING_SIDE  = static_cast<u8>(Move::CastleKind::WHITE_KING_SIDE),
-        CASTLE_WHITE_QUEEN_SIDE = static_cast<u8>(Move::CastleKind::WHITE_QUEEN_SIDE),
-        CASTLE_BLACK_KING_SIDE  = static_cast<u8>(Move::CastleKind::BLACK_KING_SIDE),
-        CASTLE_BLACK_QUEEN_SIDE = static_cast<u8>(Move::CastleKind::BLACK_QUEEN_SIDE),
+        CASTLE_WHITE_KING_SIDE  = static_cast<u8>(CastleKind::WHITE_KING_SIDE),
+        CASTLE_WHITE_QUEEN_SIDE = static_cast<u8>(CastleKind::WHITE_QUEEN_SIDE),
+        CASTLE_BLACK_KING_SIDE  = static_cast<u8>(CastleKind::BLACK_KING_SIDE),
+        CASTLE_BLACK_QUEEN_SIDE = static_cast<u8>(CastleKind::BLACK_QUEEN_SIDE),
         CASTLE_WHITE = CASTLE_WHITE_KING_SIDE | CASTLE_WHITE_QUEEN_SIDE,
         CASTLE_BLACK = CASTLE_BLACK_KING_SIDE | CASTLE_BLACK_QUEEN_SIDE,
         CASTLE_ALL   = CASTLE_WHITE | CASTLE_BLACK,
@@ -80,7 +80,7 @@ public:
     { return _castle_rights; }
 
     [[nodiscard]]
-    bool castle_kind_allowed(Move::CastleKind kind) const noexcept
+    bool castle_kind_allowed(CastleKind kind) const noexcept
     { return (castle_flags() & static_cast<u8>(kind)) != 0; }
 
     [[nodiscard]]

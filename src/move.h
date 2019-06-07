@@ -244,6 +244,14 @@ std::ostream& operator<<(std::ostream& os, Square sq) noexcept;
 struct ep_capture_tag {};
 struct castle_tag {};
 
+// used as bitmask by Position
+enum class CastleKind : u8 {
+    WHITE_KING_SIDE  = 1 << 0,
+    WHITE_QUEEN_SIDE = 1 << 1,
+    BLACK_KING_SIDE  = 1 << 2,
+    BLACK_QUEEN_SIDE = 1 << 3,
+};
+
 class Move {
 public:
     enum Flags : u16 {
@@ -251,14 +259,6 @@ public:
         ENPASSANT = 1,
         PROMOTION = 2,
         CASTLE    = 3,
-    };
-
-    // used as bitmask by Position
-    enum class CastleKind {
-        WHITE_KING_SIDE  = 1 << 0,
-        WHITE_QUEEN_SIDE = 1 << 1,
-        BLACK_KING_SIDE  = 1 << 2,
-        BLACK_QUEEN_SIDE = 1 << 3,
     };
 
     Move() noexcept = default;
