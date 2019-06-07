@@ -552,7 +552,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
             *board &= ~from.mask();
             *board |= to.mask();
         } else {
-            _kings[side] = to; // to.value();
+            _kings[side] = to;
             if (side == WHITE) {
                 _castle_rights &= ~Position::CASTLE_WHITE;
             } else {
@@ -583,7 +583,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         assert(captured.empty());
         // TODO(peter): better name than epsq
         // NOTE(peter): :epsq: is the square that the contra pawn is on.
-        const Square epsq = side == WHITE ? to.value() - 8 : to.value() + 8;
+        const Square epsq = pawn_backward(side, to.value());
         *board &= ~from.mask();
         *board |= to.mask();
         _boards[Piece(contra, PAWN).value()] &= ~epsq.mask();

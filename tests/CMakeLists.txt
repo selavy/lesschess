@@ -6,6 +6,8 @@ add_executable(unittest
     "${PROJECT_SOURCE_DIR}/src/move.test.cpp"
     "${PROJECT_SOURCE_DIR}/src/position.cpp"
     "${PROJECT_SOURCE_DIR}/src/position.test.cpp"
+    "${PROJECT_SOURCE_DIR}/src/perft.cpp"
+    "${PROJECT_SOURCE_DIR}/src/perft.test.cpp"
     "${PROJECT_SOURCE_DIR}/src/detail/magic_tables.generated.cpp"
     )
 set_target_properties(unittest PROPERTIES CXX_STANDARD 17)

@@ -393,6 +393,9 @@ TEST_CASE("Position::make_move")
         std::string expect_fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
         Position expected = Position::from_fen(expect_fen);
         REQUIRE(position == expected);
+
+        position.undo_move(save, move);
+        REQUIRE(position == Position::from_fen(fen));
     }
 
     SECTION("1.e4 c5") {
@@ -412,6 +415,8 @@ TEST_CASE("Position::make_move")
         position.make_move(save, move);
         std::string expected_fen = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2";
         REQUIRE(position.dump_fen() == expected_fen);
+        position.undo_move(save, move);
+        REQUIRE(position == Position::from_fen(fen));
     }
 
     using FEN = std::string;
@@ -456,8 +461,12 @@ TEST_CASE("Position::make_move")
         for (auto&& test_case: test_cases) {
             auto&& move = std::get<0>(test_case);
             auto&& fen = std::get<1>(test_case);
+            auto orig_position = position;
             position.make_move(save, move);
             REQUIRE(position.dump_fen() == fen);
+            position.undo_move(save, move);
+            REQUIRE(position == orig_position);
+            position.make_move(save, move);
         }
     }
 
@@ -483,8 +492,12 @@ TEST_CASE("Position::make_move")
         for (auto&& test_case: test_cases) {
             auto&& move = std::get<0>(test_case);
             auto&& fen = std::get<1>(test_case);
+            auto orig_position = position;
             position.make_move(save, move);
             REQUIRE(position.dump_fen() == fen);
+            position.undo_move(save, move);
+            REQUIRE(position == orig_position);
+            position.make_move(save, move);
         }
     }
 
@@ -510,8 +523,12 @@ TEST_CASE("Position::make_move")
         for (auto&& test_case: test_cases) {
             auto&& move = std::get<0>(test_case);
             auto&& fen = std::get<1>(test_case);
+            auto orig_position = position;
             position.make_move(save, move);
             REQUIRE(position.dump_fen() == fen);
+            position.undo_move(save, move);
+            REQUIRE(position == orig_position);
+            position.make_move(save, move);
         }
     }
 
@@ -529,8 +546,11 @@ TEST_CASE("Position::make_move")
         Position position = Position::from_fen(starting_position);
         Savepos save;
         auto move = Move::make_promotion(H7, G8, QUEEN);
+        auto orig_position = position;
         position.make_move(save, move);
         REQUIRE(position.dump_fen() == "4k1Q1/8/8/8/8/8/8/4K3 b - - 0 1");
+        position.undo_move(save, move);
+        REQUIRE(position == orig_position);
     }
 
     SECTION("Make move white castle") {
@@ -557,10 +577,12 @@ TEST_CASE("Position::make_move")
             Position position = Position::from_fen(original_fen);
             Move move = Move::make_castle(kind);
             Savepos save;
+            auto orig_position = position;
             position.make_move(save, move);
             REQUIRE(position.dump_fen() == expected);
+            position.undo_move(save, move);
+            REQUIRE(position == orig_position);
         }
-
     }
 
     SECTION("Make move black castle") {
@@ -585,14 +607,15 @@ TEST_CASE("Position::make_move")
             auto&& kind = std::get<0>(test_case);
             auto&& expected = std::get<1>(test_case);
             Position position = Position::from_fen(original_fen);
+            auto orig_position = position;
             Move move = Move::make_castle(kind);
             Savepos save;
             position.make_move(save, move);
             REQUIRE(position.dump_fen() == expected);
+            position.undo_move(save, move);
+            REQUIRE(position == orig_position);
         }
-
     }
-
 }
 
 TEST_CASE("Undo Move")
