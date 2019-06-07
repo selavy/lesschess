@@ -1598,6 +1598,45 @@ TEST_CASE("generate_legal_moves")
                     Move::make_promotion(H2, H1, QUEEN),
                 }
             },
+            {
+                "| | | | |k| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | |p|P| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | |p|\n" \
+                "| | | | |K| | | |\n" \
+                "w - d6 0 2",
+                {
+                    Move(E1, D1),
+                    Move(E1, D2),
+                    Move(E1, E2),
+                    Move(E1, F1),
+                    Move(E1, F2),
+                    Move(E5, E6),
+                    Move(E5, D6, ep_capture_tag{}),
+                }
+            },
+            {
+                "| | | | |k| | | |\n" \
+                "| | | | |r| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | |p|P| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | |p|\n" \
+                "| | | | |K| | | |\n" \
+                "w - d6 0 2",
+                {
+                    Move(E1, D1),
+                    Move(E1, D2),
+                    Move(E1, E2),
+                    Move(E1, F1),
+                    Move(E1, F2),
+                    Move(E5, E6),
+                }
+            },
         };
 
         for (auto& t : ts) {
