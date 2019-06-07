@@ -982,6 +982,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
             int frsq = pawn_backward(side, tosq);
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             moves = add_pawn_moves_to_square(tosq, frsq, moves);
+            posmoves = clear_lsb(posmoves);
         }
     }
 
@@ -1348,7 +1349,7 @@ Move* Position::_generate_king_moves(Square ksq, u64 targets, Move* moves) noexc
     u64 posmoves = king_attacks(ksq.value()) & targets;
     while (posmoves) {
         int to = lsb(posmoves);
-        *moves++ = Move(ksq.value(), to);
+        *moves++ = Move(ksq, to);
         posmoves = clear_lsb(posmoves);
     }
     return moves;
