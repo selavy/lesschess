@@ -362,10 +362,9 @@ public:
     { return this->rep_ != rhs.rep_; }
 
 private:
-    constexpr Move(u8 from, u8 to, castle_tag) noexcept
-        : rep_((to << 0u) | (from << 6u) | (Flags::CASTLE << 14u))
+    constexpr Move(Square from, Square to, castle_tag) noexcept
+        : rep_((to.value() << 0u) | (from.value() << 6u) | (Flags::CASTLE << 14u))
     {
-        // TODO(peter): move intuitive to add ctor Move(castle_type)
         // NOTE(peter): For castle representation, :to: is the square of the rook
         // so I can reuse a mask in make_move()/undo_move()
         assert((from == E1 && to == H1) ||
