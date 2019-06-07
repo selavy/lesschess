@@ -18,10 +18,10 @@ class Position {
 public:
     enum {
         CASTLE_NONE             = 0,
-        CASTLE_WHITE_KING_SIDE  = 1 << 0,
-        CASTLE_WHITE_QUEEN_SIDE = 1 << 1,
-        CASTLE_BLACK_KING_SIDE  = 1 << 2,
-        CASTLE_BLACK_QUEEN_SIDE = 1 << 3,
+        CASTLE_WHITE_KING_SIDE  = static_cast<u8>(Move::CastleKind::WHITE_KING_SIDE),
+        CASTLE_WHITE_QUEEN_SIDE = static_cast<u8>(Move::CastleKind::WHITE_QUEEN_SIDE),
+        CASTLE_BLACK_KING_SIDE  = static_cast<u8>(Move::CastleKind::BLACK_KING_SIDE),
+        CASTLE_BLACK_QUEEN_SIDE = static_cast<u8>(Move::CastleKind::BLACK_QUEEN_SIDE),
         CASTLE_WHITE = CASTLE_WHITE_KING_SIDE | CASTLE_WHITE_QUEEN_SIDE,
         CASTLE_BLACK = CASTLE_BLACK_KING_SIDE | CASTLE_BLACK_QUEEN_SIDE,
         CASTLE_ALL   = CASTLE_WHITE | CASTLE_BLACK,

@@ -471,13 +471,13 @@ TEST_CASE("Position::make_move")
 		// | | | | | | | | |
 		// | | | | |K| | | |
 		// w KQkq - 0 1
-        FEN starting_position = "4k3/7P/8/8/8/8/8/4K3 w KQkq - 0 1";
+        FEN starting_position = "4k3/7P/8/8/8/8/8/4K3 w - - 0 1";
         Position position = Position::from_fen(starting_position);
         Savepos save;
 
         std::vector<TestCase> test_cases = {
-            { Move::make_promotion(H7, H8, ROOK), "4k2R/8/8/8/8/8/8/4K3 b KQkq - 0 1" }, // h8=R
-            { Move(E8, D7),                       "7R/3k4/8/8/8/8/8/4K3 w KQ - 1 2"   }, // Kd7
+            { Move::make_promotion(H7, H8, ROOK), "4k2R/8/8/8/8/8/8/4K3 b - - 0 1" }, // h8=R
+            { Move(E8, D7),                       "7R/3k4/8/8/8/8/8/4K3 w - - 1 2" }, // Kd7
         };
 
         for (auto&& test_case: test_cases) {
@@ -497,14 +497,14 @@ TEST_CASE("Position::make_move")
 		// | | | | | | | | |
 		// | | | | | | | |p|
 		// | | | | |K| | | |
-		// b KQkq - 0 1
-        FEN starting_position = "4k3/8/8/8/8/8/7p/4K3 b KQkq - 0 1";
+		// b - - 0 1
+        FEN starting_position = "4k3/8/8/8/8/8/7p/4K3 b - - 0 1";
         Position position = Position::from_fen(starting_position);
         Savepos save;
 
         std::vector<TestCase> test_cases = {
-            { Move::make_promotion(H2, H1, KNIGHT), "4k3/8/8/8/8/8/8/4K2n w KQkq - 0 2" }, // h1=N
-            { Move(E1, D2),                         "4k3/8/8/8/8/8/3K4/7n b kq - 1 2"   }, // Kd2
+            { Move::make_promotion(H2, H1, KNIGHT), "4k3/8/8/8/8/8/8/4K2n w - - 0 2" }, // h1=N
+            { Move(E1, D2),                         "4k3/8/8/8/8/8/3K4/7n b - - 1 2"   }, // Kd2
         };
 
         for (auto&& test_case: test_cases) {
@@ -810,9 +810,9 @@ TEST_CASE("FEN to ASCII and back")
             "| | | | | | | | |\n" \
             "| | | | | | | |p|\n" \
             "| | | | |K| | | |\n" \
-            "b KQkq - 0 1",
+            "b - - 0 1",
 
-            "4k3/8/8/8/8/8/7p/4K3 b KQkq - 0 1"
+            "4k3/8/8/8/8/8/7p/4K3 b - - 0 1"
         }
 
     };
@@ -1635,6 +1635,33 @@ TEST_CASE("generate_legal_moves")
                     Move(E1, F1),
                     Move(E1, F2),
                     Move(E5, E6),
+                }
+            },
+            {
+                "| | | | |k| | |r|\n" \
+                "| | | | |p|p|p|p|\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | |P|P|P|P|\n" \
+                "| | | | |K| | |R|\n" \
+                "w K - 0 2",
+                {
+                    Move(E1, D1),
+                    Move(E1, D2),
+                    Move(E1, F1),
+                    Move(H1, F1),
+                    Move(H1, G1),
+                    Move(E2, E3),
+                    Move(E2, E4),
+                    Move(F2, F3),
+                    Move(F2, F4),
+                    Move(G2, G3),
+                    Move(G2, G4),
+                    Move(H2, H3),
+                    Move(H2, H4),
+                    Move::make_castle(Move::CastleKind::WHITE_KING_SIDE),
                 }
             },
         };

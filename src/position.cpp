@@ -1122,6 +1122,23 @@ void Position::_validate() const noexcept {
     assert(counts[Piece(BLACK, KING).value()] == 1);
     assert(counts[Piece(WHITE, PAWN).value()] <= 8);
     assert(counts[Piece(BLACK, PAWN).value()] <= 8);
+
+    if (castle_kind_allowed(Move::CastleKind::WHITE_KING_SIDE)) {
+        assert(piece_on_square(E1) == Piece(WHITE, KING));
+        assert(piece_on_square(H1) == Piece(WHITE, ROOK));
+    }
+    if (castle_kind_allowed(Move::CastleKind::WHITE_QUEEN_SIDE)) {
+        assert(piece_on_square(E1) == Piece(WHITE, KING));
+        assert(piece_on_square(A1) == Piece(WHITE, ROOK));
+    }
+    if (castle_kind_allowed(Move::CastleKind::BLACK_KING_SIDE)) {
+        assert(piece_on_square(E8) == Piece(BLACK, KING));
+        assert(piece_on_square(H8) == Piece(BLACK, ROOK));
+    }
+    if (castle_kind_allowed(Move::CastleKind::BLACK_QUEEN_SIDE)) {
+        assert(piece_on_square(E8) == Piece(BLACK, KING));
+        assert(piece_on_square(A8) == Piece(BLACK, ROOK));
+    }
 #endif
 }
 

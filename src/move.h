@@ -253,11 +253,12 @@ public:
         CASTLE    = 3,
     };
 
+    // used as bitmask by Position
     enum class CastleKind {
-        WHITE_KING_SIDE,
-        WHITE_QUEEN_SIDE,
-        BLACK_KING_SIDE,
-        BLACK_QUEEN_SIDE,
+        WHITE_KING_SIDE  = 1 << 0,
+        WHITE_QUEEN_SIDE = 1 << 1,
+        BLACK_KING_SIDE  = 1 << 2,
+        BLACK_QUEEN_SIDE = 1 << 3,
     };
 
     Move() noexcept = default;
