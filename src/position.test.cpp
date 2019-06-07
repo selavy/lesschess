@@ -476,8 +476,8 @@ TEST_CASE("Position::make_move")
         Savepos save;
 
         std::vector<TestCase> test_cases = {
-            { Move(H7, H8, ROOK), "4k2R/8/8/8/8/8/8/4K3 b KQkq - 0 1" }, // h8=R
-            { Move(E8, D7),       "7R/3k4/8/8/8/8/8/4K3 w KQ - 1 2"   }, // Kd7
+            { Move::make_promotion(H7, H8, ROOK), "4k2R/8/8/8/8/8/8/4K3 b KQkq - 0 1" }, // h8=R
+            { Move(E8, D7),                       "7R/3k4/8/8/8/8/8/4K3 w KQ - 1 2"   }, // Kd7
         };
 
         for (auto&& test_case: test_cases) {
@@ -503,8 +503,8 @@ TEST_CASE("Position::make_move")
         Savepos save;
 
         std::vector<TestCase> test_cases = {
-            { Move(H2, H1, KNIGHT), "4k3/8/8/8/8/8/8/4K2n w KQkq - 0 2" }, // h1=N
-            { Move(E1, D2),         "4k3/8/8/8/8/8/3K4/7n b kq - 1 2"   }, // Kd2
+            { Move::make_promotion(H2, H1, KNIGHT), "4k3/8/8/8/8/8/8/4K2n w KQkq - 0 2" }, // h1=N
+            { Move(E1, D2),                         "4k3/8/8/8/8/8/3K4/7n b kq - 1 2"   }, // Kd2
         };
 
         for (auto&& test_case: test_cases) {
@@ -528,7 +528,7 @@ TEST_CASE("Position::make_move")
         FEN starting_position = "4k1n1/7P/8/8/8/8/8/4K3 w - - 0 1";
         Position position = Position::from_fen(starting_position);
         Savepos save;
-        Move move(H7, G8, QUEEN);
+        auto move = Move::make_promotion(H7, G8, QUEEN);
         position.make_move(save, move);
         REQUIRE(position.dump_fen() == "4k1Q1/8/8/8/8/8/8/4K3 b - - 0 1");
     }
@@ -705,7 +705,7 @@ TEST_CASE("Undo Move")
 
         for (auto kind: kinds) {
             position = position_copy;
-            Move move(H7, H8, kind);
+            auto move = Move::make_promotion(H7, H8, kind);
             position.make_move(save, move);
             position.undo_move(save, move);
             REQUIRE(position == position_copy);
@@ -724,7 +724,7 @@ TEST_CASE("Undo Move")
 
         for (auto kind: kinds) {
             position = position_copy;
-            Move move(A2, A1, kind);
+            auto move = Move::make_promotion(A2, A1, kind);
             position.make_move(save, move);
             position.undo_move(save, move);
             REQUIRE(position == position_copy);
@@ -1170,7 +1170,7 @@ TEST_CASE("_generate_attacked")
     }
 }
 
-TEST_CASE("generate_evasions")
+TEST_CASE("generate_legal_moves")
 {
     using MoveList = std::vector<Move>;
 
@@ -1185,7 +1185,6 @@ TEST_CASE("generate_evasions")
 
     SECTION("evasions")
     {
-
         std::vector<std::pair<std::string, MoveList>> ts = {
             //
             // more than 1 checker
@@ -1463,4 +1462,37 @@ TEST_CASE("generate_evasions")
         }
 
     } // evasions
+
+    SECTION("non-evasions")
+    {
+        std::vector<std::pair<std::string, MoveList>> ts = {
+            {
+                "| | | | |k| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | |P| | | |\n" \
+                "| | | | |K| | | |\n" \
+                "w - - 0 2",
+                {
+                    Move(E1, D1),
+                    Move(E1, F1),
+                    Move(E1, D2),
+                    Move(E1, F2),
+                    Move(E2, E3),
+                    Move(E2, E4),
+                }
+            },
+        };
+
+        for (auto& t : ts) {
+                auto position = Position::from_ascii(std::get<0>(t));
+                auto expect = std::get<1>(t);
+                std::sort(expect.begin(), expect.end());
+                auto result = gen_moves(position);
+                REQUIRE(expect == result);
+        }
+    }
 }

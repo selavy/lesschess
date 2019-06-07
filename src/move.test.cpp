@@ -79,7 +79,7 @@ TEST_CASE("Move", "move representation construction checks") {
      }
 
      SECTION("Promotion move") {
-         constexpr Move move{E2, E1, ROOK};
+         constexpr auto move = Move::make_promotion(E2, E1, ROOK);
          REQUIRE(move.from() == E2);
          REQUIRE(move.to()   == E1);
          static_assert(move.from() == E2, "");

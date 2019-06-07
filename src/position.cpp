@@ -972,7 +972,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
     moves = _generate_bishop_moves(bishops | queens, occupied, opp_or_empty, moves);
     moves = _generate_rook_moves(rooks | queens, occupied, opp_or_empty, moves);
     moves = _generate_king_moves(ksq, opp_or_empty, moves);
-    moves = _generate_castling(side, ksq.value(), moves);
+    moves = _generate_castle_moves(side, ksq, moves);
 
     // 1-square pawn moves
     {
@@ -1354,7 +1354,7 @@ Move* Position::_generate_king_moves(Square ksq, u64 targets, Move* moves) noexc
     return moves;
 }
 
-Move* Position::_generate_castling(Color side, Square ksq, Move* moves) const noexcept
+Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) const noexcept
 {
     Color contra = flip_color(side);
 

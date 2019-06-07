@@ -169,7 +169,7 @@ private:
     static Move* _generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, Move* moves) noexcept;
     static Move* _generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move* moves) noexcept;
     static Move* _generate_king_moves(Square ksq, u64 targets, Move* moves) noexcept;
-    Move* _generate_castling(Color side, Square ksq, Move* moves) const noexcept;
+    Move* _generate_castle_moves(Color side, Square ksq, Move* moves) const noexcept;
     // bitboard of pieces from `side` that are blocking checking on `kingcolor` king
     Move* _generate_evasions(u64 checkers, Move* moves) const noexcept;
     Move* _generate_non_evasions(Move* moves) const noexcept;

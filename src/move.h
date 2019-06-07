@@ -262,19 +262,27 @@ public:
 
     Move() noexcept = default;
 
-    constexpr Move(u8 from, u8 to) noexcept
-        : rep_((to << 0u) | (from << 6u))
+    constexpr Move(Square from, Square to) noexcept
+        : rep_((to.value() << 0u) | (from.value() << 6u))
     {
-        assert(from >= A1 && from <= H8);
-        assert(to   >= A1 && to   <= H8);
+        assert(from.value() >= A1 && from.value() <= H8);
+        assert(to.value()   >= A1 && to.value()   <= H8);
         assert(flags() == Flags::NONE);
     }
 
-    constexpr Move(u8 from, u8 to, ep_capture_tag) noexcept
-        : rep_((to << 0u) | (from << 6u) | (Flags::ENPASSANT << 14u))
+    constexpr Move(Square from, Square to, ep_capture_tag) noexcept
+        : rep_((to.value() << 0u) | (from.value() << 6u) | (Flags::ENPASSANT << 14u))
     {
-        assert(((from >= A4 && from <= H4) && (to >= A3 && to <= H3)) ||
-               ((from >= A5 && from <= H5) && (to >= A6 && to <= H6)));
+        assert(
+            (
+                (from.value() >= A4 && from.value() <= H4) &&
+                (to.value()   >= A3 && to.value()   <= H3)
+            )
+            ||
+            (
+                (from.value() >= A5 && from.value() <= H5) &&
+                (to.value()   >= A6 && to.value()   <= H6)
+            ));
         assert(flags() == Flags::ENPASSANT);
     }
 
@@ -291,18 +299,8 @@ public:
         return Move();
     }
 
-    constexpr Move(u8 from, u8 to, u8 promo) noexcept
-        : rep_((to << 0u) | (from << 6u) | (promo << 12u) | (Flags::PROMOTION << 14u))
-    {
-        assert((from >= A2 && from <= H2) || (from >= A7 && from <= H7));
-        assert((to   >= A1 && to   <= H1) || (to   >= A8 && to   <= H8));
-        assert(promo == KNIGHT | promo == BISHOP | promo == ROOK | promo == QUEEN);
-        assert(promotion() == promo);
-        assert(flags() == Flags::PROMOTION);
-    }
-
-    static Move make_promotion(Square from, Square to, PieceKind promotion) noexcept
-    { return Move(from.value(), to.value(), static_cast<u8>(promotion)); }
+    static constexpr Move make_promotion(Square from, Square to, PieceKind promotion) noexcept
+    { return Move(from, to, promotion); }
 
     [[nodiscard]]
     constexpr CastleKind castle_kind() const noexcept {
@@ -375,6 +373,27 @@ private:
                (from == E8 && to == H8) ||
                (from == E8 && to == A8));
         assert(flags() == Flags::CASTLE);
+    }
+
+    constexpr Move(Square from, Square to, PieceKind promo) noexcept
+        : rep_(
+                (to.value()       <<  0u) |
+                (from.value()     <<  6u) |
+                (promo            << 12u) |
+                (Flags::PROMOTION << 14u)
+          )
+    {
+        assert(
+            (from.value() >= A2 && from.value() <= H2) ||
+            (from.value() >= A7 && from.value() <= H7)
+        );
+        assert(
+            (to.value() >= A1 && to.value() <= H1) ||
+            (to.value() >= A8 && to.value() <= H8)
+        );
+        assert(promo == KNIGHT | promo == BISHOP | promo == ROOK | promo == QUEEN);
+        assert(promotion() == promo);
+        assert(flags() == Flags::PROMOTION);
     }
 
     u16 rep_;
