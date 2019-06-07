@@ -1640,11 +1640,12 @@ TEST_CASE("generate_legal_moves")
         };
 
         for (auto& t : ts) {
-                auto position = Position::from_ascii(std::get<0>(t));
-                auto expect = std::get<1>(t);
-                std::sort(expect.begin(), expect.end());
-                auto result = gen_moves(position);
-                REQUIRE(result == expect);
+            auto desc = std::get<0>(t);
+            auto position = Position::from_ascii(desc);
+            auto expect = std::get<1>(t);
+            std::sort(expect.begin(), expect.end());
+            auto result = gen_moves(position);
+            REQUIRE(result == expect);
         }
     }
 }

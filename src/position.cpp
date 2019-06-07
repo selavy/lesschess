@@ -762,6 +762,10 @@ int Position::generate_legal_moves(Move* moves) const noexcept
         _generate_evasions(checkers, moves) : _generate_non_evasions(moves);
 
     auto must_double_check = [&](Move move) {
+        // need to double check legality if:
+        //   + is a king move (but not castling)
+        //   + there are pinned pieces
+        //   + the move is en passant
         return move.from() == ksq || pinned || move.is_enpassant();
     };
 
@@ -769,10 +773,6 @@ int Position::generate_legal_moves(Move* moves) const noexcept
     // where we need to double-check the legality, if they are not legal, then
     // swap with the last element.
     while (cur != end) {
-        // need to double check legality if:
-        //   + is a king move
-        //   + there are pinned pieces
-        //   + the move is en passant
         if (must_double_check(*cur) && !_is_legal(pinned, *cur)) {
             *cur = *(--end); // swap and pop idiom
         } else {
@@ -1193,7 +1193,7 @@ bool Position::is_legal_move(Move move) const noexcept
         if (tosq.value() != _ep_target) {
             return false;
         }
-        auto capture_sq = Square(side == WHITE ? tosq.value() - 8 : tosq.value() + 8);
+        auto capture_sq = Square(pawn_backward(side, tosq.value()));
         auto capture_pc = piece_on_square(capture_sq);
         if (capture_pc.empty() || capture_pc.color() != contra) {
             return false;
@@ -1285,31 +1285,41 @@ bool Position::_is_legal(u64 pinned, Move move) const noexcept
     Square ksq = _kings[side];
 
     if (move.is_enpassant()) {
-        // make the move and see if there are any checks post-move
-        auto capture_sq = Square(side == WHITE ? tosq.value() - 8 : tosq.value() + 8);
+        auto capture_sq = Square(pawn_backward(side, tosq.value()));
         u64 prev_occupied = _occupied();
         u64 queens = _bboard(contra, QUEEN);
         u64 rooks = _bboard(contra, ROOK);
         u64 bishops = _bboard(contra, BISHOP);
-        u64 occupied = (prev_occupied ^ frsq.mask() ^ capture_sq.mask()) | tosq.mask();
-        u64 straight_attacks = rook_attacks(ksq.value(), occupied) & (queens | rooks);
+        // make the move and see if there are any checks post-move
+        assert(piece_on_square(tosq).empty() == true);
+        assert(piece_on_square(frsq) == Piece(side, PAWN));
+        assert(piece_on_square(capture_sq) == Piece(contra, PAWN));
+        assert((prev_occupied & tosq.mask()) == 0);
+        assert((prev_occupied & frsq.mask()) != 0);
+        assert((prev_occupied & capture_sq.mask()) != 0);
+        u64 occupied = prev_occupied ^ frsq.mask() ^ capture_sq.mask() | tosq.mask();
+        assert((occupied & tosq.mask()) != 0);
+        assert((occupied & frsq.mask()) == 0);
+        assert((occupied & capture_sq.mask()) == 0);
+        u64 straight_attacks = rook_attacks(ksq.value(),   occupied) & (queens | rooks);
         u64 diagonal_attacks = bishop_attacks(ksq.value(), occupied) & (queens | bishops);
         return (straight_attacks | diagonal_attacks) == 0;
     }
 
     if (piece_on_square(move.from()).kind() == KING) {
-        // don't need to remove the king before checking this, because if
-        // the king was "blocking" a ray, then he would already be in check.
+        // don't need to remove the king before checking this, because the king
+        // can't block a ray.
         return !attacks(contra, tosq);
     }
 
+    // is the piece pinned?
     if (pinned == 0 || (pinned & frsq.mask()) == 0) {
         return true;
     }
 
-    // trying to move a potentially pinned piece
+    // trying to move a potentially pinned piece, will it still be pinned after moving?
     assert((pinned & frsq.mask()) != 0);
-    return !lined_up(frsq.value(), tosq.value(), _kings[side].value());
+    return lined_up(frsq.value(), tosq.value(), _kings[side].value());
 }
 
 Move* Position::_generate_knight_moves(u64 knights, u64 targets, Move* moves) noexcept
