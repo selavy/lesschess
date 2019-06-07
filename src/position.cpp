@@ -215,7 +215,6 @@ Position Position::from_ascii(std::string_view ascii)
         ++it;
     };
 
-    expect('\n');
     for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
             if (it == end) {
@@ -424,7 +423,7 @@ std::string Position::dump_fen() const noexcept
 }
 
 std::string fen_to_ascii(std::string fen) {
-    std::string result = "\n|";
+    std::string result = "|";
     int rows = 0;
     auto it = fen.begin();
     for (; it != fen.end(); ++it) {

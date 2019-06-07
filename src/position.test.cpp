@@ -760,7 +760,6 @@ TEST_CASE("FEN to ASCII and back")
 {
     std::vector<std::pair<std::string, std::string>> fens = {
         {
-            "\n"                  \
             "|r| |b|k| | | |r|\n" \
             "|p| | |p|B|p|N|p|\n" \
             "|n| | | | |n| | |\n" \
@@ -775,7 +774,6 @@ TEST_CASE("FEN to ASCII and back")
         },
 
         {
-            "\n"                  \
             "|r|n|b|q|k|b|n|r|\n" \
             "|p|p|p|p|p|p|p|p|\n" \
             "| | | | | | | | |\n" \
@@ -790,7 +788,6 @@ TEST_CASE("FEN to ASCII and back")
         },
 
         {
-            "\n"                  \
             "| | | | |k| |n| |\n" \
             "| | | | | | | |P|\n" \
             "| | | | | | | | |\n" \
@@ -805,7 +802,6 @@ TEST_CASE("FEN to ASCII and back")
         },
 
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -835,7 +831,6 @@ TEST_CASE("Square is Attacked?")
     SECTION("Immortal Game Position")
     {
         std::string position =
-            "\n"                  \
             "|r| |b|k| | | |r|\n" \
             "|p| | |p|B|p|N|p|\n" \
             "|n| | | | |n| | |\n" \
@@ -864,7 +859,6 @@ TEST_CASE("Legal Move Check")
     using TestMove = std::pair<Move, bool>;
     std::vector<std::pair<std::string, std::vector<TestMove>>> tests = {
         {
-            "\n"                  \
             "|r|n|b|q|k|b|n|r|\n" \
             "|p|p|p|p|p|p|p|p|\n" \
             "| | | | | | | | |\n" \
@@ -887,7 +881,6 @@ TEST_CASE("Legal Move Check")
         },
 
         {
-            "\n"                  \
             "|r|n|b|q|k|b|n|r|\n" \
             "|p|p|p| |p|p|p|p|\n" \
             "| | | | | | | | |\n" \
@@ -942,7 +935,6 @@ TEST_CASE("_generate_checkers")
     using Squares = std::initializer_list<int>;
     std::vector<std::tuple<std::string, Color, Squares>> ts = {
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -956,7 +948,6 @@ TEST_CASE("_generate_checkers")
             { E2 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -970,7 +961,6 @@ TEST_CASE("_generate_checkers")
             {}
         },
         {
-            "\n"                  \
             "|r|n|b|q|k|b|n|r|\n" \
             "|p|p|p| |p|p|p|p|\n" \
             "| | | | | | | | |\n" \
@@ -984,7 +974,6 @@ TEST_CASE("_generate_checkers")
             {}
         },
         {
-            "\n"                  \
             "|r|n|b|q|k|b|n|r|\n" \
             "|p|p|p| |p|p|p|p|\n" \
             "| | | | | | | | |\n" \
@@ -998,7 +987,6 @@ TEST_CASE("_generate_checkers")
             { B5 }
         },
         {
-            "\n"                  \
             "|r|n|b|q|k|b|n|r|\n" \
             "|p|p|p| |p|p|p|p|\n" \
             "| | | | | |N| | |\n" \
@@ -1012,7 +1000,6 @@ TEST_CASE("_generate_checkers")
             { B5, F6 }
         },
         {
-            "\n"                  \
             "|r|n|b|q|k|b|n|r|\n" \
             "|p|p|p| |p|p|p|p|\n" \
             "| | | | | | | | |\n" \
@@ -1042,7 +1029,6 @@ TEST_CASE("_generate_attacked")
     using Squares = std::initializer_list<int>;
     std::vector<std::tuple<std::string, Color, Squares>> tcs = {
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1052,12 +1038,10 @@ TEST_CASE("_generate_attacked")
             "| | | | | | | | |\n" \
             "| | | | |K| | | |\n" \
             "w - - 0 2",
-
             WHITE,
             { D1, D2, E2, F2, F1 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1067,12 +1051,10 @@ TEST_CASE("_generate_attacked")
             "| | | | | | | | |\n" \
             "| | | | |K| | | |\n" \
             "b - - 0 2",
-
             BLACK,
             { D8, D7, E7, F7, F8 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1082,12 +1064,10 @@ TEST_CASE("_generate_attacked")
             "| | | | |P| | | |\n" \
             "| | | | |K| | | |\n" \
             "b - - 0 2",
-
             WHITE,
             { D1, D2, D3, E2, F1, F2, F3 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1097,12 +1077,10 @@ TEST_CASE("_generate_attacked")
             "| | | | | | | |P|\n" \
             "| | | | |K| | | |\n" \
             "b - - 0 2",
-
             WHITE,
             { D1, D2, E2, F1, F2, G3 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1112,12 +1090,10 @@ TEST_CASE("_generate_attacked")
             "|P| | | | | | | |\n" \
             "| | | | |K| | | |\n" \
             "b - - 0 2",
-
             WHITE,
             { D1, D2, E2, F1, F2, B3 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1127,12 +1103,10 @@ TEST_CASE("_generate_attacked")
             "| | | | |B| | | |\n" \
             "| | | | |K| | | |\n" \
             "b - - 0 2",
-
             WHITE,
             { D1, D2, E2, F1, F2, D3, C4, B5, A6, F3, G4, H5 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1142,12 +1116,10 @@ TEST_CASE("_generate_attacked")
             "| | | | |N| | | |\n" \
             "| | | | |K| | | |\n" \
             "b - - 0 2",
-
             WHITE,
             { D1, D2, E2, F1, F2, G1, G3, F4, D4, C3, C1 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1157,12 +1129,10 @@ TEST_CASE("_generate_attacked")
             "| | | | |R| | | |\n" \
             "| | | | |K| | | |\n" \
             "b - - 0 2",
-
             WHITE,
             { D1, D2, E2, F1, F2, A2, B2, C2, D2, F2, G2, H2, E1, E3, E4, E5, E6, E7, E8 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1172,13 +1142,11 @@ TEST_CASE("_generate_attacked")
             "| | | | |Q| | | |\n" \
             "| | | | |K| | | |\n" \
             "b - - 0 2",
-
             WHITE,
             { D1, D2, E2, F1, F2, A2, B2, C2, D2, F2, G2, H2, E1, E3, E4, E5, E6, E7, E8,
               D1, F3, G4, H5, F1, D3, C4, B5, A6 }
         },
         {
-            "\n"                  \
             "| | | | |k| | | |\n" \
             "| | | | | | | | |\n" \
             "| | | | | | | | |\n" \
@@ -1188,7 +1156,6 @@ TEST_CASE("_generate_attacked")
             "| | | |P|Q|P| | |\n" \
             "| | | | |K| | | |\n" \
             "b - - 0 2",
-
             WHITE,
             { D1, D2, D3, E1, E2, E3, F1, F2, F3, C3, G3 }
         }
@@ -1216,297 +1183,311 @@ TEST_CASE("generate_evasions")
         return moves;
     };
 
-    std::vector<std::pair<std::string, MoveList>> ts = {
-        //
-        // more than 1 checker
-        //
-        {
-            "\n"                  \
-            "| | | | |k| | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | |B| | |N| | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | |P|P|P| | |\n" \
-            "| | | | |K| | | |\n" \
-            "b - - 0 2",
-            {
-                Move(E8, D8),
-                Move(E8, E7),
-                Move(E8, F8),
-                Move(E8, F7),
-            }
-        },
-        {
-            "\n"                  \
-            "| | | | |k| | | |\n" \
-            "| | | |p|p|p| | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| |b| |n| |n| | |\n" \
-            "| | | |P|P|P| | |\n" \
-            "| | | | |K| | | |\n" \
-            "w - - 0 2",
-            {
-                Move(E1, F1),
-            }
-        },
-        {
-            "\n"                  \
-            "| | | | |k| | | |\n" \
-            "| | | |p|p|p| | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | |n| |n| |b|\n" \
-            "| | | |P|P| | | |\n" \
-            "| | | | |K| | | |\n" \
-            "w - - 0 2",
-            {
-                Move(E1, D1),
-            }
-        },
+    SECTION("evasions")
+    {
 
-        //
-        // evade with en passant capture
-        //
-        {
-            "\n"                  \
-            "| | | | |k| | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | |P|p| | | |\n" \
-            "| | | | | |K| | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "w - e6 0 2",
+        std::vector<std::pair<std::string, MoveList>> ts = {
+            //
+            // more than 1 checker
+            //
             {
-                Move(D5, E6, ep_capture_tag{}),
+                "| | | | |k| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | |B| | |N| | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | |P|P|P| | |\n" \
+                "| | | | |K| | | |\n" \
+                "b - - 0 2",
+                {
+                    Move(E8, D8),
+                    Move(E8, E7),
+                    Move(E8, F8),
+                    Move(E8, F7),
+                }
+            },
+            {
+                "| | | | |k| | | |\n" \
+                "| | | |p|p|p| | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| |b| |n| |n| | |\n" \
+                "| | | |P|P|P| | |\n" \
+                "| | | | |K| | | |\n" \
+                "w - - 0 2",
+                {
+                    Move(E1, F1),
+                }
+            },
+            {
+                "| | | | |k| | | |\n" \
+                "| | | |p|p|p| | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | |n| |n| |b|\n" \
+                "| | | |P|P| | | |\n" \
+                "| | | | |K| | | |\n" \
+                "w - - 0 2",
+                {
+                    Move(E1, D1),
+                }
+            },
 
-                // King Moves
-                Move(F4, E4),
-                Move(F4, E3),
-                Move(F4, F3),
-                Move(F4, G3),
-                Move(F4, G4),
-                Move(F4, F5),
-                Move(F4, G5),
+            //
+            // evade with en passant capture
+            //
+            {
+                "| | | | |k| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | |P|p| | | |\n" \
+                "| | | | | |K| | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "w - e6 0 2",
+                {
+                    Move(D5, E6, ep_capture_tag{}),
 
-                // King captures pawn
-                Move(F4, E5),
-            }
-        },
-        {
-            "\n"                  \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | |R| |\n" \
-            "| | | |k| | | | |\n" \
-            "| | | |p|P| |N| |\n" \
-            "| | | | | |P| | |\n" \
-            "| | | | | | | | |\n" \
-            "| | |R| |K| | | |\n" \
-            "b - e3 0 2",
-            {
-                Move(D4, E3, ep_capture_tag{}),
-            }
-        },
-        {
-            "\n"                  \
-            "| | | | | | | | |\n" \
-            "| |N| | | | | | |\n" \
-            "| | | | | | |R| |\n" \
-            "| |k| | | | | | |\n" \
-            "|P|p| |p|P| |N| |\n" \
-            "| | |P| | |P| | |\n" \
-            "| | | | | | | | |\n" \
-            "|Q| |R| |K| | | |\n" \
-            "b - a3 0 2",
-            {
-                Move(B4, A3, ep_capture_tag{}),
-                Move(B5, C4),
-            }
-        },
-        {
-            "\n"                  \
-            "| | | | | | | |R|\n" \
-            "| | |N| | | | | |\n" \
-            "|R| | | | | | | |\n" \
-            "| | | | | | |k| |\n" \
-            "| | | |p|P| |p|P|\n" \
-            "| | |P| | |P|P| |\n" \
-            "| | | | | | | | |\n" \
-            "| | |R| |K| | | |\n" \
-            "b - h3 0 2",
-            {
-                Move(G4, H3, ep_capture_tag{}),
-            }
-        },
+                    // King Moves
+                    Move(F4, E4),
+                    Move(F4, E3),
+                    Move(F4, F3),
+                    Move(F4, G3),
+                    Move(F4, G4),
+                    Move(F4, F5),
+                    Move(F4, G5),
 
-        //
-        // evade by blocking
-        //
-        {
-            "\n"                  \
-            "|r|n|b|q|k|b|n|r|\n" \
-            "|p|p|p|p|p|p|p|p|\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| |b| | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "|P|P|P| |P|P|P|P|\n" \
-            "|R|N|B|Q|K| | |R|\n" \
-            "w KQkq - 0 2",
+                    // King captures pawn
+                    Move(F4, E5),
+                }
+            },
             {
-                Move(C2, C3),
-                Move(C1, D2),
-                Move(D1, D2),
-                Move(B1, D2),
-                Move(B1, C3),
-                Move(E1, F1),
-            }
-        },
-        {
-            "\n"                  \
-            "|r|n|b|q|k| | |r|\n" \
-            "|p|p|p| |p|p|p|p|\n" \
-            "| | | | | | | | |\n" \
-            "| |B| | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "|P|P|P|P|P|P|P|P|\n" \
-            "|R|N|B|Q|K| |N|R|\n" \
-            "b KQkq - 0 2",
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | |R| |\n" \
+                "| | | |k| | | | |\n" \
+                "| | | |p|P| |N| |\n" \
+                "| | | | | |P| | |\n" \
+                "| | | | | | | | |\n" \
+                "| | |R| |K| | | |\n" \
+                "b - e3 0 2",
+                {
+                    Move(D4, E3, ep_capture_tag{}),
+                }
+            },
             {
-                Move(C7, C6),
-                Move(C8, D7),
-                Move(D8, D7),
-                Move(E8, F8),
-                Move(B8, C6),
-                Move(B8, D7),
-            }
-        },
-        {
-            "\n"                  \
-            "|r|n|b|q|k| | |r|\n" \
-            "|p|p|p| |p|p|p|p|\n" \
-            "| | | | | | | | |\n" \
-            "| |Q| | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "|P|P|P|P|P|P|P|P|\n" \
-            "|R|N|B|Q|K| |N|R|\n" \
-            "b KQkq - 0 2",
+                "| | | | | | | | |\n" \
+                "| |N| | | | | | |\n" \
+                "| | | | | | |R| |\n" \
+                "| |k| | | | | | |\n" \
+                "|P|p| |p|P| |N| |\n" \
+                "| | |P| | |P| | |\n" \
+                "| | | | | | | | |\n" \
+                "|Q| |R| |K| | | |\n" \
+                "b - a3 0 2",
+                {
+                    Move(B4, A3, ep_capture_tag{}),
+                    Move(B5, C4),
+                }
+            },
             {
-                Move(C7, C6),
-                Move(C8, D7),
-                Move(D8, D7),
-                Move(E8, F8),
-                Move(B8, C6),
-                Move(B8, D7),
-            }
-        },
-        {
-            "\n"                  \
-            "|r|n|b|q|k| | |r|\n" \
-            "|p|p|p| |p|p|p|p|\n" \
-            "| | | |N| | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "|P|P|P|P|P|P|P|P|\n" \
-            "|R|N|B|Q|K| |N|R|\n" \
-            "b KQkq - 0 2",
-            {
-                Move(C7, D6),
-                Move(E7, D6),
-                Move(D8, D6),
-                Move(E8, F8),
-                Move(E8, D7),
-            }
-        },
-        {
-            "\n"                  \
-            "| |K| | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | |p|p|\n" \
-            "|R| | | | | | |k|\n" \
-            "b - - 0 2",
-            {
-                Move::make_promotion(G2, G1, KNIGHT),
-                Move::make_promotion(G2, G1, BISHOP),
-                Move::make_promotion(G2, G1, QUEEN),
-                Move::make_promotion(G2, G1, ROOK),
-            }
-        },
-        {
-            "\n"                  \
-            "|r| | | | | | |K|\n" \
-            "| | | | | | |P|P|\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| |k| | | | | | |\n" \
-            "w - - 0 2",
-            {
-                Move::make_promotion(G7, G8, KNIGHT),
-                Move::make_promotion(G7, G8, BISHOP),
-                Move::make_promotion(G7, G8, QUEEN),
-                Move::make_promotion(G7, G8, ROOK),
-            }
-        },
-        {
-            "\n"                  \
-            "|k| | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | |P|\n" \
-            "|r| | | | | | |K|\n" \
-            "|r| | | | | | |R|\n" \
-            "| | | | | | |P| |\n" \
-            "| | | | | | | | |\n" \
-            "w - - 0 2",
-            {
-                Move(G2, G4),
-                Move(H4, G5),
-            }
-        },
-        {
-            "\n"                  \
-            "| | | | | | | | |\n" \
-            "| | | | | | |p| |\n" \
-            "| | | | | | | |p|\n" \
-            "|R| | | | | | |k|\n" \
-            "| | | | | | | |p|\n" \
-            "| | | | | | | | |\n" \
-            "| | | | | | | | |\n" \
-            "|K| | | | | | | |\n" \
-            "b - - 0 2",
-            {
-                Move(G7, G5),
-                Move(H5, G4),
-                Move(H5, G6),
-            }
-        },
-    };
+                "| | | | | | | |R|\n" \
+                "| | |N| | | | | |\n" \
+                "|R| | | | | | | |\n" \
+                "| | | | | | |k| |\n" \
+                "| | | |p|P| |p|P|\n" \
+                "| | |P| | |P|P| |\n" \
+                "| | | | | | | | |\n" \
+                "| | |R| |K| | | |\n" \
+                "b - h3 0 2",
+                {
+                    Move(G4, H3, ep_capture_tag{}),
+                }
+            },
 
-    for (auto& t : ts) {
-        auto position = Position::from_ascii(std::get<0>(t));
-        auto expect = std::get<1>(t);
-        std::sort(expect.begin(), expect.end());
-        auto result = gen_moves(position);
-        REQUIRE(expect == result);
-    }
+            //
+            // evade by blocking
+            //
+            {
+                "|r|n|b|q|k|b|n|r|\n" \
+                "|p|p|p|p|p|p|p|p|\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| |b| | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "|P|P|P| |P|P|P|P|\n" \
+                "|R|N|B|Q|K| | |R|\n" \
+                "w KQkq - 0 2",
+                {
+                    Move(C2, C3),
+                    Move(C1, D2),
+                    Move(D1, D2),
+                    Move(B1, D2),
+                    Move(B1, C3),
+                    Move(E1, F1),
+                }
+            },
+            {
+                "|r|n|b|q|k| | |r|\n" \
+                "|p|p|p| |p|p|p|p|\n" \
+                "| | | | | | | | |\n" \
+                "| |B| | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "|P|P|P|P|P|P|P|P|\n" \
+                "|R|N|B|Q|K| |N|R|\n" \
+                "b KQkq - 0 2",
+                {
+                    Move(C7, C6),
+                    Move(C8, D7),
+                    Move(D8, D7),
+                    Move(E8, F8),
+                    Move(B8, C6),
+                    Move(B8, D7),
+                }
+            },
+            {
+                "|r|n|b|q|k| | |r|\n" \
+                "|p|p|p| |p|p|p|p|\n" \
+                "| | | | | | | | |\n" \
+                "| |Q| | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "|P|P|P|P|P|P|P|P|\n" \
+                "|R|N|B|Q|K| |N|R|\n" \
+                "b KQkq - 0 2",
+                {
+                    Move(C7, C6),
+                    Move(C8, D7),
+                    Move(D8, D7),
+                    Move(E8, F8),
+                    Move(B8, C6),
+                    Move(B8, D7),
+                }
+            },
+            {
+                "|r|n|b|q|k| | |r|\n" \
+                "|p|p|p| |p|p|p|p|\n" \
+                "| | | |N| | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "|P|P|P|P|P|P|P|P|\n" \
+                "|R|N|B|Q|K| |N|R|\n" \
+                "b KQkq - 0 2",
+                {
+                    Move(C7, D6),
+                    Move(E7, D6),
+                    Move(D8, D6),
+                    Move(E8, F8),
+                    Move(E8, D7),
+                }
+            },
+            {
+                "| |K| | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | |p|p|\n" \
+                "|R| | | | | | |k|\n" \
+                "b - - 0 2",
+                {
+                    Move::make_promotion(G2, G1, KNIGHT),
+                    Move::make_promotion(G2, G1, BISHOP),
+                    Move::make_promotion(G2, G1, QUEEN),
+                    Move::make_promotion(G2, G1, ROOK),
+                }
+            },
+            {
+                "|r| | | | | | |K|\n" \
+                "| | | | | | |P|P|\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| |k| | | | | | |\n" \
+                "w - - 0 2",
+                {
+                    Move::make_promotion(G7, G8, KNIGHT),
+                    Move::make_promotion(G7, G8, BISHOP),
+                    Move::make_promotion(G7, G8, QUEEN),
+                    Move::make_promotion(G7, G8, ROOK),
+                }
+            },
+            {
+                "|k| | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | |P|\n" \
+                "|r| | | | | | |K|\n" \
+                "|r| | | | | | |R|\n" \
+                "| | | | | | |P| |\n" \
+                "| | | | | | | | |\n" \
+                "w - - 0 2",
+                {
+                    Move(G2, G4),
+                    Move(H4, G5),
+                }
+            },
+            {
+                "| | | | | | | | |\n" \
+                "| | | | | | |p| |\n" \
+                "| | | | | | | |p|\n" \
+                "|R| | | | | | |k|\n" \
+                "| | | | | | | |p|\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "|K| | | | | | | |\n" \
+                "b - - 0 2",
+                {
+                    Move(G7, G5),
+                    Move(H5, G4),
+                    Move(H5, G6),
+                }
+            },
+        };
 
+        for (auto& t : ts) {
+                auto position = Position::from_ascii(std::get<0>(t));
+                auto expect = std::get<1>(t);
+                std::sort(expect.begin(), expect.end());
+                auto result = gen_moves(position);
+                REQUIRE(expect == result);
+        }
+
+    } // evasions
+
+#if 0
+    SECTION("non-evasions")
+    {
+        std::vector<std::pair<std::string, MoveList>> ts = {
+            {
+                "| | | | |k| | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | |B| | |N| | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | |P|P|P| | |\n" \
+                "| | | | |K| | | |\n" \
+                "b - - 0 2",
+                {
+                    Move(E8, D8),
+                    Move(E8, E7),
+                    Move(E8, F8),
+                    Move(E8, F7),
+                }
+            },
+
+    } // non-evasions
+#endif
 }
 
 // XXX: turn back on
@@ -1514,7 +1495,6 @@ TEST_CASE("generate_evasions")
 TEST_CASE("Basic move generation")
 {
     std::string desc =
-        "\n"                  \
         "|r|n|b| |k|b|n|r|\n" \
         "|p|p|p|p|p|p|p|p|\n" \
         "| | | | |q| | | |\n" \
