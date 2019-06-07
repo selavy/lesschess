@@ -1554,6 +1554,50 @@ TEST_CASE("generate_legal_moves")
                     Move(E6, F8),
                 }
             },
+            {
+                "| | | | |k| | | |\n" \
+                "| | | | | | | |P|\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | |p|\n" \
+                "| | | | |K| | | |\n" \
+                "w - - 0 2",
+                {
+                    Move(E1, D1),
+                    Move(E1, D2),
+                    Move(E1, E2),
+                    Move(E1, F1),
+                    Move(E1, F2),
+                    Move::make_promotion(H7, H8, KNIGHT),
+                    Move::make_promotion(H7, H8, BISHOP),
+                    Move::make_promotion(H7, H8, ROOK),
+                    Move::make_promotion(H7, H8, QUEEN),
+                }
+            },
+            {
+                "| | | | |k| | | |\n" \
+                "| | | | | | | |P|\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | | |\n" \
+                "| | | | | | | |p|\n" \
+                "| | | | |K| | | |\n" \
+                "b - - 0 2",
+                {
+                    Move(E8, D8),
+                    Move(E8, D7),
+                    Move(E8, E7),
+                    Move(E8, F8),
+                    Move(E8, F7),
+                    Move::make_promotion(H2, H1, KNIGHT),
+                    Move::make_promotion(H2, H1, BISHOP),
+                    Move::make_promotion(H2, H1, ROOK),
+                    Move::make_promotion(H2, H1, QUEEN),
+                }
+            },
         };
 
         for (auto& t : ts) {
