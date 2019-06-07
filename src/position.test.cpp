@@ -1458,7 +1458,7 @@ TEST_CASE("generate_legal_moves")
                 auto expect = std::get<1>(t);
                 std::sort(expect.begin(), expect.end());
                 auto result = gen_moves(position);
-                REQUIRE(expect == result);
+                REQUIRE(result == expect);
         }
 
     } // evasions
@@ -1492,7 +1492,7 @@ TEST_CASE("generate_legal_moves")
                 auto expect = std::get<1>(t);
                 std::sort(expect.begin(), expect.end());
                 auto result = gen_moves(position);
-                REQUIRE(expect == result);
+                REQUIRE(result == expect);
         }
     }
 }

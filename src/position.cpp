@@ -40,7 +40,7 @@ constexpr bool more_than_one_piece(u64 x) noexcept { return is_power_of_two(x); 
 namespace
 {
 
-Move* add_pawn_moves_to_square(int tosq, int frsq, Move* moves) noexcept
+Move* add_pawn_moves_to_square(int frsq, int tosq, Move* moves) noexcept
 {
     if (tosq >= A8 || tosq <= H1)  { // promotion
         *moves++ = Move::make_promotion(frsq, tosq, KNIGHT);
@@ -761,7 +761,6 @@ int Position::generate_legal_moves(Move* moves) const noexcept
     Move* end = checkers != 0 ?
         _generate_evasions(checkers, moves) : _generate_non_evasions(moves);
 
-
     auto must_double_check = [&](Move move) {
         return move.from() == ksq || pinned || move.is_enpassant();
     };
@@ -909,7 +908,7 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
                 int tosq = lsb(posmoves);
                 int frsq = pawn_backward(side, tosq);
                 assert(piece_on_square(frsq) == Piece(side, PAWN));
-                moves = add_pawn_moves_to_square(tosq, frsq, moves);
+                moves = add_pawn_moves_to_square(frsq, tosq, moves);
                 posmoves = clear_lsb(posmoves);
             }
         }
@@ -946,7 +945,7 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
             int tosq = lsb(posmoves);
             int frsq = side == WHITE ? tosq - 7 : tosq + 9;
             assert(piece_on_square(frsq) == Piece(side, PAWN));
-            moves = add_pawn_moves_to_square(tosq, frsq, moves);
+            moves = add_pawn_moves_to_square(frsq, tosq, moves);
             posmoves = clear_lsb(posmoves);
         }
     }
@@ -959,7 +958,7 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
             int tosq = lsb(posmoves);
             int frsq = side == WHITE ? tosq - 9 : tosq + 7;
             assert(piece_on_square(frsq) == Piece(side, PAWN));
-            moves = add_pawn_moves_to_square(tosq, frsq, moves);
+            moves = add_pawn_moves_to_square(frsq, tosq, moves);
             posmoves = clear_lsb(posmoves);
         }
     }
@@ -995,7 +994,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
             int tosq = lsb(posmoves);
             int frsq = pawn_backward(side, tosq);
             assert(piece_on_square(frsq) == Piece(side, PAWN));
-            moves = add_pawn_moves_to_square(tosq, frsq, moves);
+            moves = add_pawn_moves_to_square(frsq, tosq, moves);
             posmoves = clear_lsb(posmoves);
         }
     }
@@ -1009,7 +1008,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
             int frsq = pawn_backward(side, tosq, /*ranks*/2);
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             if (piece_on_square(pawn_backward(side, tosq)).empty()) {
-                *moves = Move(frsq, tosq);
+                *moves++ = Move(frsq, tosq);
             }
             posmoves = clear_lsb(posmoves);
         }
@@ -1024,7 +1023,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
             int frsq = pawn_capture_backward_left(side, tosq);
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             assert(piece_on_square(tosq).empty() == false);
-            moves = add_pawn_moves_to_square(tosq, frsq, moves);
+            moves = add_pawn_moves_to_square(frsq, tosq, moves);
         }
     }
 
@@ -1037,7 +1036,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
             int frsq = pawn_capture_backward_right(side, tosq);
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             assert(piece_on_square(tosq).empty() == false);
-            moves = add_pawn_moves_to_square(tosq, frsq, moves);
+            moves = add_pawn_moves_to_square(frsq, tosq, moves);
         }
     }
 
