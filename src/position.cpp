@@ -23,6 +23,20 @@ constexpr bool is_power_of_two(u64 x) noexcept { return x & (x - 1); }
 [[nodiscard]]
 constexpr bool more_than_one_piece(u64 x) noexcept { return is_power_of_two(x); }
 
+// TODO: make an iterator interface for the loops of this form:
+//
+// posmoves = ...;
+// while (posmoves) {
+//     int tosq = lsb(posmoves);
+//     ...
+//     posmoves = clear_lsb(posmoves);
+// }
+//
+// instead, could have something like:
+// for (int tosq : BitMoveList{posmoves}) {
+//     ...
+// }
+
 namespace
 {
 
