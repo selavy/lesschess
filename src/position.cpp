@@ -1024,6 +1024,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             assert(piece_on_square(tosq).empty() == false);
             moves = add_pawn_moves_to_square(frsq, tosq, moves);
+            posmoves = clear_lsb(posmoves);
         }
     }
 
@@ -1037,6 +1038,7 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             assert(piece_on_square(tosq).empty() == false);
             moves = add_pawn_moves_to_square(frsq, tosq, moves);
+            posmoves = clear_lsb(posmoves);
         }
     }
 

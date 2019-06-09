@@ -5,7 +5,7 @@
 
 using namespace lesschess;
 
-TEST_CASE("Starting Position")
+TEST_CASE("Starting Position", "[perft]")
 {
 
     // |r|n|b|q|k|b|n|r|
@@ -24,8 +24,8 @@ TEST_CASE("Starting Position")
         { 0, 1 },
         { 1, 20 },
         { 2, 400 },
-        // { 3, 8902 },
-        // { 4, 197281 },
+        { 3, 8902 },
+        { 4, 197281 },
     };
 
     for (auto& t : ts) {
