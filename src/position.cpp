@@ -966,7 +966,6 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
     return moves;
 }
 
-// TODO: implement
 Move* Position::_generate_non_evasions(Move* moves) const noexcept
 {
     Color side = wtm();
@@ -1183,80 +1182,16 @@ constexpr int castles_king_square(Move m) noexcept
 
 bool Position::is_legal_move(Move move) const noexcept
 {
-    // XXX: probably just switch this to generate all moves then
-    //      check if `move` is one of them.
-    Color side = wtm();
-    Color contra = flip_color(side);
-    Square ksq = _kings[side];
-    Square tosq = move.to();
-    Square frsq = move.from();
-    Piece topc = piece_on_square(tosq);
-    Piece frpc = piece_on_square(frsq);
-    u64 pinned = _generate_pinned(side, side);
-
-    // must move own piece
-    if (frpc.empty() || frpc.color() != side) {
-        return false;
-    }
-
-    // can't capture own piece
-    if (!topc.empty() && topc.color() == side) {
-        return false;
-    }
-
-    if (move.is_enpassant()) {
-        // legal if
-        //   + to square == epsq
-        //   + captured piece is opposite color
-        //   + after making the move there are no attacks on the king
-        if (tosq.value() != _ep_target) {
-            return false;
+    // very straight forward stupid implementation for now
+    static Move moves[256];
+    memset(&moves[0], 0, sizeof(Move)*256);
+    int nmoves = generate_legal_moves(&moves[0]);
+    for (int i = 0; i < nmoves; ++i) {
+        if (move == moves[i]) {
+            return true;
         }
-        auto capture_sq = Square(pawn_backward(side, tosq.value()));
-        auto capture_pc = piece_on_square(capture_sq);
-        if (capture_pc.empty() || capture_pc.color() != contra) {
-            return false;
-        }
-        u64 prev_occupied = _occupied();
-        u64 queens = _bboard(contra, QUEEN);
-        u64 rooks = _bboard(contra, ROOK);
-        u64 bishops = _bboard(contra, BISHOP);
-        u64 occupied = (prev_occupied ^ frsq.mask() ^ capture_sq.mask()) | tosq.mask();
-        u64 straight_attacks = rook_attacks(ksq.value(), occupied) & (queens | rooks);
-        u64 diagonal_attacks = bishop_attacks(ksq.value(), occupied) & (queens | bishops);
-        return (straight_attacks | diagonal_attacks) == 0;
     }
-
-    if (move.is_castle()) {
-        // legal if:
-        //   + castling right existed before move
-        //   + no pieces between king and rook
-        //   + doesn't castle into check
-        //   + doesn't castle out of check
-        //   + doesn't castle through check
-
-        if (!castle_kind_allowed(move.castle_kind())) {
-            return false;
-        }
-
-        Color contra = flip_color(side);
-        int from = frsq.value();
-        int to   = castles_king_square(move);
-        int step = to > from ? 1 : -1;
-        for (int sq = to; sq != from; sq += step) {
-            if (attacks(contra, Square(sq))) {
-                return false;
-            }
-            if (sq != to && sq != from && !piece_on_square(Square(sq)).empty()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    // TODO: finish
-    return true;
+    return false;
 }
 
 bool Position::attacks(Color side, Square square) const noexcept
