@@ -23,19 +23,25 @@ constexpr bool is_power_of_two(u64 x) noexcept { return x & (x - 1); }
 [[nodiscard]]
 constexpr bool more_than_one_piece(u64 x) noexcept { return is_power_of_two(x); }
 
-// TODO: make an iterator interface for the loops of this form:
-//
-// posmoves = ...;
-// while (posmoves) {
-//     int tosq = lsb(posmoves);
-//     ...
-//     posmoves = clear_lsb(posmoves);
-// }
-//
-// instead, could have something like:
-// for (int tosq : BitMoveList{posmoves}) {
-//     ...
-// }
+struct PossibleMoves
+{
+    struct Iterator {
+        explicit Iterator(u64 b) noexcept : _b{b} {}
+        int operator*() const { return lsb(_b); }
+        Iterator& operator++() {
+            _b = clear_lsb(_b);
+            return *this;
+        }
+        bool operator==(Iterator other) noexcept { return _b == other._b; }
+        bool operator!=(Iterator other) noexcept { return _b != other._b; }
+        u64 _b;
+    };
+
+    explicit PossibleMoves(u64 b) noexcept : _b{b} {}
+    Iterator begin() const { return Iterator{ _b }; }
+    Iterator end()   const { return Iterator{ 0ull }; }
+    u64 _b;
+};
 
 namespace
 {
@@ -904,12 +910,10 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
         // try to advance pawns 1 square to block
         {
             u64 posmoves = (side == WHITE ? pawns << 8 : pawns >> 8) & between;
-            while (posmoves) {
-                int tosq = lsb(posmoves);
+            for (int tosq : PossibleMoves{posmoves}) {
                 int frsq = pawn_backward(side, tosq);
                 assert(piece_on_square(frsq) == Piece(side, PAWN));
                 moves = add_pawn_moves_to_square(frsq, tosq, moves);
-                posmoves = clear_lsb(posmoves);
             }
         }
 
@@ -917,15 +921,13 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
         {
             u64 posmoves = pawns & RANK2(side);
             posmoves = (side == WHITE ? posmoves << 16 : posmoves >> 16) & between;
-            while (posmoves) {
-                int tosq = lsb(posmoves);
+            for (int tosq : PossibleMoves{posmoves}) {
                 int frsq = side == WHITE ? tosq - 16 : tosq + 16;
                 assert(piece_on_square(frsq) == Piece(side, PAWN));
                 // TODO: do this with a bitmask
                 if (piece_on_square(pawn_backward(side, tosq)).empty()) {
                     *moves++ = Move(frsq, tosq);
                 }
-                posmoves = clear_lsb(posmoves);
             }
         }
 
@@ -941,12 +943,10 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
     {
         u64 posmoves = pawns & ~A_FILE;
         posmoves = (side == WHITE ? posmoves << 7 : posmoves >> 9) & checkers;
-        while (posmoves) {
-            int tosq = lsb(posmoves);
+        for (int tosq : PossibleMoves{posmoves}) {
             int frsq = side == WHITE ? tosq - 7 : tosq + 9;
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             moves = add_pawn_moves_to_square(frsq, tosq, moves);
-            posmoves = clear_lsb(posmoves);
         }
     }
 
@@ -954,12 +954,10 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
     {
         u64 posmoves = pawns & ~H_FILE;
         posmoves = (side == WHITE ? posmoves << 9 : posmoves >> 7) & checkers;
-        while (posmoves) {
-            int tosq = lsb(posmoves);
+        for (int tosq : PossibleMoves{posmoves}) {
             int frsq = side == WHITE ? tosq - 9 : tosq + 7;
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             moves = add_pawn_moves_to_square(frsq, tosq, moves);
-            posmoves = clear_lsb(posmoves);
         }
     }
 
@@ -989,12 +987,10 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
     // 1-square pawn moves
     {
         u64 posmoves = (side == WHITE ? pawns << 8 : pawns >> 8) & ~occupied;
-        while (posmoves) {
-            int tosq = lsb(posmoves);
+        for (int tosq : PossibleMoves{posmoves}) {
             int frsq = pawn_backward(side, tosq);
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             moves = add_pawn_moves_to_square(frsq, tosq, moves);
-            posmoves = clear_lsb(posmoves);
         }
     }
 
@@ -1002,14 +998,12 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
     {
         u64 posmoves = pawns & RANK2(side);
         posmoves = (side == WHITE ? posmoves << 16 : posmoves >> 16) & ~occupied;
-        while (posmoves) {
-            int tosq = lsb(posmoves);
+        for (int tosq : PossibleMoves{posmoves}) {
             int frsq = pawn_backward(side, tosq, /*ranks*/2);
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             if (piece_on_square(pawn_backward(side, tosq)).empty()) {
                 *moves++ = Move(frsq, tosq);
             }
-            posmoves = clear_lsb(posmoves);
         }
     }
 
@@ -1017,13 +1011,11 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
     {
         u64 posmoves = pawns & ~A_FILE;
         posmoves = (side == WHITE ? posmoves << 7 : posmoves >> 9) & targets;
-        while (posmoves) {
-            int tosq = lsb(posmoves);
+        for (int tosq : PossibleMoves{posmoves}) {
             int frsq = pawn_capture_backward_left(side, tosq);
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             assert(piece_on_square(tosq).empty() == false);
             moves = add_pawn_moves_to_square(frsq, tosq, moves);
-            posmoves = clear_lsb(posmoves);
         }
     }
 
@@ -1031,13 +1023,11 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
     {
         u64 posmoves = pawns & ~H_FILE;
         posmoves = (side == WHITE ? posmoves << 9 : posmoves >> 7) & targets;
-        while (posmoves) {
-            int tosq = lsb(posmoves);
+        for (int tosq : PossibleMoves{posmoves}) {
             int frsq = pawn_capture_backward_right(side, tosq);
             assert(piece_on_square(frsq) == Piece(side, PAWN));
             assert(piece_on_square(tosq).empty() == false);
             moves = add_pawn_moves_to_square(frsq, tosq, moves);
-            posmoves = clear_lsb(posmoves);
         }
     }
 
@@ -1281,10 +1271,8 @@ Move* Position::_generate_knight_moves(u64 knights, u64 targets, Move* moves) no
     while (knights) {
         int from = lsb(knights);
         u64 posmoves = knight_attacks(from) & targets;
-        while (posmoves) {
-            int to = lsb(posmoves);
+        for (int to : PossibleMoves{posmoves}) {
             *moves++ = Move(from, to);
-            posmoves = clear_lsb(posmoves);
         }
         knights = clear_lsb(knights);
     }
@@ -1296,10 +1284,8 @@ Move* Position::_generate_bishop_moves(u64 bishops, u64 occupied, u64 targets, M
     while (bishops) {
         int from = lsb(bishops);
         u64 posmoves = bishop_attacks(from, occupied) & targets;
-        while (posmoves) {
-            int to = lsb(posmoves);
+        for (int to : PossibleMoves{posmoves}) {
             *moves++ = Move(from, to);
-            posmoves = clear_lsb(posmoves);
         }
         bishops = clear_lsb(bishops);
     }
@@ -1311,10 +1297,8 @@ Move* Position::_generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move*
     while (rooks) {
         int from = lsb(rooks);
         u64 posmoves = rook_attacks(from, occupied) & targets;
-        while (posmoves) {
-            int to = lsb(posmoves);
+        for (int to : PossibleMoves{posmoves}) {
             *moves++ = Move(from, to);
-            posmoves = clear_lsb(posmoves);
         }
         rooks = clear_lsb(rooks);
     }
@@ -1324,10 +1308,8 @@ Move* Position::_generate_rook_moves(u64 rooks, u64 occupied, u64 targets, Move*
 Move* Position::_generate_king_moves(Square ksq, u64 targets, Move* moves) noexcept
 {
     u64 posmoves = king_attacks(ksq.value()) & targets;
-    while (posmoves) {
-        int to = lsb(posmoves);
+    for (int to : PossibleMoves{posmoves}) {
         *moves++ = Move(ksq, to);
-        posmoves = clear_lsb(posmoves);
     }
     return moves;
 }
