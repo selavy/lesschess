@@ -23,7 +23,7 @@ test: debug
 	./build/debug/bin/unittest
 
 perft: release
-	./build/release/bin/perft
+	ninja -C build/release perft && ./build/release/bin/perft
 
 .PHONY: clean
 clean:
