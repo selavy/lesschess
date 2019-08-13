@@ -1,5 +1,5 @@
 #include <cstdio>
-#include "detail/magic_tables.generated.h"
+#include "lesschess.h"
 
 int main(int argc, char** argv)
 {
