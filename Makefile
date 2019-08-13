@@ -22,6 +22,9 @@ build/release:
 test: debug
 	./build/debug/bin/unittest
 
+perft: release
+	./build/release/bin/perft
+
 .PHONY: clean
 clean:
 	cd build/debug && ninja clean
