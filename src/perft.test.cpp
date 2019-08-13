@@ -6,8 +6,11 @@
 
 using namespace lesschess;
 
+// TODO: better workaround for including commas in a macro
+#define P(a, b) { a, b }
 
-#define PERFT_TEST(name, fen, ts) do { \
+#define PERFT_TEST(name, fen, ...) do { \
+    Expected ts = Expected{__VA_ARGS__}; \
     Position position = Position::from_fen(fen); \
     for (auto& t : ts) { \
         auto depth = std::get<0>(t); \
@@ -34,21 +37,21 @@ TEST_CASE("Starting Position", "[perft]")
     // |R|N|B|Q|K|B|N|R|
     // w KQkq - 0 1
 
-    Expected ts = {
-        { 0, 1 },
-        { 1, 20 },
-        { 2, 400 },
-        { 3, 8902 },
-        { 4, 197281 },
-        { 5, 4865609 },
-        { 6, 119060324 },
-        { 7, 3195901860 },
-        // { 8, 84998978956 },
-        // { 9, 2439530234167 },
-        // { 10, 69352859712417 },
-    };
-
-    PERFT_TEST("starting-position", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", ts);
+    PERFT_TEST(
+        "starting-position",
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        P(0, 1),
+        P(1, 20),
+        P(2, 400),
+        P(3, 8902),
+        P(4, 197281),
+        P(5, 4865609),
+        P(6, 119060324),
+        P(7, 3195901860),
+        // P(8, 84998978956),
+        // P(9, 2439530234167),
+        // P(10, 69352859712417),
+    );
 }
 
 TEST_CASE("Kiwipete", "[perft]")
@@ -63,16 +66,16 @@ TEST_CASE("Kiwipete", "[perft]")
     // |R| | | |K| | |R|
     // w KQkq - 0 1
 
-    Expected ts = {
-        { 1, 48 },
-        { 2, 2039 },
-        { 3, 97862 },
-        { 4, 4085603 },
-        { 5, 193690690 },
-        { 6, 8031647685 },
-    };
-
-    PERFT_TEST("kiwi-pete", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", ts);
+    PERFT_TEST(
+        "kiwi-pete",
+        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+        P(1, 48),
+        P(2, 2039),
+        P(3, 97862),
+        P(4, 4085603),
+        P(5, 193690690),
+        P(6, 8031647685),
+    );
 }
 
 TEST_CASE("Position 3", "[perft]")
@@ -87,16 +90,16 @@ TEST_CASE("Position 3", "[perft]")
     // | | | | | | | | |
     // w - - 0 1
 
-    Expected ts = {
-        { 1, 14 },
-        { 2, 191 },
-        { 3, 2812 },
-        { 4, 43238 },
-        { 5, 674624 },
-        { 6, 11030083 },
-        { 7, 178633661 },
-        { 8, 3009794393 },
-    };
-
-    PERFT_TEST("position-3", "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1", ts);
+    PERFT_TEST(
+        "position-3",
+        "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+        P(1, 14),
+        P(2, 191),
+        P(3, 2812),
+        P(4, 43238),
+        P(5, 674624),
+        P(6, 11030083),
+        P(7, 178633661),
+        P(8, 3009794393),
+    );
 }
