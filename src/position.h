@@ -38,7 +38,10 @@ public:
     [[nodiscard]]
     static Position from_ascii(std::string_view ascii);
 
-    Move from_san(std::string_view san) const;
+    // Move from_san(std::string_view san) const;
+
+    [[nodiscard]]
+    Move move_from_long_algebraic(std::string_view move) const;
 
     [[nodiscard]]
     std::string dump_fen() const noexcept;
@@ -74,6 +77,11 @@ public:
     [[nodiscard]]
     bool white_to_move() const noexcept
     { return _wtm == WHITE; }
+
+    [[nodiscard]]
+    Color color_to_move() const noexcept {
+        return white_to_move() ? WHITE : BLACK;
+    }
 
     [[nodiscard]]
     u8 castle_flags() const noexcept

@@ -380,6 +380,79 @@ constexpr PieceKind piece_kind_from_san(char c) noexcept
 //     return result;
 // }
 
+Move Position::move_from_long_algebraic(std::string_view move) const
+{
+    if (move.size() < 4) {
+        // TODO: don't use exceptions
+        throw std::runtime_error{"invalid move"};
+    }
+    auto to_square = [](char c, char r) {
+        int rv = 0;
+        if (r >= '1' && r <= '8') {
+            rv += 8*(r - '1');
+        } else {
+            return -1;
+        }
+        if (c >= 'a' && c <= 'h') {
+            rv += c - 'a';
+        } else if (c >= 'A' && c <= 'H') {
+            rv += c - 'A';
+        } else {
+            return -1;
+        }
+        return rv;
+    };
+    int from = to_square(move[0], move[1]);
+    int to   = to_square(move[2], move[3]);
+    if (from < 0 || to < 0 || move.size() > 5) {
+        throw std::runtime_error("invalid square");
+    }
+    assert(from >= A1 && from <= H8);
+    assert(to   >= A1 && to   <= H8);
+
+    // TODO: improve checking that move given is in fact valid. Right now relying
+    //       on Arena not sending an invalid move. Don't want unnecessary extra
+    //       checking in make_move().
+
+    if (move.size() == 5) {
+        auto found = PieceKindAlgebraicNames.find(move[4]);
+        int promo = found != PieceKindAlgebraicNames.end() ? found->second : -1;
+        return Move::make_promotion(from, to, static_cast<PieceKind>(promo));
+    }
+
+    Piece p1 = piece_on_square(from);
+    Piece p2 = piece_on_square(to);
+
+    if (p1.empty()) {
+        throw std::runtime_error("moving from empty square");
+    }
+
+    if (p1.color() != color_to_move()) {
+        throw std::runtime_error("moving opponent's piece");
+    }
+
+    if (p1.kind() == KING && p2.empty()) {
+        if (p1.color() == WHITE && from == E1 && to == G1) {
+            return Move::make_castle(CastleKind::WHITE_KING_SIDE);
+        } else if (p1.color() == WHITE && from == E1 && to == C1) {
+            return Move::make_castle(CastleKind::WHITE_QUEEN_SIDE);
+        } else if (p1.color() == BLACK && from == E8 && to == G8) {
+            return Move::make_castle(CastleKind::BLACK_KING_SIDE);
+        } else if (p1.color() == BLACK && from == E8 && to == C8) {
+            return Move::make_castle(CastleKind::BLACK_QUEEN_SIDE);
+        }
+    }
+
+    if (p1.kind() == PAWN && p2.empty() && Square{from}.file() != Square{to}.file()) {
+        if (Square{to} != ep_target()) {
+            throw std::runtime_error("invalid en passant");
+        }
+        return Move::make_enpassant(from, to);
+    }
+
+    return Move(from, to);
+}
+
 std::string Position::dump_fen() const noexcept
 {
     std::string result;

@@ -4,6 +4,7 @@
 #include <cassert>
 #include <type_traits>
 #include <ostream>
+#include <map>
 
 namespace lesschess {
 
@@ -36,6 +37,28 @@ constexpr const char* const PieceKindNames[] = {
     "queen",
     "pawn",
     "king",
+};
+
+constexpr char PieceKindLetters[] = {
+    'n',
+    'b',
+    'r',
+    'q',
+    'p',
+    'k',
+};
+
+const std::map<char, PieceKind> PieceKindAlgebraicNames = {
+    { 'n', PieceKind::KNIGHT },
+    { 'N', PieceKind::KNIGHT },
+    { 'b', PieceKind::BISHOP },
+    { 'B', PieceKind::BISHOP },
+    { 'r', PieceKind::ROOK },
+    { 'R', PieceKind::ROOK },
+    { 'q', PieceKind::QUEEN },
+    { 'Q', PieceKind::QUEEN },
+    { 'p', PieceKind::PAWN },
+    { 'P', PieceKind::PAWN },
 };
 
 enum Color {
@@ -113,14 +136,12 @@ struct Piece {
     [[nodiscard]]
     constexpr Color color() const noexcept {
         assert(!empty());
-        // return static_cast<Color>(rep_ % 2);
-        return static_cast<Color>(rep_ & 1);
+        return static_cast<Color>(rep_ % 2);
     }
 
     [[nodiscard]]
     constexpr PieceKind kind() const noexcept {
-        // return empty() ? EMPTY_SQUARE : static_cast<PieceKind>(rep_ / 2);
-        return empty() ? EMPTY_SQUARE : static_cast<PieceKind>(rep_ >> 1);
+        return empty() ? EMPTY_SQUARE : static_cast<PieceKind>(rep_ / 2);
     }
 
     [[nodiscard]]
@@ -194,14 +215,12 @@ struct Square {
 
     [[nodiscard]]
     constexpr u8 file() const noexcept {
-        // return rep_ % 8;
-        return rep_ & 7;
+        return rep_ % 8;
     }
 
     [[nodiscard]]
     constexpr u8 rank() const noexcept {
-        // return rep_ / 8;
-        return rep_ >> 3;
+        return rep_ / 8;
     }
 
     [[nodiscard]]
@@ -345,6 +364,29 @@ public:
 
     bool operator!=(Move rhs) const noexcept
     { return this->rep_ != rhs.rep_; }
+
+    [[nodiscard]]
+    std::string to_long_algebraic_string() const
+    {
+        char buffer[6];
+        if (is_castle()) {
+            switch (castle_kind()) {
+                case CastleKind::WHITE_KING_SIDE: return "e1g1";
+                case CastleKind::BLACK_KING_SIDE: return "e8g8";
+                case CastleKind::WHITE_QUEEN_SIDE: return "e1c1";
+                case CastleKind::BLACK_QUEEN_SIDE: return "e8c8";
+            }
+        }
+        char promo = is_promotion() ? PieceKindLetters[promotion()] : '\0';
+        sprintf(
+            &buffer[0],
+            "%s%s%c",
+            Square::names[from().value()],
+            Square::names[to().value()],
+            promo
+        );
+        return std::string{&buffer[0]};
+    }
 
 private:
     struct ep_capture_tag {};

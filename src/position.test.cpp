@@ -3,8 +3,197 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <vector>
 
 using namespace lesschess;
+
+TEST_CASE("Read long algebraic moves")
+{
+    SECTION("White moves from starting position") {
+        std::string startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        std::vector<std::pair<std::string, Move>> tests = {
+            { "e2e4", Move(E2, E4) },
+            { "d2d4", Move(D2, D4) },
+            { "c2c4", Move(C2, C4) },
+            { "a2a3", Move(A2, A3) },
+            { "a2a4", Move(A2, A4) },
+            { "g1f3", Move(G1, F3) },
+            { "g1h3", Move(G1, H3) },
+            { "b1c3", Move(B1, C3) },
+            { "b1a3", Move(B1, A3) },
+        };
+        for (auto& t : tests) {
+            auto& movespec = std::get<0>(t);
+            auto& expected = std::get<1>(t);
+            auto position = Position::from_fen(startpos);
+            auto move = position.move_from_long_algebraic(movespec);
+            REQUIRE(move.to_long_algebraic_string() == movespec);
+            REQUIRE(move.is_castle()    == false);
+            REQUIRE(move.is_promotion() == false);
+            REQUIRE(move.is_enpassant() == false);
+            REQUIRE(move == expected);
+        }
+    }
+
+    SECTION("Black moves from starting position after 1.e4") {
+        // |r|n|b|q|k|b|n|r|
+        // |p|p|p|p|p|p|p|p|
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | |P| | | |
+        // | | | | | | | | |
+        // |P|P|P|P| |P|P|P|
+        // |R|N|B|Q|K|B|N|R|
+        // b KQkq e3 0 1
+        std::string fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+        std::vector<std::pair<std::string, Move>> tests = {
+            { "e7e5", Move(E7, E5) },
+            { "d7d5", Move(D7, D5) },
+            { "c7c5", Move(C7, C5) },
+            { "a7a6", Move(A7, A6) },
+            { "a7a5", Move(A7, A5) },
+            { "g8f6", Move(G8, F6) },
+            { "g8h6", Move(G8, H6) },
+            { "b8c6", Move(B8, C6) },
+            { "b8a6", Move(B8, A6) },
+        };
+        for (auto& t : tests) {
+            auto& movespec = std::get<0>(t);
+            auto& expected = std::get<1>(t);
+            auto position = Position::from_fen(fen);
+            auto move = position.move_from_long_algebraic(movespec);
+            REQUIRE(move.to_long_algebraic_string() == movespec);
+            REQUIRE(move.is_castle()    == false);
+            REQUIRE(move.is_promotion() == false);
+            REQUIRE(move.is_enpassant() == false);
+            REQUIRE(move == expected);
+        }
+    }
+
+    SECTION("White castle moves") {
+        // |r| | | |k| | |r|
+        // |p|p|p|p|p|p|p|p|
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // |P|P|P|P|P|P|P|P|
+        // |R| | | |K| | |R|
+        // w KQkq - 0 1
+        std::string fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
+        std::vector<std::pair<std::string, Move>> tests = {
+            { "e1g1", Move::make_castle(CastleKind::WHITE_KING_SIDE) },
+            { "e1c1", Move::make_castle(CastleKind::WHITE_QUEEN_SIDE) },
+        };
+        for (auto& t : tests) {
+            auto& movespec = std::get<0>(t);
+            auto& expected = std::get<1>(t);
+            auto position = Position::from_fen(fen);
+            auto move = position.move_from_long_algebraic(movespec);
+            REQUIRE(move.to_long_algebraic_string() == movespec);
+            REQUIRE(move.is_castle()    == true);
+            REQUIRE(move.is_promotion() == false);
+            REQUIRE(move.is_enpassant() == false);
+            REQUIRE(move == expected);
+        }
+    }
+
+    SECTION("Black castle moves") {
+        // |r| | | |k| | |r|
+        // |p|p|p|p|p|p|p|p|
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // | | | | | | | | |
+        // |P|P|P|P|P|P|P|P|
+        // |R| | | |K| | |R|
+        // b KQkq - 0 1
+        std::string fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1";
+        std::vector<std::pair<std::string, Move>> tests = {
+            { "e8g8", Move::make_castle(CastleKind::BLACK_KING_SIDE) },
+            { "e8c8", Move::make_castle(CastleKind::BLACK_QUEEN_SIDE) },
+        };
+        for (auto& t : tests) {
+            auto& movespec = std::get<0>(t);
+            auto& expected = std::get<1>(t);
+            auto position = Position::from_fen(fen);
+            auto move = position.move_from_long_algebraic(movespec);
+            REQUIRE(move.to_long_algebraic_string() == movespec);
+            REQUIRE(move.is_castle()    == true);
+            REQUIRE(move.is_promotion() == false);
+            REQUIRE(move.is_enpassant() == false);
+            REQUIRE(move == expected);
+        }
+    }
+
+    SECTION("En Passant") {
+        std::vector<std::tuple<std::string, Move, std::string>> tests = {
+            // white
+            { "e5d6", Move::make_enpassant(E5, D6), "4k3/ppp1pppp/8/3pP3/8/8/PPPP1PPP/4K3 w - d6 0 1" },
+            { "b5a6", Move::make_enpassant(B5, A6), "4k3/1ppppppp/8/pP6/8/8/PPPP1PPP/4K3 w - a6 0 1" },
+            { "h5g6", Move::make_enpassant(H5, G6), "4k3/pppppp1p/8/6pP/8/8/PPPP1PPP/4K3 w - g6 0 1" },
+            // black
+            { "d4e3", Move::make_enpassant(D4, E3), "4k3/ppp1pppp/8/8/3pP3/8/PPPP1PPP/4K3 b - e3 0 1" },
+            { "g4h3", Move::make_enpassant(G4, H3), "4k3/ppp1pppp/8/8/6pP/8/PPPP1PPP/4K3 b - h3 0 1" },
+            { "b4a3", Move::make_enpassant(B4, A3), "4k3/ppp1pppp/8/8/Pp6/8/1PPPPPPP/4K3 b - a3 0 1" },
+        };
+
+        for (auto& t : tests) {
+            auto& movespec = std::get<0>(t);
+            auto& expected = std::get<1>(t);
+            auto& fen      = std::get<2>(t);
+            auto position = Position::from_fen(fen);
+            auto move = position.move_from_long_algebraic(movespec);
+            REQUIRE(move.to_long_algebraic_string() == movespec);
+            REQUIRE(move.is_castle()    == false);
+            REQUIRE(move.is_promotion() == false);
+            REQUIRE(move.is_enpassant() == true);
+            REQUIRE(move == expected);
+        }
+    }
+
+	SECTION("White Promotions") {
+        std::string fen = "4k3/P7/8/8/8/8/7p/4K3 w - - 0 1";
+        std::vector<std::pair<std::string, Move>> tests = {
+            { "a7a8q", Move::make_promotion(A7, A8, QUEEN) },
+            { "a7a8r", Move::make_promotion(A7, A8, ROOK) },
+            { "a7a8b", Move::make_promotion(A7, A8, BISHOP) },
+            { "a7a8n", Move::make_promotion(A7, A8, KNIGHT) },
+        };
+        for (auto& t : tests) {
+            auto& movespec = std::get<0>(t);
+            auto& expected = std::get<1>(t);
+            auto position = Position::from_fen(fen);
+            auto move = position.move_from_long_algebraic(movespec);
+            REQUIRE(move.to_long_algebraic_string() == movespec);
+            REQUIRE(move.is_castle()    == false);
+            REQUIRE(move.is_promotion() == true);
+            REQUIRE(move.is_enpassant() == false);
+            REQUIRE(move == expected);
+        }
+    }
+
+	SECTION("Black Promotions") {
+        std::string fen = "4k3/P7/8/8/8/8/7p/4K3 b - - 0 1";
+        std::vector<std::pair<std::string, Move>> tests = {
+            { "h2h1q", Move::make_promotion(H2, H1, QUEEN) },
+            { "h2h1r", Move::make_promotion(H2, H1, ROOK) },
+            { "h2h1b", Move::make_promotion(H2, H1, BISHOP) },
+            { "h2h1n", Move::make_promotion(H2, H1, KNIGHT) },
+        };
+        for (auto& t : tests) {
+            auto& movespec = std::get<0>(t);
+            auto& expected = std::get<1>(t);
+            auto position = Position::from_fen(fen);
+            auto move = position.move_from_long_algebraic(movespec);
+            REQUIRE(move.to_long_algebraic_string() == movespec);
+            REQUIRE(move.is_castle()    == false);
+            REQUIRE(move.is_promotion() == true);
+            REQUIRE(move.is_enpassant() == false);
+            REQUIRE(move == expected);
+        }
+    }
+}
 
 TEST_CASE("Position from FEN")
 {
