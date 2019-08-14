@@ -3,6 +3,10 @@ CXX=g++-8
 
 build: debug release
 
+.PHONY: run
+run: debug
+	./build/debug/bin/lesschess
+
 .PHONY: debug
 debug: build/debug
 	cd build/debug && ninja
