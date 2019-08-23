@@ -2,6 +2,8 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <array>
+#include <random>
 #include "lesschess.h"
 
 using namespace lesschess;
@@ -186,8 +188,14 @@ std::string engine_info() {
 
 int main(int argc, char** argv)
 {
-    const char* const startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis;
 
+    Move move;
+    int nmoves;
+    std::array<Move, 256> moves;
+    Savepos sp;
     Position position; // TODO: move to separate thread
     std::cout << engine_info() << std::endl;
     std::string line, token;
@@ -204,7 +212,7 @@ int main(int argc, char** argv)
             // 	After that the engine should send "uciok" to acknowledge the uci mode.
             // 	If no uciok is sent within a certain time period, the engine task will be killed by the GUI.
 
-            std::cout << "id name LessChess" << VERSION << std::endl;
+            std::cout << "id name LessChess v" << VERSION << std::endl;
             std::cout << "id author Peter Lesslie" << std::endl;
             // TODO: implement sending options
             std::cout << "uciok" << std::endl;
@@ -293,25 +301,28 @@ int main(int argc, char** argv)
             // TODO: implement
             ss >> token;
             if (token == "startpos") {
-                position = Position::from_fen(startpos);
+                token = start_position_fen;
             } else if (token == "fen") {
                 ss >> token;
-                position = Position::from_fen(token);
             } else {
                 std::cerr << "invalid 'position' command: expected FEN" << std::endl;
                 continue;
             }
-
+            position = Position::from_fen(token);
             if (ss >> token) {
                 if (token != "moves") {
                     std::cerr << "invalid 'position' command: expected 'moves'" << std::endl;
+                    continue;
                 }
                 while (ss >> token) {
                     try {
-                        Move move = position.move_from_long_algebraic(token);
+                        move = position.move_from_long_algebraic(token);
                     } catch (const std::exception& ex) {
                         std::cerr << "invalid move: " << ex.what() << std::endl;
+                        // TODO: how to handle error in move?
+                        exit(0);
                     }
+                    position.make_move(sp, move);
                 }
             }
         } else if (token == "go") {
@@ -357,9 +368,13 @@ int main(int argc, char** argv)
             // 		search until the "stop" command. Do not exit the search without being told so in this mode!
 
             // TODO: implement
-
+            nmoves = position.generate_legal_moves(std::begin(moves));
+            assert(nmoves > 0);
+            move = moves[dis(gen, std::uniform_int_distribution<>::param_type{0, nmoves - 1})];
+            std::cout << "bestmove " << move.to_long_algebraic_string() << std::endl;
             // TEMP TEMP
-            std::cout << "bestmove g8f6" << std::endl;
+            // std::cout << "bestmove g8f6" << std::endl;
+
         } else if (token == "stop") {
             // * stop
             // 	stop calculating as soon as possible,

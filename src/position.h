@@ -1,10 +1,13 @@
 #pragma once
 
 #include "move.h"
+#include <string>
 #include <string_view>
 #include <array>
 
 namespace lesschess {
+
+const std::string start_position_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 struct Savepos {
     u8 halfmoves;

@@ -241,7 +241,7 @@ constexpr bool operator!=(Square lhs, Square rhs) noexcept {
     return !(lhs == rhs);
 }
 
-// Move into the Square class?
+// move into the Square class?
 constexpr int pawn_forward(Color side, int x, int ranks=1) noexcept {
     return side == WHITE ? x + 8*ranks : x - 8*ranks;
 }
