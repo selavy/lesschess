@@ -2,8 +2,6 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <array>
-#include <random>
 #include "lesschess.h"
 
 using namespace lesschess;
@@ -188,17 +186,18 @@ std::string engine_info() {
 
 int main(int argc, char** argv)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis;
+    // std::random_device rd;
+    // std::mt19937 gen(rd());
+    // std::uniform_int_distribution<> dis;
 
     Move move;
-    int nmoves;
-    std::array<Move, 256> moves;
     Savepos sp;
     Position position; // TODO: move to separate thread
-    std::cout << engine_info() << std::endl;
+    SearchResult search_result;
+
+    // UCI handling
     std::string line, token;
+    std::cout << engine_info() << std::endl;
     while (std::getline(std::cin, line)) {
         std::stringstream ss{line};
         ss >> token;
@@ -368,10 +367,9 @@ int main(int argc, char** argv)
             // 		search until the "stop" command. Do not exit the search without being told so in this mode!
 
             // TODO: implement
-            nmoves = position.generate_legal_moves(std::begin(moves));
-            assert(nmoves > 0);
-            move = moves[dis(gen, std::uniform_int_distribution<>::param_type{0, nmoves - 1})];
-            std::cout << "bestmove " << move.to_long_algebraic_string() << std::endl;
+            search_result = search(position);
+            std::cout << "info score cp " << search_result.score << std::endl;
+            std::cout << "bestmove " << search_result.move.to_long_algebraic_string() << std::endl;
             // TEMP TEMP
             // std::cout << "bestmove g8f6" << std::endl;
 

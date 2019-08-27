@@ -1,8 +1,11 @@
 [[PLAN]]
 1. Install libfmt [DONE: see tests/test_libfmt.cpp]
-2. Read position from FEN [DONE-ish]
+2. Read position from FEN [DONE]
     # TODO(peter): go back and harden this code.  Works well enough for now
-3. Move generation + perft test harness
+3. Move generation + perft test harness [DONE]
+4. Basic UCI protocol playing random move game in Arena against itself [DONE]
+  * Load engine, Ctrl-D makes it start playing itself
+5. Alpha-Beta search with fixed piece values to fixed depth on a separate thread
 
 [[TODO]]
 +Bitboard move generation

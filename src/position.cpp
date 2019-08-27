@@ -8,21 +8,6 @@
 
 namespace lesschess {
 
-[[nodiscard]]
-constexpr int lsb(u64 x) noexcept { return __builtin_ctzll(x); }
-
-[[nodiscard]]
-constexpr int popcountll(u64 x) noexcept { return __builtin_popcountll(x); }
-
-[[nodiscard]]
-constexpr u64 clear_lsb(u64 b) noexcept { return b & (b - 1); }
-
-[[nodiscard]]
-constexpr bool is_power_of_two(u64 x) noexcept { return x & (x - 1); }
-
-[[nodiscard]]
-constexpr bool more_than_one_piece(u64 x) noexcept { return is_power_of_two(x); }
-
 struct PossibleMoves
 {
     struct Iterator {

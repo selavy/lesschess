@@ -82,9 +82,12 @@ public:
     { return _wtm == WHITE; }
 
     [[nodiscard]]
-    Color color_to_move() const noexcept {
-        return white_to_move() ? WHITE : BLACK;
-    }
+    bool black_to_move() const noexcept
+    { return !white_to_move(); }
+
+    [[nodiscard]]
+    Color color_to_move() const noexcept
+    { return white_to_move() ? WHITE : BLACK; }
 
     [[nodiscard]]
     u8 castle_flags() const noexcept
@@ -137,6 +140,10 @@ public:
     u64 _generate_attacked(Color side) const noexcept;
     u64 _generate_checkers(Color side) const noexcept;
 
+    [[nodiscard]]
+    u64 _bboard(Color c, PieceKind p) const noexcept
+    { return _boards[Piece(c, p).value()]; }
+
 private:
     void _set_white_to_move(bool white_to_move) noexcept
     { _wtm = white_to_move ? WHITE : BLACK; }
@@ -168,10 +175,6 @@ private:
 
     template <class Iter>
     friend void parse_fen_spec(Iter it, Iter last, Position& position);
-
-    [[nodiscard]]
-    u64 _bboard(Color c, PieceKind p) const noexcept
-    { return _boards[Piece(c, p).value()]; }
 
     [[nodiscard]]
     bool _is_legal(u64 pinned, Move m) const noexcept;

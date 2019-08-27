@@ -14,6 +14,8 @@ add_executable(lesschess
     main.cpp
     move.cpp
     position.cpp
+    evaluate.cpp
+    search.cpp
     perft.cpp
     detail/magic_tables.generated.cpp
     )
