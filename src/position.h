@@ -115,7 +115,6 @@ public:
     // template <class OutputIter>
     // OutputIter generate_legal_moves(OutputIter) const noexcept;
 
-    // TODO(peter): implement
     [[nodiscard]]
     int generate_legal_moves(Move* moves) const noexcept;
 
@@ -141,10 +140,14 @@ public:
     u64 _generate_checkers(Color side) const noexcept;
 
     [[nodiscard]]
+    int piece_count(Color c, PieceKind p) const noexcept
+    { return popcountll(_bboard(c, p)); }
+
+private:
+    [[nodiscard]]
     u64 _bboard(Color c, PieceKind p) const noexcept
     { return _boards[Piece(c, p).value()]; }
 
-private:
     void _set_white_to_move(bool white_to_move) noexcept
     { _wtm = white_to_move ? WHITE : BLACK; }
 

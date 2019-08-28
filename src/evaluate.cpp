@@ -16,13 +16,20 @@ int BasePieceValues[6] = {
 int evaluate(const Position& position) {
     int score = 0;
 
-    for (int pc = KNIGHT; pc != KING; ++pc) {
-        score += popcountll(position._bboard(WHITE, static_cast<PieceKind>(pc))) * BasePieceValues[pc];
-    }
+    // Basic Material Imbalance:
+    score += position.piece_count(WHITE, PieceKind::PAWN)   - position.piece_count(BLACK, PieceKind::PAWN);
+    score += position.piece_count(WHITE, PieceKind::KNIGHT) - position.piece_count(BLACK, PieceKind::KNIGHT);
+    score += position.piece_count(WHITE, PieceKind::BISHOP) - position.piece_count(BLACK, PieceKind::BISHOP);
+    score += position.piece_count(WHITE, PieceKind::ROOK)   - position.piece_count(BLACK, PieceKind::ROOK);
+    score += position.piece_count(WHITE, PieceKind::QUEEN)  - position.piece_count(BLACK, PieceKind::QUEEN);
 
-    for (int pc = KNIGHT; pc != KING; ++pc) {
-        score -= popcountll(position._bboard(BLACK, static_cast<PieceKind>(pc))) * BasePieceValues[pc];
-    }
+    // Space:
+    // number of squares attacked by either side
+    // TODO: weighted by "importance" aka closer to center or not?
+
+    // King Safety:
+
+    // Pawn Structure:
 
     return score;
 }
