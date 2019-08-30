@@ -838,12 +838,28 @@ int Position::generate_legal_moves(Move* moves) const noexcept
     // swap with the last element.
     while (cur != end) {
         if (must_double_check(*cur) && !_is_legal(pinned, *cur)) {
-            *cur = *(--end); // swap and pop idiom
+            *cur = *(--end);
         } else {
             ++cur;
         }
     }
 
+    return (int)(end - moves);
+}
+
+int Position::generate_captures(Move* moves) const noexcept
+{
+    Move* cur = moves;
+    int nmoves = generate_legal_moves(moves);
+    Move* end = cur + nmoves;
+    while (cur != end) {
+        // TODO: check this
+        if (cur->is_enpassant() || !piece_on_square(cur->to()).empty()) {
+            ++cur;
+        } else {
+            *cur = *(--end);
+        }
+    }
     return (int)(end - moves);
 }
 

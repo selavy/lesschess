@@ -118,6 +118,9 @@ public:
     [[nodiscard]]
     int generate_legal_moves(Move* moves) const noexcept;
 
+    [[nodiscard]]
+    int generate_captures(Move* moves) const noexcept;
+
     // TODO(peter): implement
     [[nodiscard]]
     bool in_check(Color side) const noexcept
