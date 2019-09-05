@@ -8,8 +8,91 @@
 
 namespace lesschess {
 
+// Number of moves upper bound:
+// K -> 8 + 2 castles
+// Q -> 27
+// R -> 14 x 2 = 28
+// N -> 8 x 2 = 16
+// P -> (2 moves + 2 captures) x 8 = 32 (same as if all 8 pawns could promote)
+// --> 139
+//
+// Worst worst case is 7 promoted queens => 7 x 27 + 8 x 2 = 394
+// 128 is probably safe? 256 is definitely safe since willing to bet the the 7 Qs
+// position isn't going to happen -- will either be checkmate or stalemate.
+
+// TODO: what is the maximum number of possible moves in a position?
 using Moves = std::vector<Move>; // TODO: change this back to std::array<Move, 256>?
 
+int alpha_beta(Position& position, int alpha, int beta, int depth_left, Move move)
+{
+    if (depth_left == 0) {
+        int score = evaluate(position);
+        std::cout << "\t\t\t\tevaluate for move=" << move.to_long_algebraic_string() << " score=" << score << "\n";
+        // return evaluate(position);
+        return score;
+    }
+
+    for (int i = 0; i < (3 - depth_left); ++i) {
+        std::cout << '\t';
+    }
+
+    std::cout << "alpha_beta, "
+        << "move=" << move.to_long_algebraic_string() << " "
+        << "wtm=" << position.white_to_move() << " "
+        << "alpha=" << alpha << " "
+        << "beta=" << beta << " "
+        << "depthLeft=" << depth_left << " "
+        << "\n";
+
+    Savepos sp;
+    Moves moves{256};
+    int nmoves = position.generate_legal_moves(&moves[0]);
+    for (int i = 0; i < nmoves; ++i) {
+        position.make_move(sp, moves[i]);
+        int score = -alpha_beta(position, /*alpha*/-beta, /*beta*/-alpha, depth_left - 1, moves[i]);
+        position.undo_move(sp, moves[i]);
+        if (score >= beta) {
+            return beta;
+        }
+        if (score > alpha) {
+            alpha = score;
+        }
+    }
+    return alpha;
+}
+
+SearchResult search(Position& position)
+{
+    int bestmove = -1;
+    int bestscore = position.white_to_move() ? INT_MIN : INT_MAX;
+    Savepos sp;
+    Moves moves{256};
+    int nmoves = position.generate_legal_moves(&moves[0]);
+    for (int i = 0;i < nmoves; ++i) {
+        position.make_move(sp, moves[i]);
+
+        std::cout << "evaluating root " << moves[i].to_long_algebraic_string() << "\n";
+
+        int score = alpha_beta(position, /*alpha*/INT_MIN, /*beta*/INT_MAX, /*depth*/ 3, moves[i]);
+
+        std::cout << "score for " << moves[i].to_long_algebraic_string() << ": "
+            << "score=" << score << " "
+            << "bestScore=" << bestscore << " "
+            << "\n";
+
+        position.undo_move(sp, moves[i]);
+        if (position.white_to_move() && score > bestscore) {
+            bestmove = i;
+        }
+        if (!position.white_to_move() && score < bestscore) {
+            bestmove = i;
+        }
+    }
+    assert(bestmove != -1);
+    return {moves[bestmove], bestscore};
+}
+
+#if 0
 template <Color color>
 constexpr bool _is_better_score(int lhs, int rhs) noexcept {
     return color == WHITE ? lhs > rhs : lhs < rhs;
@@ -111,5 +194,6 @@ SearchResult search(Position& position) {
 
     return SearchResult{moves[bestmove], bestscore};
 }
+#endif
 
 } // ~namespace lesschess

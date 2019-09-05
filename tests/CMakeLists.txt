@@ -3,12 +3,16 @@
 #
 # Unit Test
 #
+# TODO: make a library version of lesschess to link against
 add_executable(unittest
     catch_main.cpp
     "${PROJECT_SOURCE_DIR}/src/move.cpp"
     "${PROJECT_SOURCE_DIR}/src/move.test.cpp"
     "${PROJECT_SOURCE_DIR}/src/position.cpp"
     "${PROJECT_SOURCE_DIR}/src/position.test.cpp"
+    "${PROJECT_SOURCE_DIR}/src/evaluate.cpp"
+    "${PROJECT_SOURCE_DIR}/src/search.cpp"
+    "${PROJECT_SOURCE_DIR}/src/search.test.cpp"
     "${PROJECT_SOURCE_DIR}/src/perft.cpp"
     "${PROJECT_SOURCE_DIR}/src/detail/magic_tables.generated.cpp"
     )

@@ -1,5 +1,6 @@
 #include "evaluate.h"
 #include "position.h"
+#include <initializer_list>
 
 namespace lesschess {
 
@@ -17,11 +18,16 @@ int evaluate(const Position& position) {
     int score = 0;
 
     // Basic Material Imbalance:
-    score += position.piece_count(WHITE, PieceKind::PAWN)   - position.piece_count(BLACK, PieceKind::PAWN);
-    score += position.piece_count(WHITE, PieceKind::KNIGHT) - position.piece_count(BLACK, PieceKind::KNIGHT);
-    score += position.piece_count(WHITE, PieceKind::BISHOP) - position.piece_count(BLACK, PieceKind::BISHOP);
-    score += position.piece_count(WHITE, PieceKind::ROOK)   - position.piece_count(BLACK, PieceKind::ROOK);
-    score += position.piece_count(WHITE, PieceKind::QUEEN)  - position.piece_count(BLACK, PieceKind::QUEEN);
+    std::initializer_list<PieceKind> kinds = {
+        PieceKind::PAWN,
+        PieceKind::KNIGHT,
+        PieceKind::BISHOP,
+        PieceKind::ROOK,
+        PieceKind::QUEEN,
+    };
+    for (auto kind : kinds) {
+        score += BasePieceValues[kind] * (position.piece_count(WHITE, kind) - position.piece_count(BLACK, kind));
+    }
 
     // Space:
     // number of squares attacked by either side
