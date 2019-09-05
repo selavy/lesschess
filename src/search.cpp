@@ -8,6 +8,9 @@
 
 namespace lesschess {
 
+// be careful to avoid overflow from INT_MIN == -INT_MIN
+constexpr int INFINITY = INT_MAX - 1;
+
 // Number of moves upper bound:
 // K -> 8 + 2 castles
 // Q -> 27
@@ -23,19 +26,31 @@ namespace lesschess {
 // TODO: what is the maximum number of possible moves in a position?
 using Moves = std::vector<Move>; // TODO: change this back to std::array<Move, 256>?
 
-int alpha_beta(Position& position, int alpha, int beta, int depth_left, Move move)
+void dump_pv(Moves& pv) {
+    for (auto m : pv) {
+        std::cout << m.to_long_algebraic_string() << " ";
+    }
+    std::cout << "\n";
+}
+
+void print_tabs(int depth_left) {
+    for (int i = 0; i < (3 - depth_left); ++i) {
+        std::cout << '\t';
+    }
+}
+
+int alpha_beta(Position& position, int alpha, int beta, int depth_left, Move move, Moves& pv)
 {
     if (depth_left == 0) {
         int score = evaluate(position);
-        std::cout << "\t\t\t\tevaluate for move=" << move.to_long_algebraic_string() << " score=" << score << "\n";
+        std::cout << "\t\t\t\tevaluate for move=" << move.to_long_algebraic_string() << " "
+            << "score=" << score << " -- ";
+            dump_pv(pv);
         // return evaluate(position);
         return score;
     }
 
-    for (int i = 0; i < (3 - depth_left); ++i) {
-        std::cout << '\t';
-    }
-
+    print_tabs(depth_left);
     std::cout << "alpha_beta, "
         << "move=" << move.to_long_algebraic_string() << " "
         << "wtm=" << position.white_to_move() << " "
@@ -49,31 +64,44 @@ int alpha_beta(Position& position, int alpha, int beta, int depth_left, Move mov
     int nmoves = position.generate_legal_moves(&moves[0]);
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
-        int score = -alpha_beta(position, /*alpha*/-beta, /*beta*/-alpha, depth_left - 1, moves[i]);
+        pv.push_back(moves[i]);
+        int score = -alpha_beta(position, /*alpha*/-beta, /*beta*/-alpha, depth_left - 1, moves[i], pv);
+        pv.pop_back();
         position.undo_move(sp, moves[i]);
         if (score >= beta) {
-            return beta;
+            // return beta;
+            alpha = beta;
+            break;
         }
         if (score > alpha) {
             alpha = score;
         }
     }
+
+    print_tabs(depth_left);
+    std::cout << "leaving alpha_beta, alpha=" << alpha << " ";
+    dump_pv(pv);
+    std::cout << "\n";
+
     return alpha;
 }
 
 SearchResult search(Position& position)
 {
     int bestmove = -1;
-    int bestscore = position.white_to_move() ? INT_MIN : INT_MAX;
+    int bestscore = position.white_to_move() ? -INFINITY : INFINITY;
     Savepos sp;
     Moves moves{256};
     int nmoves = position.generate_legal_moves(&moves[0]);
+    Moves pv;
     for (int i = 0;i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
+        pv.push_back(moves[i]);
 
         std::cout << "evaluating root " << moves[i].to_long_algebraic_string() << "\n";
 
-        int score = alpha_beta(position, /*alpha*/INT_MIN, /*beta*/INT_MAX, /*depth*/ 3, moves[i]);
+        // TODO: don't think I should be negating here
+        int score = -alpha_beta(position, /*alpha*/-INFINITY, /*beta*/INFINITY, /*depth*/ 3, moves[i], pv);
 
         std::cout << "score for " << moves[i].to_long_algebraic_string() << ": "
             << "score=" << score << " "
@@ -81,10 +109,14 @@ SearchResult search(Position& position)
             << "\n";
 
         position.undo_move(sp, moves[i]);
+        pv.pop_back();
+
         if (position.white_to_move() && score > bestscore) {
+            bestscore = score;
             bestmove = i;
         }
         if (!position.white_to_move() && score < bestscore) {
+            bestscore = score;
             bestmove = i;
         }
     }

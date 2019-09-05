@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "lesschess.h"
+#include <climits>
 
 using namespace lesschess;
 
@@ -41,11 +42,10 @@ TEST_CASE("Basic black eval", "[search]")
     REQUIRE(score == expected);
 }
 
-#if 0
-TEST_CASE("Win knight", "[search]")
+TEST_CASE("Win knight - wtm", "[search]")
 {
-    // Wanting to see white play Rh8, which pins the knight to the pin, then captures
-    // on the next more.
+    // Wanting to see white play Rh8, which pins the knight to the king, then captures
+    // on the next move.
     //
     // |k| | | | | |n| |
     // | | | | | | | | |
@@ -58,13 +58,33 @@ TEST_CASE("Win knight", "[search]")
     // w - - 0 1
     std::string fen = "k5n1/8/8/8/8/8/3K4/7R w - - 0 1";
 
+    auto position = Position::from_fen(fen);
+    auto result   = search(position);
+    auto expected = Move{H1, H8};
+    REQUIRE(result.move == expected);
+    REQUIRE(result.score == 500); // TODO: make into lower bound
+}
+
+TEST_CASE("Win knight - btm", "[search]")
+{
+    // Wanting to see black play Rh1, which pins the knight to the king, then captures
+    // on the next move.
+    //
+    // |k| | | | | | |r|
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // |K| | | | | |N| |
+    // b - - 0 1
+    std::string fen = "k6r/8/8/8/8/8/8/K5N1 b - - 0 1";
 
     auto position = Position::from_fen(fen);
     auto result   = search(position);
-
-    auto expected = Move{H1, H8};
+    auto expected = Move{H8, H1};
     REQUIRE(result.move == expected);
-    REQUIRE(result.score >= 500);
-
+    REQUIRE(result.score == -500); // TODO: make into upper bound
 }
-#endif
+
