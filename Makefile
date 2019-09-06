@@ -24,7 +24,7 @@ build/release:
 	cd build/release && CC=$(CC) CXX=$(CXX) cmake -GNinja -DCMAKE_BUILD_TYPE=Release ../..
 
 test: debug
-	./build/debug/bin/unittest
+	./build/debug/bin/unittest "$(name)"
 
 perft: release
 	ninja -C build/release perft && ./build/release/bin/perft

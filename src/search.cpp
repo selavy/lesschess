@@ -36,6 +36,16 @@ struct PrimaryVariation {
     void pop() noexcept { --count; }
     Move* begin() noexcept { return &moves[0]; }
     Move* end() noexcept { return &moves[count]; }
+    Move& back() noexcept { assert(count > 0); return moves[count-1]; }
+    const Move* begin() const noexcept { return begin(); }
+    const Move* end() const noexcept { return end(); }
+    void dump() const {
+        // for (const Move& move : *this) {
+        for (int i = 0; i < count; ++i) {
+            const Move& move = moves[i];
+            std::cout << move.to_long_algebraic_string() << " ";
+        }
+    }
 
     std::array<Move, N+1> moves;
     int                   count = 0;
@@ -46,40 +56,54 @@ using PV = PrimaryVariation<MAX_DEPTH>;
 
 int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
 {
+// #define VERBOSE
+#ifdef VERBOSE
+    if (depth == MAX_DEPTH) {
+        std::cout << "entering root"
+            << "move=" << pv.back().to_long_algebraic_string()
+            << "\n";
+    }
+#endif
+
+    int value;
     if (depth == 0) {
         int score = evaluate(position);
-        return position.white_to_move() ? -score : score;
-    }
-
-    // TODO: check for 3-move repetition
-    if (position.fifty_move_rule_moves() >= 50) {
-        return FIFTY_MOVE_RULE_DRAW;
-    }
-
-    int value = -INFINITY;
-    Savepos sp;
-    Moves moves{256};
-    int nmoves = position.generate_legal_moves(&moves[0]);
-    if (nmoves == 0) {
-        // TODO: cache `checkers` from generate_legal_moves() so we can check if mate or stalemate
-        if (position.in_check(position.color_to_move())) {
-            return position.white_to_move() ? CHECKMATE : -CHECKMATE;
+        value = position.white_to_move() ? score : -score;
+    } else if (position.fifty_move_rule_moves() >= 50) {
+        // TODO: check for 3-move repetition
+        value = FIFTY_MOVE_RULE_DRAW;
+    } else {
+        Moves moves{256};
+        int nmoves = position.generate_legal_moves(&moves[0]);
+        if (nmoves == 0) {
+            // TODO: cache `checkers` from generate_legal_moves() so we can check if mate or stalemate?
+            value = position.in_check(position.color_to_move()) ? -CHECKMATE : STALEMATE;
         } else {
-            return STALEMATE;
+            value = -INFINITY;
+            Savepos sp;
+            for (int i = 0; i < nmoves; ++i) {
+                position.make_move(sp, moves[i]);
+                pv.push(moves[i]);
+                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv));
+                pv.pop();
+                position.undo_move(sp, moves[i]);
+                alpha = std::max(alpha, value);
+                if (alpha >= beta) {
+                    break;
+                }
+            }
         }
     }
-    assert(nmoves > 0);
-    for (int i = 0; i < nmoves; ++i) {
-        position.make_move(sp, moves[i]);
-        pv.push(moves[i]);
-        value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv));
-        pv.pop();
-        position.undo_move(sp, moves[i]);
-        alpha = std::max(alpha, value);
-        if (alpha >= beta) {
-            break;
-        }
+
+#ifdef VERBOSE
+    if (depth == MAX_DEPTH) {
+        std::cout << "leaving root"
+            << "move=" << pv.back().to_long_algebraic_string() << " "
+            << "score=" << -value
+            << "\n";
     }
+#endif
+
     return -value;
 }
 

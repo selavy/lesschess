@@ -42,7 +42,6 @@ TEST_CASE("Basic black eval", "[search]")
     REQUIRE(score == expected);
 }
 
-#if 1
 TEST_CASE("Win knight - wtm", "[search]")
 {
     // Wanting to see white play Rh8, which pins the knight to the king, then capture
@@ -65,9 +64,7 @@ TEST_CASE("Win knight - wtm", "[search]")
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == 500); // TODO: make into lower bound
 }
-#endif
 
-#if 1
 TEST_CASE("Win knight - btm", "[search]")
 {
     // Wanting to see black play Rh1, which pins the knight to the king, then capture
@@ -90,4 +87,39 @@ TEST_CASE("Win knight - btm", "[search]")
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == -500); // TODO: make into upper bound
 }
-#endif
+
+TEST_CASE("White mate in 1 with rook", "[search]")
+{
+    // |k| | | | | | | |
+    // | | | | | | | | |
+    // |K| | | | | | |R|
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // w - - 0 1
+    std::string fen = "k7/8/K6R/8/8/8/8/8 w - - 0 1";
+    auto position = Position::from_fen(fen);
+    auto result   = search(position);
+    auto expected = Move{H6, H8};
+    REQUIRE(result.move == expected);
+}
+
+TEST_CASE("Black mate in 1 with rook", "[search]")
+{
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // | | | | | | | | |
+    // |k| | | | | | |r|
+    // | | | | | | | | |
+    // |K| | | | | | | |
+    // b - - 0 1
+    std::string fen = "8/8/8/8/8/k6r/8/K7 b - - 0 1";
+    auto position = Position::from_fen(fen);
+    auto result   = search(position);
+    auto expected = Move{H3, H1};
+    REQUIRE(result.move == expected);
+}
