@@ -132,3 +132,12 @@ TEST_CASE("Black mate in 2 with rook", "[search]")
     auto expected = Move{B4, B3};
     REQUIRE(result.move == expected);
 }
+
+TEST_CASE("Black stalemate white king", "[search]")
+{
+    std::string fen = "K7/P7/2k5/8/8/8/8/8 b - - 0 1";
+    auto position = Position::from_fen(fen);
+    auto result   = search(position);
+    auto expected = Move{C6, C7};
+    REQUIRE(result.move == expected);
+}
