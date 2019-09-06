@@ -42,9 +42,10 @@ TEST_CASE("Basic black eval", "[search]")
     REQUIRE(score == expected);
 }
 
+#if 1
 TEST_CASE("Win knight - wtm", "[search]")
 {
-    // Wanting to see white play Rh8, which pins the knight to the king, then captures
+    // Wanting to see white play Rh8, which pins the knight to the king, then capture
     // on the next move.
     //
     // |k| | | | | |n| |
@@ -61,13 +62,15 @@ TEST_CASE("Win knight - wtm", "[search]")
     auto position = Position::from_fen(fen);
     auto result   = search(position);
     auto expected = Move{H1, H8};
-    REQUIRE(result.move == expected);
+    REQUIRE(result.move  == expected);
     REQUIRE(result.score == 500); // TODO: make into lower bound
 }
+#endif
 
+#if 1
 TEST_CASE("Win knight - btm", "[search]")
 {
-    // Wanting to see black play Rh1, which pins the knight to the king, then captures
+    // Wanting to see black play Rh1, which pins the knight to the king, then capture
     // on the next move.
     //
     // |k| | | | | | |r|
@@ -84,7 +87,7 @@ TEST_CASE("Win knight - btm", "[search]")
     auto position = Position::from_fen(fen);
     auto result   = search(position);
     auto expected = Move{H8, H1};
-    REQUIRE(result.move == expected);
+    REQUIRE(result.move  == expected);
     REQUIRE(result.score == -500); // TODO: make into upper bound
 }
-
+#endif

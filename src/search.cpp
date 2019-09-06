@@ -26,6 +26,8 @@ constexpr int INFINITY = INT_MAX - 1;
 // TODO: what is the maximum number of possible moves in a position?
 using Moves = std::vector<Move>; // TODO: change this back to std::array<Move, 256>?
 
+constexpr int MAX_DEPTH = 2;
+
 void dump_pv(Moves& pv) {
     for (auto m : pv) {
         std::cout << m.to_long_algebraic_string() << " ";
@@ -34,76 +36,76 @@ void dump_pv(Moves& pv) {
 }
 
 void print_tabs(int depth_left) {
-    for (int i = 0; i < (3 - depth_left); ++i) {
+    for (int i = 0; i < (MAX_DEPTH - depth_left); ++i) {
         std::cout << '\t';
     }
 }
 
-int alpha_beta(Position& position, int alpha, int beta, int depth_left, Move move, Moves& pv)
+int alpha_beta(Position& position, int alpha, int beta, int depth, Move move, Moves& pv)
 {
-    if (depth_left == 0) {
+    // TODO: check if terminal node (mate, stalemate, etc)
+    //       not sure if the fastest way to do that is to check if `nmoves == 0`?
+    if (depth == 0) {
         int score = evaluate(position);
-        std::cout << "\t\t\t\tevaluate for move=" << move.to_long_algebraic_string() << " "
+        for (int i = 0; i <= MAX_DEPTH; ++i)
+            std::cout << '\t';
+        std::cout << "evaluate for move=" << move.to_long_algebraic_string() << " "
             << "score=" << score << " -- ";
             dump_pv(pv);
-        // return evaluate(position);
-        return score;
+        return position.white_to_move() ? score : -score;
     }
 
-    print_tabs(depth_left);
+    print_tabs(depth);
     std::cout << "alpha_beta, "
         << "move=" << move.to_long_algebraic_string() << " "
         << "wtm=" << position.white_to_move() << " "
         << "alpha=" << alpha << " "
         << "beta=" << beta << " "
-        << "depthLeft=" << depth_left << " "
+        << "depthLeft=" << depth << " "
         << "\n";
 
+    int value = -INFINITY;
     Savepos sp;
     Moves moves{256};
     int nmoves = position.generate_legal_moves(&moves[0]);
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
         pv.push_back(moves[i]);
-        int score = -alpha_beta(position, /*alpha*/-beta, /*beta*/-alpha, depth_left - 1, moves[i], pv);
+        value = std::max(value, -alpha_beta(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, moves[i], pv));
         pv.pop_back();
         position.undo_move(sp, moves[i]);
-        if (score >= beta) {
-            // return beta;
-            alpha = beta;
+        alpha = std::max(alpha, value);
+        if (alpha >= beta) {
             break;
-        }
-        if (score > alpha) {
-            alpha = score;
         }
     }
 
-    print_tabs(depth_left);
-    std::cout << "leaving alpha_beta, alpha=" << alpha << " ";
+    print_tabs(depth);
+    std::cout << "leaving alpha_beta, value=" << value << " ";
     dump_pv(pv);
-    std::cout << "\n";
 
-    return alpha;
+    return value;
 }
 
 SearchResult search(Position& position)
 {
     int bestmove = -1;
-    int bestscore = position.white_to_move() ? -INFINITY : INFINITY;
+    int bestscore = -INFINITY;
     Savepos sp;
     Moves moves{256};
     int nmoves = position.generate_legal_moves(&moves[0]);
     Moves pv;
-    for (int i = 0;i < nmoves; ++i) {
+    for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
         pv.push_back(moves[i]);
 
-        std::cout << "evaluating root " << moves[i].to_long_algebraic_string() << "\n";
+        std::cout << "evaluating root " << moves[i].to_long_algebraic_string() << " "
+            << "bestScore=" << bestscore << "\n";
 
         // TODO: don't think I should be negating here
-        int score = -alpha_beta(position, /*alpha*/-INFINITY, /*beta*/INFINITY, /*depth*/ 3, moves[i], pv);
+        int score = -alpha_beta(position, /*alpha*/-INFINITY, /*beta*/INFINITY, /*depth*/MAX_DEPTH, moves[i], pv);
 
-        std::cout << "score for " << moves[i].to_long_algebraic_string() << ": "
+        std::cout << "leaving root " << moves[i].to_long_algebraic_string() << ": "
             << "score=" << score << " "
             << "bestScore=" << bestscore << " "
             << "\n";
@@ -111,121 +113,14 @@ SearchResult search(Position& position)
         position.undo_move(sp, moves[i]);
         pv.pop_back();
 
-        if (position.white_to_move() && score > bestscore) {
-            bestscore = score;
-            bestmove = i;
-        }
-        if (!position.white_to_move() && score < bestscore) {
+        if (score > bestscore) {
             bestscore = score;
             bestmove = i;
         }
     }
     assert(bestmove != -1);
+    bestscore = position.white_to_move() ? bestscore : -bestscore;
     return {moves[bestmove], bestscore};
 }
-
-#if 0
-template <Color color>
-constexpr bool _is_better_score(int lhs, int rhs) noexcept {
-    return color == WHITE ? lhs > rhs : lhs < rhs;
-}
-
-int alphabeta_max(Position& position, int alpha, int beta, int depth);
-int alphabeta_min(Position& position, int alpha, int beta, int depth);
-
-int alphabeta_max(Position& position, int alpha, int beta, int depth) {
-    if (depth == 0) {
-        return evaluate(position);
-    }
-
-    Moves   moves{256};
-    Savepos sp;
-    int     nmoves;
-    int     score;
-
-    nmoves = position.generate_legal_moves(&moves[0]);
-    for (int i = 0; i < nmoves; ++i) {
-        position.make_move(sp, moves[i]);
-        score = alphabeta_min(position, alpha, beta, depth - 1);
-        position.undo_move(sp, moves[i]);
-        if (score >= beta)
-            return beta;
-        if (score >  alpha)
-            alpha = score;
-    }
-    return alpha;
-}
-
-int alphabeta_min(Position& position, int alpha, int beta, int depth) {
-    if (depth == 0) {
-        return evaluate(position);
-    }
-
-    Moves   moves{256};
-    Savepos sp;
-    int     nmoves;
-    int     score;
-
-    nmoves = position.generate_legal_moves(&moves[0]);
-    for (int i = 0; i < nmoves; ++i) {
-        position.make_move(sp, moves[i]);
-        score = alphabeta_max(position, alpha, beta, depth - 1);
-        position.undo_move(sp, moves[i]);
-        if (score <= alpha)
-            return alpha;
-        if (score <  beta)
-            beta = score;
-    }
-    return beta;
-}
-
-SearchResult search(Position& position) {
-    auto&& is_better_score = position.white_to_move()
-        ? _is_better_score<WHITE> : _is_better_score<BLACK>;
-    auto&&  alphabeta = position.white_to_move() ? alphabeta_max : alphabeta_min;
-    Savepos sp;
-    Moves   moves{256};
-    int     bestmove = -1;
-    int     bestscore = position.white_to_move() ? INT_MIN : INT_MAX;
-    int     nmoves;
-    int     score;
-
-    nmoves = position.generate_legal_moves(&moves[0]);
-
-    // DEBUG
-    std::cout << "info string found " << nmoves << " moves" << std::endl;
-
-    for (int i = 0; i < nmoves; ++i) {
-        // DEBUG
-        std::cout << "info "
-            << "currmove " << moves[i].to_long_algebraic_string() << " "
-            << "currmovenumber " << i + 1
-            << std::endl;
-
-        position.make_move(sp, moves[i]);
-        // int score = evaluate(position);
-        score = alphabeta(position, INT_MIN, INT_MAX, 4);
-        position.undo_move(sp, moves[i]);
-
-        // DEBUG
-        std::cout << "info score cp " << score << std::endl;
-
-        if (is_better_score(score, bestscore)) {
-            bestscore = score;
-            bestmove  = i;
-        }
-        assert(bestmove != -1);
-
-        // DEBUG
-        std::cout << "info string "
-            << "bestmove index = " << bestmove << " "
-            << "bestmove = " << moves[bestmove].to_long_algebraic_string() << " "
-            << "score = " << bestscore
-            << std::endl;
-    }
-
-    return SearchResult{moves[bestmove], bestscore};
-}
-#endif
 
 } // ~namespace lesschess
