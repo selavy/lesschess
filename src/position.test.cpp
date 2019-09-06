@@ -7,7 +7,7 @@
 
 using namespace lesschess;
 
-TEST_CASE("Read long algebraic moves")
+TEST_CASE("Read long algebraic moves", "[position]")
 {
     SECTION("White moves from starting position") {
         std::string startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -195,7 +195,7 @@ TEST_CASE("Read long algebraic moves")
     }
 }
 
-TEST_CASE("Position from FEN")
+TEST_CASE("Position from FEN", "[position]")
 {
     SECTION("Starting position") {
         // |r|n|b|q|k|b|n|r|
@@ -516,7 +516,7 @@ TEST_CASE("Position from FEN")
 
 }
 
-TEST_CASE("Position::dump_fen")
+TEST_CASE("Position::dump_fen", "[position]")
 {
     using FEN = std::string;
     std::vector<FEN> test_cases = {
@@ -536,7 +536,7 @@ TEST_CASE("Position::dump_fen")
     }
 }
 
-TEST_CASE("Position::make_move")
+TEST_CASE("Position::make_move", "[position]")
 {
     SECTION("1.e4") {
         // |r|n|b|q|k|b|n|r|
@@ -807,7 +807,7 @@ TEST_CASE("Position::make_move")
     }
 }
 
-TEST_CASE("Undo Move")
+TEST_CASE("Undo Move", "[position]")
 {
     SECTION("Undo Flags=NONE with no capture") {
         std::string starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -968,7 +968,7 @@ TEST_CASE("Undo Move")
 }
 
 
-TEST_CASE("FEN to ASCII and back")
+TEST_CASE("FEN to ASCII and back", "[position]")
 {
     std::vector<std::pair<std::string, std::string>> fens = {
         {
@@ -1038,7 +1038,7 @@ TEST_CASE("FEN to ASCII and back")
     }
 }
 
-TEST_CASE("Square is Attacked?")
+TEST_CASE("Square is Attacked?", "[position]")
 {
     SECTION("Immortal Game Position")
     {
@@ -1066,7 +1066,7 @@ TEST_CASE("Square is Attacked?")
     }
 }
 
-TEST_CASE("Legal Move Check")
+TEST_CASE("Legal Move Check", "[position]")
 {
     using TestMove = std::pair<Move, bool>;
     std::vector<std::pair<std::string, std::vector<TestMove>>> tests = {
@@ -1142,7 +1142,7 @@ std::set<std::string> BB2SQs(u64 bb)
     return result;
 }
 
-TEST_CASE("_generate_checkers")
+TEST_CASE("_generate_checkers", "[position]")
 {
     using Squares = std::initializer_list<int>;
     std::vector<std::tuple<std::string, Color, Squares>> ts = {
@@ -1236,7 +1236,7 @@ TEST_CASE("_generate_checkers")
 }
 
 // TODO: move to private and remove tests
-TEST_CASE("_generate_attacked")
+TEST_CASE("_generate_attacked", "[position]")
 {
     using Squares = std::initializer_list<int>;
     std::vector<std::tuple<std::string, Color, Squares>> tcs = {
@@ -1382,7 +1382,7 @@ TEST_CASE("_generate_attacked")
     }
 }
 
-TEST_CASE("generate_legal_moves")
+TEST_CASE("generate_legal_moves", "[position]")
 {
     using MoveList = std::vector<Move>;
 
@@ -1886,5 +1886,31 @@ TEST_CASE("generate_legal_moves")
             auto result = gen_moves(position);
             REQUIRE(result == expect);
         }
+    }
+}
+
+TEST_CASE("in_check", "[position]")
+{
+    std::vector<std::tuple<std::string, bool, bool>> ts = {
+        { "k7/8/8/8/8/8/1K6/6Nr w - - 0 1", false, false, },
+        { "k7/8/8/8/8/8/1K5r/6N1 w - - 0 1", true, false, },
+        { "k7/8/5b2/8/8/8/1K6/6N1 w - - 0 1", true, false, },
+        { "k7/8/8/8/2n5/8/1K6/6N1 w - - 0 1", true, false, },
+        { "k7/8/8/4b3/3n4/8/1K6/6N1 w - - 0 1", false, false, },
+        { "k6q/8/8/8/8/8/1K6/6N1 w - - 0 1", true, false, },
+        { "k7/8/8/Q7/8/8/1K6/6N1 w - - 0 1", false, true, },
+        { "k6R/8/8/8/8/8/1K6/6N1 w - - 0 1", false, true, },
+        { "k7/8/8/8/8/8/1K4B1/6N1 w - - 0 1", false, true, }
+    };
+
+    for (auto& t : ts) {
+        auto& fen = std::get<0>(t);
+        auto white_expect = std::get<1>(t);
+        auto black_expect = std::get<2>(t);
+        auto position = Position::from_fen(fen);
+        auto white_result = position.in_check(Color::WHITE);
+        auto black_result = position.in_check(Color::BLACK);
+        REQUIRE(white_result == white_expect);
+        REQUIRE(black_result == black_expect);
     }
 }

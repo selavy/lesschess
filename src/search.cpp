@@ -28,19 +28,6 @@ using Moves = std::vector<Move>; // TODO: change this back to std::array<Move, 2
 
 constexpr int MAX_DEPTH = 2;
 
-void dump_pv(Moves& pv) {
-    for (auto m : pv) {
-        std::cout << m.to_long_algebraic_string() << " ";
-    }
-    std::cout << "\n";
-}
-
-void print_tabs(int depth_left) {
-    for (int i = 0; i < (MAX_DEPTH - depth_left); ++i) {
-        std::cout << '\t';
-    }
-}
-
 int negamax(Position& position, int alpha, int beta, int depth, Moves& pv)
 {
     // TODO: check if terminal node (mate, stalemate, etc)

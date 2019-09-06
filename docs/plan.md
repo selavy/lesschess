@@ -5,7 +5,9 @@
 3. Move generation + perft test harness [DONE]
 4. Basic UCI protocol playing random move game in Arena against itself [DONE]
   * Load engine, Ctrl-D makes it start playing itself
-5. Alpha-Beta search with fixed piece values to fixed depth on a separate thread
+5. Alpha-Beta search with fixed piece values to fixed depth [DONE]
+  * Fix not checking for checkmate, stalemate, etc
+6. Move search to a separate thread
 
 [[TODO]]
 +Bitboard move generation

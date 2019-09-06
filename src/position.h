@@ -121,10 +121,9 @@ public:
     [[nodiscard]]
     int generate_captures(Move* moves) const noexcept;
 
-    // TODO(peter): implement
     [[nodiscard]]
     bool in_check(Color side) const noexcept
-    { return false; }
+    { return _generate_checkers(side) != 0; }
 
     // strict legality checking of a move, for checking is a user
     // input move is legal or not
