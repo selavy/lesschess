@@ -30,12 +30,22 @@ constexpr int FIFTY_MOVE_RULE_DRAW = DRAW;
 // TODO: what is the maximum number of possible moves in a position?
 using Moves = std::vector<Move>; // TODO: change this back to std::array<Move, 256>?
 
-constexpr int MAX_DEPTH = 2;
+template <int N>
+struct PrimaryVariation {
+    void push(Move m) noexcept { assert(count < moves.size()); moves[count++] = m; }
+    void pop() noexcept { --count; }
+    Move* begin() noexcept { return &moves[0]; }
+    Move* end() noexcept { return &moves[count]; }
 
-int negamax(Position& position, int alpha, int beta, int depth, Moves& pv)
+    std::array<Move, N+1> moves;
+    int                   count = 0;
+};
+
+constexpr int MAX_DEPTH = 2;
+using PV = PrimaryVariation<MAX_DEPTH>;
+
+int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
 {
-    // TODO: check if terminal node (mate, stalemate, etc)
-    //       not sure if the fastest way to do that is to check if `nmoves == 0`?
     if (depth == 0) {
         int score = evaluate(position);
         return position.white_to_move() ? -score : score;
@@ -61,9 +71,9 @@ int negamax(Position& position, int alpha, int beta, int depth, Moves& pv)
     assert(nmoves > 0);
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
-        pv.push_back(moves[i]);
+        pv.push(moves[i]);
         value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv));
-        pv.pop_back();
+        pv.pop();
         position.undo_move(sp, moves[i]);
         alpha = std::max(alpha, value);
         if (alpha >= beta) {
@@ -80,13 +90,13 @@ SearchResult search(Position& position)
     Savepos sp;
     Moves moves{256};
     int nmoves = position.generate_legal_moves(&moves[0]);
-    Moves pv;
+    PV pv;
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
-        pv.push_back(moves[i]);
+        pv.push(moves[i]);
         int score = negamax(position, /*alpha*/-INFINITY, /*beta*/INFINITY, /*depth*/MAX_DEPTH, pv);
         position.undo_move(sp, moves[i]);
-        pv.pop_back();
+        pv.pop();
         if (score > bestscore) {
             bestscore = score;
             bestmove = i;
