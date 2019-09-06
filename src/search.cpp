@@ -41,20 +41,22 @@ void print_tabs(int depth_left) {
     }
 }
 
-int alpha_beta(Position& position, int alpha, int beta, int depth, Move move, Moves& pv)
+int negamax(Position& position, int alpha, int beta, int depth, Move move, Moves& pv)
 {
     // TODO: check if terminal node (mate, stalemate, etc)
     //       not sure if the fastest way to do that is to check if `nmoves == 0`?
     if (depth == 0) {
         int score = evaluate(position);
-        for (int i = 0; i <= MAX_DEPTH; ++i)
-            std::cout << '\t';
+#if 0
+        print_tabs(MAX_DEPTH + 1);
         std::cout << "evaluate for move=" << move.to_long_algebraic_string() << " "
             << "score=" << score << " -- ";
             dump_pv(pv);
+#endif
         return position.white_to_move() ? score : -score;
     }
 
+#if 0
     print_tabs(depth);
     std::cout << "alpha_beta, "
         << "move=" << move.to_long_algebraic_string() << " "
@@ -63,6 +65,7 @@ int alpha_beta(Position& position, int alpha, int beta, int depth, Move move, Mo
         << "beta=" << beta << " "
         << "depthLeft=" << depth << " "
         << "\n";
+#endif
 
     int value = -INFINITY;
     Savepos sp;
@@ -71,7 +74,7 @@ int alpha_beta(Position& position, int alpha, int beta, int depth, Move move, Mo
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
         pv.push_back(moves[i]);
-        value = std::max(value, -alpha_beta(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, moves[i], pv));
+        value = std::max(value, -negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, moves[i], pv));
         pv.pop_back();
         position.undo_move(sp, moves[i]);
         alpha = std::max(alpha, value);
@@ -80,9 +83,11 @@ int alpha_beta(Position& position, int alpha, int beta, int depth, Move move, Mo
         }
     }
 
+#if 0
     print_tabs(depth);
     std::cout << "leaving alpha_beta, value=" << value << " ";
     dump_pv(pv);
+#endif
 
     return value;
 }
@@ -99,16 +104,20 @@ SearchResult search(Position& position)
         position.make_move(sp, moves[i]);
         pv.push_back(moves[i]);
 
+#if 0
         std::cout << "evaluating root " << moves[i].to_long_algebraic_string() << " "
             << "bestScore=" << bestscore << "\n";
+#endif
 
         // TODO: don't think I should be negating here
-        int score = -alpha_beta(position, /*alpha*/-INFINITY, /*beta*/INFINITY, /*depth*/MAX_DEPTH, moves[i], pv);
+        int score = -negamax(position, /*alpha*/-INFINITY, /*beta*/INFINITY, /*depth*/MAX_DEPTH, moves[i], pv);
 
+#if 0
         std::cout << "leaving root " << moves[i].to_long_algebraic_string() << ": "
             << "score=" << score << " "
             << "bestScore=" << bestscore << " "
             << "\n";
+#endif
 
         position.undo_move(sp, moves[i]);
         pv.pop_back();
