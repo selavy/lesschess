@@ -139,5 +139,6 @@ TEST_CASE("Black stalemate white king", "[search]")
     auto position = Position::from_fen(fen);
     auto result   = search(position);
     auto expected = Move{C6, C7};
-    REQUIRE(result.move == expected);
+    REQUIRE(result.move  == expected);
+    REQUIRE(result.score == STALEMATE);
 }

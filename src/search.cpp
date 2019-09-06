@@ -1,19 +1,11 @@
 #include "search.h"
 #include "evaluate.h"
-#include <climits>
 #include <array>
 #include <cassert>
 #include <functional>
 #include <iostream> // TEMP
 
 namespace lesschess {
-
-// be careful to avoid overflow from INT_MIN == -INT_MIN
-constexpr int INFINITY = INT_MAX - 1;
-constexpr int DRAW = 0;
-constexpr int CHECKMATE = INFINITY - 1; // TODO: does it matter if it is infinity or not?
-constexpr int STALEMATE = DRAW;
-constexpr int FIFTY_MOVE_RULE_DRAW = DRAW;
 
 // Number of moves upper bound:
 // K -> 8 + 2 castles
@@ -79,7 +71,7 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
             // TODO: cache `checkers` from generate_legal_moves() so we can check if mate or stalemate?
             value = position.in_check(position.color_to_move()) ? -CHECKMATE : STALEMATE;
         } else {
-            value = -INFINITY;
+            value = -MAX_SCORE;
             Savepos sp;
             for (int i = 0; i < nmoves; ++i) {
                 position.make_move(sp, moves[i]);
@@ -110,7 +102,7 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
 SearchResult search(Position& position)
 {
     int bestmove = -1;
-    int bestscore = -INFINITY;
+    int bestscore = -MAX_SCORE;
     Savepos sp;
     Moves moves{256};
     int nmoves = position.generate_legal_moves(&moves[0]);
@@ -118,7 +110,7 @@ SearchResult search(Position& position)
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
         pv.push(moves[i]);
-        int score = negamax(position, /*alpha*/-INFINITY, /*beta*/INFINITY, /*depth*/MAX_DEPTH - 1, pv);
+        int score = negamax(position, /*alpha*/-MAX_SCORE, /*beta*/MAX_SCORE, /*depth*/MAX_DEPTH - 1, pv);
         position.undo_move(sp, moves[i]);
         pv.pop();
         if (score > bestscore) {
