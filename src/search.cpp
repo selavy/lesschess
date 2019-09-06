@@ -47,11 +47,11 @@ struct PrimaryVariation {
         }
     }
 
-    std::array<Move, N+1> moves;
-    int                   count = 0;
+    std::array<Move, N> moves;
+    int                 count = 0;
 };
 
-constexpr int MAX_DEPTH = 2;
+constexpr int MAX_DEPTH = 4;
 using PV = PrimaryVariation<MAX_DEPTH>;
 
 int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
@@ -118,7 +118,7 @@ SearchResult search(Position& position)
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
         pv.push(moves[i]);
-        int score = negamax(position, /*alpha*/-INFINITY, /*beta*/INFINITY, /*depth*/MAX_DEPTH, pv);
+        int score = negamax(position, /*alpha*/-INFINITY, /*beta*/INFINITY, /*depth*/MAX_DEPTH - 1, pv);
         position.undo_move(sp, moves[i]);
         pv.pop();
         if (score > bestscore) {
