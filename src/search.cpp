@@ -10,6 +10,10 @@ namespace lesschess {
 
 // be careful to avoid overflow from INT_MIN == -INT_MIN
 constexpr int INFINITY = INT_MAX - 1;
+constexpr int DRAW = 0;
+constexpr int CHECKMATE = INFINITY - 1; // TODO: does it matter if it is infinity or not?
+constexpr int STALEMATE = DRAW;
+constexpr int FIFTY_MOVE_RULE_DRAW = DRAW;
 
 // Number of moves upper bound:
 // K -> 8 + 2 castles
@@ -37,10 +41,23 @@ int negamax(Position& position, int alpha, int beta, int depth, Moves& pv)
         return position.white_to_move() ? -score : score;
     }
 
+    // TODO: check for 3-move repetition
+    if (position.fifty_move_rule_moves() >= 50) {
+        return FIFTY_MOVE_RULE_DRAW;
+    }
+
     int value = -INFINITY;
     Savepos sp;
     Moves moves{256};
     int nmoves = position.generate_legal_moves(&moves[0]);
+    if (nmoves == 0) {
+        // TODO: cache `checkers` from generate_legal_moves() so we can check if mate or stalemate
+        if (position.in_check(position.color_to_move())) {
+            return position.white_to_move() ? CHECKMATE : -CHECKMATE;
+        } else {
+            return STALEMATE;
+        }
+    }
     assert(nmoves > 0);
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
