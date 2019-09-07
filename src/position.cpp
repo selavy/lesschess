@@ -617,7 +617,6 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
             }
         }
     } else if (flags == Move::Flags::ENPASSANT) {
-        // TODO: update zobrist
         assert(enpassant_available() == true);
         assert(kind == PAWN);
         assert(captured.empty());
@@ -726,13 +725,18 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
     u64* board = &_boards[piece.value()];
     const Piece captured = save.captured;
 
+    if (save.ep_target != ENPASSANT_NONE)
+        _hash ^= Zobrist::enpassant(Square{save.ep_target});
+    if (_ep_target != ENPASSANT_NONE)
+        _hash ^= Zobrist::enpassant(Square{_ep_target});
+    // TODO: update castle rights
     _halfmoves = save.halfmoves;
     _ep_target = save.ep_target;
     _castle_rights = save.castle_rights;
-    if (side == BLACK) {
+    if (side == BLACK)
         --_moves;
-    }
     _wtm = side;
+    _hash ^= Zobrist::side_to_move();
 
     if (flags == Move::Flags::NONE) {
         if (kind != KING) {
@@ -745,11 +749,15 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         _sidemask[side] &= ~to.mask();
         _sq2pc[from.value()] = piece;
         _sq2pc[to.value()] = captured;
+        _hash ^= Zobrist::board(piece, from);
+        _hash ^= Zobrist::board(piece, to);
         if (!captured.empty()) {
             _boards[captured.value()] |= to.mask();
             _sidemask[contra] |= to.mask();
+            _hash ^= Zobrist::board(captured, to);
         }
     } else if (flags == Move::Flags::CASTLE) {
+        // TODO: update zobrist
         assert(move.is_castle());
         Piece rook = Piece(side, ROOK);
         Piece king = Piece(side, KING);
@@ -765,6 +773,7 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         _boards[rook.value()] &= ~rsq.mask();
         _boards[rook.value()] |= to.mask();
     } else if (flags == Move::Flags::PROMOTION) {
+        // TODO: update zobrist
         assert(move.is_promotion());
         Piece pawn = Piece(side, PAWN);
         Piece promoted = Piece(side, move.promotion());
@@ -779,6 +788,7 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
             _sidemask[contra] |= to.mask();
         }
     } else if (flags == Move::Flags::ENPASSANT) {
+        // TODO: update zobrist
         // TODO(peter): better name for :epsq:
         Square epsq = side == WHITE ? to.value() - 8 : to.value() + 8;
         Piece opp_pawn = Piece(contra, PAWN);
