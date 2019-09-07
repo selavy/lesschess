@@ -2056,12 +2056,40 @@ TEST_CASE("zobrist", "[position]")
         REQUIRE(position == expected);
     }
 
-    // SECTION("white en passant capture")
-    // {
+    SECTION("white en passant capture")
+    {
+        std::string fen1 = "2kr3r/1ppqbp1p/p1n1bn2/4p1pP/B3P3/2NPBN2/PPPQ1PP1/R3K1R1 w - g6 0 1";
+        std::string move = "h5g6";
+        std::string fen2 = "2kr3r/1ppqbp1p/p1n1bnP1/4p3/B3P3/2NPBN2/PPPQ1PP1/R3K1R1 b - - 0 1";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        REQUIRE(m.is_enpassant());
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
 
-    // }
+    SECTION("black en passant capture")
+    {
+        std::string fen1 = "2kr3r/1ppqbp2/p1n1bnP1/4p3/B3P1Pp/2NPBN2/PPPQ1P2/R3K1R1 b - g3 0 1";
+        std::string move = "h4g3";
+        std::string fen2 = "2kr3r/1ppqbp2/p1n1bnP1/4p3/B3P3/2NPBNp1/PPPQ1P2/R3K1R1 w - - 0 2";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        REQUIRE(m.is_enpassant());
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
 
-    // black en passant capture
     // white promotion
     // black promotion
     // white capture of rook changing king side castle rights

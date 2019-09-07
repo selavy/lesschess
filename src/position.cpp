@@ -623,16 +623,20 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         assert(captured.empty());
         // TODO(peter): better name than epsq
         // NOTE(peter): :epsq: is the square that the contra pawn is on.
-        const Square epsq = pawn_backward(side, to.value());
+        Square epsq = pawn_backward(side, to.value());
+        Piece contra_pawn = Piece(contra, PAWN);
         *board &= ~from.mask();
         *board |= to.mask();
-        _boards[Piece(contra, PAWN).value()] &= ~epsq.mask();
+        _boards[contra_pawn.value()] &= ~epsq.mask();
         _sq2pc[from.value()] = NO_PIECE;
         _sq2pc[to.value()] = piece;
         _sq2pc[epsq.value()] = NO_PIECE;
         _sidemask[side] &= ~from.mask();
         _sidemask[side] |= to.mask();
         _sidemask[contra] &= ~epsq.mask();
+        _hash ^= Zobrist::board(piece, from);
+        _hash ^= Zobrist::board(piece, to);
+        _hash ^= Zobrist::board(contra_pawn, epsq);
     } else if (flags == Move::Flags::PROMOTION) {
         // TODO: update zobrist
         const PieceKind promotion_kind = move.promotion();
@@ -652,7 +656,6 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     } else if (flags == Move::Flags::CASTLE) {
         assert(castle_allowed(move.castle_kind()));
         assert(kind == KING);
-        Piece king = Piece(side, KING);
         Piece rook = Piece(side, ROOK);
         u64* rooks = &_boards[rook.value()];
         auto [ksq, rsq] = _get_castle_squares(to);
@@ -662,13 +665,13 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
 
         _sq2pc[from.value()] = NO_PIECE;
         _sq2pc[to.value()] = NO_PIECE;
-        _sq2pc[ksq.value()] = king;
+        _sq2pc[ksq.value()] = piece;
         _sq2pc[rsq.value()] = rook;
         _sidemask[side] &= ~(to.mask() | from.mask());
         _sidemask[side] |= ksq.mask() | rsq.mask();
-        _hash ^= Zobrist::board(king, from);
+        _hash ^= Zobrist::board(piece, from);
         _hash ^= Zobrist::board(rook, to);
-        _hash ^= Zobrist::board(king, ksq);
+        _hash ^= Zobrist::board(piece, ksq);
         _hash ^= Zobrist::board(rook, rsq);
         if (side == WHITE) {
             if (castle_allowed(Castle::WHITE_KING_SIDE))
