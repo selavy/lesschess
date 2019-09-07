@@ -648,10 +648,17 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         _sq2pc[from.value()] = NO_PIECE;
         _sidemask[side] &= ~from.mask();
         _sidemask[side] |= to.mask();
+        _hash ^= Zobrist::board(piece, from);
+        _hash ^= Zobrist::board(promotion_piece, to);
         if (!captured.empty()) {
             _boards[captured.value()] &= ~to.mask();
             _sidemask[contra] &= ~to.mask();
-            _castle_rights &= ~rook_square_to_castle_flag(to);
+            _hash ^= Zobrist::board(captured, to);
+            u8 castle_flag = rook_square_to_castle_flag(to);
+            if ((_castle_rights & castle_flag) != 0) {
+                _castle_rights &= ~castle_flag;
+                _hash ^= Zobrist::castle_rights(static_cast<Castle>(castle_flag));
+            }
         }
     } else if (flags == Move::Flags::CASTLE) {
         assert(castle_allowed(move.castle_kind()));
