@@ -128,16 +128,16 @@ void parse_fen_spec(Iter it, Iter last, Position& position)
             char c = *it++;
             switch (c) {
             case 'K':
-                flags |= static_cast<u8>(CastleKind::WHITE_KING_SIDE);
+                flags |= static_cast<u8>(Castle::WHITE_KING_SIDE);
                 break;
             case 'k':
-                flags |= static_cast<u8>(CastleKind::BLACK_KING_SIDE);
+                flags |= static_cast<u8>(Castle::BLACK_KING_SIDE);
                 break;
             case 'Q':
-                flags |= static_cast<u8>(CastleKind::WHITE_QUEEN_SIDE);
+                flags |= static_cast<u8>(Castle::WHITE_QUEEN_SIDE);
                 break;
             case 'q':
-                flags |= static_cast<u8>(CastleKind::BLACK_QUEEN_SIDE);
+                flags |= static_cast<u8>(Castle::BLACK_QUEEN_SIDE);
                 break;
             default:
                 throw std::runtime_error("Invalid character in castling specification");
@@ -364,13 +364,13 @@ Move Position::move_from_long_algebraic(std::string_view move) const
 
     if (p1.kind() == KING && p2.empty()) {
         if (p1.color() == WHITE && from == E1 && to == G1) {
-            return Move::make_castle(CastleKind::WHITE_KING_SIDE);
+            return Move::make_castle(Castle::WHITE_KING_SIDE);
         } else if (p1.color() == WHITE && from == E1 && to == C1) {
-            return Move::make_castle(CastleKind::WHITE_QUEEN_SIDE);
+            return Move::make_castle(Castle::WHITE_QUEEN_SIDE);
         } else if (p1.color() == BLACK && from == E8 && to == G8) {
-            return Move::make_castle(CastleKind::BLACK_KING_SIDE);
+            return Move::make_castle(Castle::BLACK_KING_SIDE);
         } else if (p1.color() == BLACK && from == E8 && to == C8) {
-            return Move::make_castle(CastleKind::BLACK_QUEEN_SIDE);
+            return Move::make_castle(Castle::BLACK_QUEEN_SIDE);
         }
     }
 
@@ -415,16 +415,16 @@ std::string Position::dump_fen() const noexcept
     result += _wtm == WHITE ? 'w' : 'b';
     result += ' ';
 
-    if (castle_kind_allowed(CastleKind::WHITE_KING_SIDE)) {
+    if (castle_kind_allowed(Castle::WHITE_KING_SIDE)) {
         result += 'K';
     }
-    if (castle_kind_allowed(CastleKind::WHITE_QUEEN_SIDE)) {
+    if (castle_kind_allowed(Castle::WHITE_QUEEN_SIDE)) {
         result += 'Q';
     }
-    if (castle_kind_allowed(CastleKind::BLACK_KING_SIDE)) {
+    if (castle_kind_allowed(Castle::BLACK_KING_SIDE)) {
         result += 'k';
     }
-    if (castle_kind_allowed(CastleKind::BLACK_QUEEN_SIDE)) {
+    if (castle_kind_allowed(Castle::BLACK_QUEEN_SIDE)) {
         result += 'q';
     }
     if (_castle_rights == CASTLE_NONE) {
@@ -489,10 +489,10 @@ std::string Position::dump_ascii() const noexcept {
 constexpr u8 rook_square_to_castle_flag(Square square) noexcept
 {
     switch (square.value()) {
-        case A8: return static_cast<u8>(CastleKind::BLACK_QUEEN_SIDE);
-        case H8: return static_cast<u8>(CastleKind::BLACK_KING_SIDE);
-        case A1: return static_cast<u8>(CastleKind::WHITE_QUEEN_SIDE);
-        case H1: return static_cast<u8>(CastleKind::WHITE_KING_SIDE);
+        case A8: return static_cast<u8>(Castle::BLACK_QUEEN_SIDE);
+        case H8: return static_cast<u8>(Castle::BLACK_KING_SIDE);
+        case A1: return static_cast<u8>(Castle::WHITE_QUEEN_SIDE);
+        case H1: return static_cast<u8>(Castle::WHITE_KING_SIDE);
         default: return 0;
     }
 }
@@ -568,19 +568,19 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         } else {
             _kings[side] = to;
             if (side == WHITE) {
-                if (castle_kind_allowed(CastleKind::WHITE_KING_SIDE)) {
-                    _hash ^= Zobrist::castle_rights(CastleKind::WHITE_KING_SIDE);
+                if (castle_kind_allowed(Castle::WHITE_KING_SIDE)) {
+                    _hash ^= Zobrist::castle_rights(Castle::WHITE_KING_SIDE);
                 }
-                if (castle_kind_allowed(CastleKind::WHITE_QUEEN_SIDE)) {
-                    _hash ^= Zobrist::castle_rights(CastleKind::WHITE_QUEEN_SIDE);
+                if (castle_kind_allowed(Castle::WHITE_QUEEN_SIDE)) {
+                    _hash ^= Zobrist::castle_rights(Castle::WHITE_QUEEN_SIDE);
                 }
                 _castle_rights &= ~CASTLE_WHITE_ALL;
             } else {
-                if (castle_kind_allowed(CastleKind::BLACK_KING_SIDE)) {
-                    _hash ^= Zobrist::castle_rights(CastleKind::BLACK_KING_SIDE);
+                if (castle_kind_allowed(Castle::BLACK_KING_SIDE)) {
+                    _hash ^= Zobrist::castle_rights(Castle::BLACK_KING_SIDE);
                 }
-                if (castle_kind_allowed(CastleKind::BLACK_QUEEN_SIDE)) {
-                    _hash ^= Zobrist::castle_rights(CastleKind::BLACK_QUEEN_SIDE);
+                if (castle_kind_allowed(Castle::BLACK_QUEEN_SIDE)) {
+                    _hash ^= Zobrist::castle_rights(Castle::BLACK_QUEEN_SIDE);
                 }
                 _castle_rights &= ~CASTLE_BLACK_ALL;
             }
@@ -1111,11 +1111,11 @@ void Position::_compute_zobrist_hash() noexcept
         hash ^= Zobrist::side_to_move();
     }
 
-    std::initializer_list<CastleKind> kinds = {
-        CastleKind::WHITE_KING_SIDE,
-        CastleKind::BLACK_KING_SIDE,
-        CastleKind::WHITE_QUEEN_SIDE,
-        CastleKind::BLACK_QUEEN_SIDE,
+    std::initializer_list<Castle> kinds = {
+        Castle::WHITE_KING_SIDE,
+        Castle::BLACK_KING_SIDE,
+        Castle::WHITE_QUEEN_SIDE,
+        Castle::BLACK_QUEEN_SIDE,
     };
     for (auto kind : kinds) {
         if (castle_kind_allowed(kind)) {
@@ -1189,19 +1189,19 @@ void Position::_validate() const noexcept {
     assert(counts[Piece(WHITE, PAWN).value()] <= 8);
     assert(counts[Piece(BLACK, PAWN).value()] <= 8);
 
-    if (castle_kind_allowed(CastleKind::WHITE_KING_SIDE)) {
+    if (castle_kind_allowed(Castle::WHITE_KING_SIDE)) {
         assert(piece_on_square(E1) == Piece(WHITE, KING));
         assert(piece_on_square(H1) == Piece(WHITE, ROOK));
     }
-    if (castle_kind_allowed(CastleKind::WHITE_QUEEN_SIDE)) {
+    if (castle_kind_allowed(Castle::WHITE_QUEEN_SIDE)) {
         assert(piece_on_square(E1) == Piece(WHITE, KING));
         assert(piece_on_square(A1) == Piece(WHITE, ROOK));
     }
-    if (castle_kind_allowed(CastleKind::BLACK_KING_SIDE)) {
+    if (castle_kind_allowed(Castle::BLACK_KING_SIDE)) {
         assert(piece_on_square(E8) == Piece(BLACK, KING));
         assert(piece_on_square(H8) == Piece(BLACK, ROOK));
     }
-    if (castle_kind_allowed(CastleKind::BLACK_QUEEN_SIDE)) {
+    if (castle_kind_allowed(Castle::BLACK_QUEEN_SIDE)) {
         assert(piece_on_square(E8) == Piece(BLACK, KING));
         assert(piece_on_square(A8) == Piece(BLACK, ROOK));
     }
@@ -1237,10 +1237,10 @@ u64 Position::_generate_pinned(Color blocker_color, Color king_color) const noex
 constexpr int castles_king_square(Move m) noexcept
 {
     switch (m.castle_kind()) {
-        case CastleKind::WHITE_KING_SIDE:  return G1;
-        case CastleKind::BLACK_KING_SIDE:  return G8;
-        case CastleKind::WHITE_QUEEN_SIDE: return C1;
-        case CastleKind::BLACK_QUEEN_SIDE: return C8;
+        case Castle::WHITE_KING_SIDE:  return G1;
+        case Castle::BLACK_KING_SIDE:  return G8;
+        case Castle::WHITE_QUEEN_SIDE: return C1;
+        case Castle::BLACK_QUEEN_SIDE: return C8;
     }
     __builtin_unreachable();
 }
@@ -1395,7 +1395,7 @@ Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) cons
 
     if (
             side == WHITE &&
-            (castle_kind_allowed(CastleKind::WHITE_KING_SIDE)) &&
+            (castle_kind_allowed(Castle::WHITE_KING_SIDE)) &&
             piece_on_square(F1).empty() &&
             piece_on_square(G1).empty() &&
             !attacks(contra, E1) &&
@@ -1405,12 +1405,12 @@ Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) cons
     {
         assert(piece_on_square(E1) == Piece(WHITE, KING));
         assert(piece_on_square(H1) == Piece(WHITE, ROOK));
-        *moves++ = Move::make_castle(CastleKind::WHITE_KING_SIDE);
+        *moves++ = Move::make_castle(Castle::WHITE_KING_SIDE);
     }
 
     if (
             side == BLACK &&
-            (castle_kind_allowed(CastleKind::BLACK_KING_SIDE)) &&
+            (castle_kind_allowed(Castle::BLACK_KING_SIDE)) &&
             piece_on_square(F8).empty() &&
             piece_on_square(G8).empty() &&
             !attacks(contra, E8) &&
@@ -1420,12 +1420,12 @@ Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) cons
     {
         assert(piece_on_square(E8) == Piece(BLACK, KING));
         assert(piece_on_square(H8) == Piece(BLACK, ROOK));
-        *moves++ = Move::make_castle(CastleKind::BLACK_KING_SIDE);
+        *moves++ = Move::make_castle(Castle::BLACK_KING_SIDE);
     }
 
     if (
             side == WHITE &&
-            (castle_kind_allowed(CastleKind::WHITE_QUEEN_SIDE)) &&
+            (castle_kind_allowed(Castle::WHITE_QUEEN_SIDE)) &&
             piece_on_square(D1).empty() &&
             piece_on_square(C1).empty() &&
             piece_on_square(B1).empty() &&
@@ -1436,12 +1436,12 @@ Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) cons
     {
         assert(piece_on_square(E1) == Piece(WHITE, KING));
         assert(piece_on_square(A1) == Piece(WHITE, ROOK));
-        *moves++ = Move::make_castle(CastleKind::WHITE_QUEEN_SIDE);
+        *moves++ = Move::make_castle(Castle::WHITE_QUEEN_SIDE);
     }
 
     if (
             side == BLACK &&
-            (castle_kind_allowed(CastleKind::BLACK_QUEEN_SIDE)) &&
+            (castle_kind_allowed(Castle::BLACK_QUEEN_SIDE)) &&
             piece_on_square(D8).empty() &&
             piece_on_square(C8).empty() &&
             piece_on_square(B8).empty() &&
@@ -1452,7 +1452,7 @@ Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) cons
     {
         assert(piece_on_square(E8) == Piece(BLACK, KING));
         assert(piece_on_square(A8) == Piece(BLACK, ROOK));
-        *moves++ = Move::make_castle(CastleKind::BLACK_QUEEN_SIDE);
+        *moves++ = Move::make_castle(Castle::BLACK_QUEEN_SIDE);
     }
 
     return moves;

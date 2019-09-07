@@ -276,7 +276,7 @@ constexpr int pawn_capture_backward_right(Color side, int x) noexcept {
 std::ostream& operator<<(std::ostream& os, Square sq) noexcept;
 
 // used as bitmask by Position
-enum class CastleKind : u8 {
+enum class Castle : u8 {
     WHITE_KING_SIDE  = 1 << 0,
     WHITE_QUEEN_SIDE = 1 << 1,
     BLACK_KING_SIDE  = 1 << 2,
@@ -285,8 +285,8 @@ enum class CastleKind : u8 {
 
 enum CastleMasks : u8 {
     CASTLE_NONE = 0,
-    CASTLE_WHITE_ALL = static_cast<u8>(CastleKind::WHITE_KING_SIDE) | static_cast<u8>(CastleKind::WHITE_QUEEN_SIDE),
-    CASTLE_BLACK_ALL = static_cast<u8>(CastleKind::BLACK_KING_SIDE) | static_cast<u8>(CastleKind::BLACK_QUEEN_SIDE),
+    CASTLE_WHITE_ALL = static_cast<u8>(Castle::WHITE_KING_SIDE) | static_cast<u8>(Castle::WHITE_QUEEN_SIDE),
+    CASTLE_BLACK_ALL = static_cast<u8>(Castle::BLACK_KING_SIDE) | static_cast<u8>(Castle::BLACK_QUEEN_SIDE),
     CASTLE_ALL   = CASTLE_WHITE_ALL | CASTLE_BLACK_ALL,
 };
 
@@ -313,14 +313,14 @@ public:
     { return Move(from, to, ep_capture_tag{}); }
 
     [[nodiscard]]
-    constexpr static Move make_castle(CastleKind kind) noexcept {
+    constexpr static Move make_castle(Castle kind) noexcept {
         switch (kind) {
-            case CastleKind::WHITE_KING_SIDE: return Move(E1, H1, castle_tag{});
-            case CastleKind::WHITE_QUEEN_SIDE: return Move(E1, A1, castle_tag{});
-            case CastleKind::BLACK_KING_SIDE: return Move(E8, H8, castle_tag{});
-            case CastleKind::BLACK_QUEEN_SIDE: return Move(E8, A8, castle_tag{});
+            case Castle::WHITE_KING_SIDE: return Move(E1, H1, castle_tag{});
+            case Castle::WHITE_QUEEN_SIDE: return Move(E1, A1, castle_tag{});
+            case Castle::BLACK_KING_SIDE: return Move(E8, H8, castle_tag{});
+            case Castle::BLACK_QUEEN_SIDE: return Move(E8, A8, castle_tag{});
         }
-        assert((kind != CastleKind::WHITE_KING_SIDE) && "invalid castle type");
+        assert((kind != Castle::WHITE_KING_SIDE) && "invalid castle type");
         __builtin_unreachable();
         return Move();
     }
@@ -329,16 +329,16 @@ public:
     { return Move(from, to, promotion); }
 
     [[nodiscard]]
-    constexpr CastleKind castle_kind() const noexcept {
+    constexpr Castle castle_kind() const noexcept {
         assert(is_castle());
         switch (to().value()) {
-            case H1: return CastleKind::WHITE_KING_SIDE;
-            case H8: return CastleKind::BLACK_KING_SIDE;
-            case A1: return CastleKind::WHITE_QUEEN_SIDE;
-            case A8: return CastleKind::BLACK_QUEEN_SIDE;
+            case H1: return Castle::WHITE_KING_SIDE;
+            case H8: return Castle::BLACK_KING_SIDE;
+            case A1: return Castle::WHITE_QUEEN_SIDE;
+            case A8: return Castle::BLACK_QUEEN_SIDE;
         }
         __builtin_unreachable();
-        return CastleKind::WHITE_KING_SIDE;
+        return Castle::WHITE_KING_SIDE;
     }
 
     [[nodiscard]]
@@ -393,10 +393,10 @@ public:
         char buffer[6];
         if (is_castle()) {
             switch (castle_kind()) {
-                case CastleKind::WHITE_KING_SIDE: return "e1g1";
-                case CastleKind::BLACK_KING_SIDE: return "e8g8";
-                case CastleKind::WHITE_QUEEN_SIDE: return "e1c1";
-                case CastleKind::BLACK_QUEEN_SIDE: return "e8c8";
+                case Castle::WHITE_KING_SIDE: return "e1g1";
+                case Castle::BLACK_KING_SIDE: return "e8g8";
+                case Castle::WHITE_QUEEN_SIDE: return "e1c1";
+                case Castle::BLACK_QUEEN_SIDE: return "e8c8";
             }
         }
         char promo = is_promotion() ? PieceKindLetters[promotion()] : '\0';

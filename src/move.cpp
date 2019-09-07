@@ -17,10 +17,10 @@ std::ostream& operator<<(std::ostream& os, Move move) noexcept {
 
     if (move.is_castle()) {
         switch (move.castle_kind()) {
-            case CastleKind::WHITE_KING_SIDE:  os << "white 0-0 "; break;
-            case CastleKind::BLACK_KING_SIDE:  os << "black 0-0 "; break;
-            case CastleKind::WHITE_QUEEN_SIDE: os << "white 0-0-0 "; break;
-            case CastleKind::BLACK_QUEEN_SIDE: os << "black 0-0-0 "; break;
+            case Castle::WHITE_KING_SIDE:  os << "white 0-0 "; break;
+            case Castle::BLACK_KING_SIDE:  os << "black 0-0 "; break;
+            case Castle::WHITE_QUEEN_SIDE: os << "white 0-0-0 "; break;
+            case Castle::BLACK_QUEEN_SIDE: os << "black 0-0-0 "; break;
             default:                                 os << "bad castle move "; break;
         }
         return os;

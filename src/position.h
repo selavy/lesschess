@@ -31,7 +31,7 @@ struct Zobrist {
     static u64 side_to_move() noexcept
     { return _values[side_to_move_index()]; }
 
-    static u64 castle_rights(CastleKind kind) noexcept
+    static u64 castle_rights(Castle kind) noexcept
     { return _values[castle_rights_index(kind)]; }
 
     static u64 enpassant(Square square) noexcept
@@ -81,7 +81,7 @@ private:
         return index;
     }
 
-    static int castle_rights_index(CastleKind kind) noexcept
+    static int castle_rights_index(Castle kind) noexcept
     {
         int index = CASTLE_RIGHTS_BEGIN + static_cast<int>(kind);
         assert(CASTLE_RIGHTS_BEGIN <= index && index < CASTLE_RIGHTS_END);
@@ -98,10 +98,6 @@ private:
 
 class Position {
 public:
-    enum {
-        ENPASSANT_NONE = Square::INVALID,
-    };
-
     Position() noexcept;
     Position(const Position&) noexcept = default;
     Position& operator=(const Position&) noexcept = default;
@@ -161,7 +157,7 @@ public:
     { return _castle_rights; }
 
     [[nodiscard]]
-    bool castle_kind_allowed(CastleKind kind) const noexcept
+    bool castle_kind_allowed(Castle kind) const noexcept
     { return (castle_flags() & static_cast<u8>(kind)) != 0; }
 
     [[nodiscard]]
@@ -216,6 +212,10 @@ public:
     { return _hash; }
 
 private:
+    enum {
+        ENPASSANT_NONE = Square::INVALID,
+    };
+
     void _compute_zobrist_hash() noexcept;
 
     [[nodiscard]]
