@@ -415,16 +415,16 @@ std::string Position::dump_fen() const noexcept
     result += _wtm == WHITE ? 'w' : 'b';
     result += ' ';
 
-    if (castle_kind_allowed(Castle::WHITE_KING_SIDE)) {
+    if (castle_allowed(Castle::WHITE_KING_SIDE)) {
         result += 'K';
     }
-    if (castle_kind_allowed(Castle::WHITE_QUEEN_SIDE)) {
+    if (castle_allowed(Castle::WHITE_QUEEN_SIDE)) {
         result += 'Q';
     }
-    if (castle_kind_allowed(Castle::BLACK_KING_SIDE)) {
+    if (castle_allowed(Castle::BLACK_KING_SIDE)) {
         result += 'k';
     }
-    if (castle_kind_allowed(Castle::BLACK_QUEEN_SIDE)) {
+    if (castle_allowed(Castle::BLACK_QUEEN_SIDE)) {
         result += 'q';
     }
     if (_castle_rights == CASTLE_NONE) {
@@ -568,18 +568,18 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         } else {
             _kings[side] = to;
             if (side == WHITE) {
-                if (castle_kind_allowed(Castle::WHITE_KING_SIDE)) {
+                if (castle_allowed(Castle::WHITE_KING_SIDE)) {
                     _hash ^= Zobrist::castle_rights(Castle::WHITE_KING_SIDE);
                 }
-                if (castle_kind_allowed(Castle::WHITE_QUEEN_SIDE)) {
+                if (castle_allowed(Castle::WHITE_QUEEN_SIDE)) {
                     _hash ^= Zobrist::castle_rights(Castle::WHITE_QUEEN_SIDE);
                 }
                 _castle_rights &= ~CASTLE_WHITE_ALL;
             } else {
-                if (castle_kind_allowed(Castle::BLACK_KING_SIDE)) {
+                if (castle_allowed(Castle::BLACK_KING_SIDE)) {
                     _hash ^= Zobrist::castle_rights(Castle::BLACK_KING_SIDE);
                 }
-                if (castle_kind_allowed(Castle::BLACK_QUEEN_SIDE)) {
+                if (castle_allowed(Castle::BLACK_QUEEN_SIDE)) {
                     _hash ^= Zobrist::castle_rights(Castle::BLACK_QUEEN_SIDE);
                 }
                 _castle_rights &= ~CASTLE_BLACK_ALL;
@@ -768,8 +768,7 @@ bool Position::operator==(const Position& rhs) const noexcept {
             (lhs._sq2pc == rhs._sq2pc) &&
             (lhs._kings == rhs._kings) &&
             (lhs._moves == rhs._moves) &&
-            // TODO: temp fix me!
-            // (lhs._hash == rhs._hash) &&
+            (lhs._hash == rhs._hash) &&
             (lhs._halfmoves == rhs._halfmoves) &&
             (lhs._wtm == rhs._wtm) &&
             (lhs._ep_target == rhs._ep_target) &&
@@ -1118,7 +1117,7 @@ void Position::_compute_zobrist_hash() noexcept
         Castle::BLACK_QUEEN_SIDE,
     };
     for (auto kind : kinds) {
-        if (castle_kind_allowed(kind)) {
+        if (castle_allowed(kind)) {
             hash ^= Zobrist::castle_rights(kind);
         }
     }
@@ -1189,19 +1188,19 @@ void Position::_validate() const noexcept {
     assert(counts[Piece(WHITE, PAWN).value()] <= 8);
     assert(counts[Piece(BLACK, PAWN).value()] <= 8);
 
-    if (castle_kind_allowed(Castle::WHITE_KING_SIDE)) {
+    if (castle_allowed(Castle::WHITE_KING_SIDE)) {
         assert(piece_on_square(E1) == Piece(WHITE, KING));
         assert(piece_on_square(H1) == Piece(WHITE, ROOK));
     }
-    if (castle_kind_allowed(Castle::WHITE_QUEEN_SIDE)) {
+    if (castle_allowed(Castle::WHITE_QUEEN_SIDE)) {
         assert(piece_on_square(E1) == Piece(WHITE, KING));
         assert(piece_on_square(A1) == Piece(WHITE, ROOK));
     }
-    if (castle_kind_allowed(Castle::BLACK_KING_SIDE)) {
+    if (castle_allowed(Castle::BLACK_KING_SIDE)) {
         assert(piece_on_square(E8) == Piece(BLACK, KING));
         assert(piece_on_square(H8) == Piece(BLACK, ROOK));
     }
-    if (castle_kind_allowed(Castle::BLACK_QUEEN_SIDE)) {
+    if (castle_allowed(Castle::BLACK_QUEEN_SIDE)) {
         assert(piece_on_square(E8) == Piece(BLACK, KING));
         assert(piece_on_square(A8) == Piece(BLACK, ROOK));
     }
@@ -1395,7 +1394,7 @@ Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) cons
 
     if (
             side == WHITE &&
-            (castle_kind_allowed(Castle::WHITE_KING_SIDE)) &&
+            (castle_allowed(Castle::WHITE_KING_SIDE)) &&
             piece_on_square(F1).empty() &&
             piece_on_square(G1).empty() &&
             !attacks(contra, E1) &&
@@ -1410,7 +1409,7 @@ Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) cons
 
     if (
             side == BLACK &&
-            (castle_kind_allowed(Castle::BLACK_KING_SIDE)) &&
+            (castle_allowed(Castle::BLACK_KING_SIDE)) &&
             piece_on_square(F8).empty() &&
             piece_on_square(G8).empty() &&
             !attacks(contra, E8) &&
@@ -1425,7 +1424,7 @@ Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) cons
 
     if (
             side == WHITE &&
-            (castle_kind_allowed(Castle::WHITE_QUEEN_SIDE)) &&
+            (castle_allowed(Castle::WHITE_QUEEN_SIDE)) &&
             piece_on_square(D1).empty() &&
             piece_on_square(C1).empty() &&
             piece_on_square(B1).empty() &&
@@ -1441,7 +1440,7 @@ Move* Position::_generate_castle_moves(Color side, Square ksq, Move* moves) cons
 
     if (
             side == BLACK &&
-            (castle_kind_allowed(Castle::BLACK_QUEEN_SIDE)) &&
+            (castle_allowed(Castle::BLACK_QUEEN_SIDE)) &&
             piece_on_square(D8).empty() &&
             piece_on_square(C8).empty() &&
             piece_on_square(B8).empty() &&

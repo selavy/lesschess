@@ -157,7 +157,7 @@ public:
     { return _castle_rights; }
 
     [[nodiscard]]
-    bool castle_kind_allowed(Castle kind) const noexcept
+    bool castle_allowed(Castle kind) const noexcept
     { return (castle_flags() & static_cast<u8>(kind)) != 0; }
 
     [[nodiscard]]
