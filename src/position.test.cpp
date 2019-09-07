@@ -2124,6 +2124,40 @@ TEST_CASE("zobrist", "[position]")
         REQUIRE(position == expected);
     }
 
+    SECTION("white underpromotion")
+    {
+        std::string fen1 = "2kr3r/1ppqbpP1/p1n1bn2/4p3/B3P3/2NPBN2/PPPQ1P1p/2KR1R2 w - - 0 1";
+        std::string move = "g7g8n";
+        std::string fen2 = "2kr2Nr/1ppqbp2/p1n1bn2/4p3/B3P3/2NPBN2/PPPQ1P1p/2KR1R2 b - - 0 1";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        REQUIRE(m.is_promotion());
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
+
+    SECTION("black underpromotion")
+    {
+        std::string fen1 = "2kr3r/1ppqbp2/p1n1bn2/4p3/B3P3/2NPBN2/PPPQ1P1p/2KR1R2 b - - 0 1";
+        std::string move = "h2h1n";
+        std::string fen2 = "2kr3r/1ppqbp2/p1n1bn2/4p3/B3P3/2NPBN2/PPPQ1P2/2KR1R1n w - - 0 2";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        REQUIRE(m.is_promotion());
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
+
     SECTION("white promotion with capture of rook changing castle rights")
     {
         std::string fen1 = "r3k2r/1ppqbpP1/p1n1bn2/4p3/B3P3/2NPBN2/PPPQ1P2/2KR1R2 w kq - 0 1";
