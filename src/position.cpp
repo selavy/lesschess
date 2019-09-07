@@ -638,7 +638,6 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         _hash ^= Zobrist::board(piece, to);
         _hash ^= Zobrist::board(contra_pawn, epsq);
     } else if (flags == Move::Flags::PROMOTION) {
-        // TODO: update zobrist
         const PieceKind promotion_kind = move.promotion();
         const Piece promotion_piece = Piece(side, promotion_kind);
         assert(kind == PAWN);

@@ -2192,8 +2192,67 @@ TEST_CASE("zobrist", "[position]")
         REQUIRE(position == expected);
     }
 
-    // white capture of rook changing king side castle rights
-    // black capture of rook changing king side castle rights
-    // white capture of rook changing queen side castle rights
-    // black capture of rook changing queen side castle rights
+    SECTION("white capture of rook changing king side castle rights")
+    {
+        std::string fen1 = "rnbqkb1r/pppppppp/6N1/8/8/6n1/PPPPPPPP/RNBQKB1R w KQkq - 0 1";
+        std::string move = "g6h8";
+        std::string fen2 = "rnbqkb1N/pppppppp/8/8/8/6n1/PPPPPPPP/RNBQKB1R b KQq - 0 1";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
+
+    SECTION("black capture of rook changing king side castle rights")
+    {
+        std::string fen1 = "rnbqkb1r/pppppppp/6N1/8/8/6n1/PPPPPPPP/RNBQKB1R b KQq - 0 1";
+        std::string move = "g3h1";
+        std::string fen2 = "rnbqkb1r/pppppppp/6N1/8/8/8/PPPPPPPP/RNBQKB1n w Qq - 0 2";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
+
+    SECTION("white capture of rook changing queen side castle rights")
+    {
+        std::string fen1 = "rnbqkb1r/pppppppp/1N6/8/8/1n6/PPPPPPPP/RNBQKB1R w KQkq - 0 1";
+        std::string move = "b6a8";
+        std::string fen2 = "Nnbqkb1r/pppppppp/8/8/8/1n6/PPPPPPPP/RNBQKB1R b KQk - 0 1";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
+
+    SECTION("black capture of rook changing queen side castle rights")
+    {
+        std::string fen1 = "rnbqkb1r/pppppppp/1N6/8/8/1n6/PPPPPPPP/RNBQKB1R b KQkq - 0 1";
+        std::string move = "b3a1";
+		std::string fen2 = "rnbqkb1r/pppppppp/1N6/8/8/8/PPPPPPPP/nNBQKB1R w Kkq - 0 2";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
 }
