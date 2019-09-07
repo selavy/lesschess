@@ -650,7 +650,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
             _castle_rights &= ~rook_square_to_castle_flag(to);
         }
     } else if (flags == Move::Flags::CASTLE) {
-        // TODO: update zobrist
+        assert(castle_allowed(move.castle_kind()));
         assert(kind == KING);
         Piece king = Piece(side, KING);
         Piece rook = Piece(side, ROOK);

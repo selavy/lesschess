@@ -1984,7 +1984,7 @@ TEST_CASE("zobrist", "[position]")
         REQUIRE(position == expected);
     }
 
-    SECTION("White king side castle")
+    SECTION("white king side castle")
     {
         std::string fen1 = "r1bqkb1r/1pp2ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1";
         std::string move = "e1g1"; // == 0-0
@@ -2002,12 +2002,66 @@ TEST_CASE("zobrist", "[position]")
         REQUIRE(position == expected);
     }
 
-    // white en passant capture
+    SECTION("white queen side castle")
+    {
+        std::string fen1 = "r1bqkb1r/1pp2ppp/p1n2n2/4p3/B3P3/2NPBN2/PPPQ1PPP/R3K2R w KQkq - 0 1";
+        std::string move = "e1c1";
+        std::string fen2 = "r1bqkb1r/1pp2ppp/p1n2n2/4p3/B3P3/2NPBN2/PPPQ1PPP/2KR3R b kq - 1 1";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        REQUIRE(m.is_castle());
+        REQUIRE(m.castle_kind() == Castle::WHITE_QUEEN_SIDE);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
+
+    SECTION("black king side castle")
+    {
+        std::string fen1 = "r1bqk2r/1pp1bppp/p1n2n2/4p3/B3P3/2NPBN2/PPPQ1PPP/R3K1R1 b Qkq - 0 1";
+		std::string move = "e8g8";
+		std::string fen2 = "r1bq1rk1/1pp1bppp/p1n2n2/4p3/B3P3/2NPBN2/PPPQ1PPP/R3K1R1 w Q - 1 2";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        REQUIRE(m.is_castle());
+        REQUIRE(m.castle_kind() == Castle::BLACK_KING_SIDE);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
+
+    SECTION("black queen side castle")
+    {
+        std::string fen1 = "r3k2r/1ppqbppp/p1n1bn2/4p3/B3P3/2NPBN2/PPPQ1PPP/R3K1R1 b Qq - 0 1";
+        std::string move = "e8c8";
+        std::string fen2 = "2kr3r/1ppqbppp/p1n1bn2/4p3/B3P3/2NPBN2/PPPQ1PPP/R3K1R1 w Q - 1 2";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        REQUIRE(m.is_castle());
+        REQUIRE(m.castle_kind() == Castle::BLACK_QUEEN_SIDE);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
+
+    // SECTION("white en passant capture")
+    // {
+
+    // }
+
     // black en passant capture
-    // white king side castle
-    // white queen side castle
-    // black king side castle
-    // black queen side castle
     // white promotion
     // black promotion
     // white capture of rook changing king side castle rights
