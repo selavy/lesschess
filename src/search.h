@@ -11,6 +11,8 @@ constexpr int DRAW = 0;
 constexpr int CHECKMATE = MAX_SCORE - 1; // TODO: does it matter if it is infinity or not?
 constexpr int STALEMATE = DRAW;
 constexpr int FIFTY_MOVE_RULE_DRAW = DRAW;
+constexpr int WHITE_CHECKMATE = CHECKMATE;
+constexpr int BLACK_CHECKMATE = -CHECKMATE;
 
 struct SearchResult {
     constexpr SearchResult() noexcept : score{0}, move{} {}

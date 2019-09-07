@@ -104,6 +104,7 @@ TEST_CASE("White mate in 1 with rook", "[search]")
     auto result   = search(position);
     auto expected = Move{H6, H8};
     REQUIRE(result.move == expected);
+    REQUIRE(result.score == WHITE_CHECKMATE);
 }
 
 TEST_CASE("Black mate in 1 with rook", "[search]")
@@ -122,6 +123,7 @@ TEST_CASE("Black mate in 1 with rook", "[search]")
     auto result   = search(position);
     auto expected = Move{H3, H1};
     REQUIRE(result.move == expected);
+    REQUIRE(result.score == BLACK_CHECKMATE);
 }
 
 TEST_CASE("Black mate in 2 with rook", "[search]")
@@ -130,7 +132,8 @@ TEST_CASE("Black mate in 2 with rook", "[search]")
     auto position = Position::from_fen(fen);
     auto result   = search(position);
     auto expected = Move{B4, B3};
-    REQUIRE(result.move == expected);
+    REQUIRE(result.move  == expected);
+    REQUIRE(result.score == BLACK_CHECKMATE);
 }
 
 TEST_CASE("Black stalemate white king", "[search]")
@@ -141,4 +144,14 @@ TEST_CASE("Black stalemate white king", "[search]")
     auto expected = Move{C6, C7};
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == STALEMATE);
+}
+
+TEST_CASE("White mate -- philidor's smothered mate", "[search]")
+{
+    std::string fen = "1r5k/6pp/7N/8/2Q5/8/8/7K w - - 0 1";
+    auto position = Position::from_fen(fen);
+    auto result   = search(position);
+    auto expected = Move{C4, G8};
+    REQUIRE(result.move  == expected);
+    REQUIRE(result.score == CHECKMATE);
 }
