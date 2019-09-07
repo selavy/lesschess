@@ -2469,7 +2469,6 @@ TEST_CASE("zobrist undo_move", "[position]")
         REQUIRE(position == original);
     }
 
-#if 0
     SECTION("white promotion")
     {
         std::string fen1 = "2kr3r/1ppqbpP1/p1n1bn2/4p3/B3P3/2NPBN2/PPPQ1P1p/2KR1R2 w - - 0 1";
@@ -2655,5 +2654,4 @@ TEST_CASE("zobrist undo_move", "[position]")
         position.undo_move(sp, m);
         REQUIRE(position == original);
     }
-#endif
 }

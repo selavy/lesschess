@@ -791,7 +791,6 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         _hash ^= Zobrist::board(rook, rsq);
         _hash ^= Zobrist::board(rook, to);
     } else if (flags == Move::Flags::PROMOTION) {
-        // TODO: update zobrist
         assert(move.is_promotion());
         Piece pawn = Piece(side, PAWN);
         Piece promoted = Piece(side, move.promotion());
@@ -801,12 +800,14 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         _sq2pc[from.value()] = pawn;
         _sidemask[side] |= from.mask();
         _sidemask[side] &= ~to.mask();
+        _hash ^= Zobrist::board(pawn, from);
+        _hash ^= Zobrist::board(promoted, to);
         if (!captured.empty()) {
             _boards[captured.value()] |= to.mask();
             _sidemask[contra] |= to.mask();
+            _hash ^= Zobrist::board(captured, to);
         }
     } else if (flags == Move::Flags::ENPASSANT) {
-        // TODO: update zobrist
         // TODO(peter): better name for :epsq:
         Square epsq = side == WHITE ? to.value() - 8 : to.value() + 8;
         Piece opp_pawn = Piece(contra, PAWN);
