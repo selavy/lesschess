@@ -9,6 +9,8 @@ using namespace lesschess;
 
 TEST_CASE("Read long algebraic moves", "[position]")
 {
+    Zobrist::initialize();
+
     SECTION("White moves from starting position") {
         std::string startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         std::vector<std::pair<std::string, Move>> tests = {
@@ -197,6 +199,8 @@ TEST_CASE("Read long algebraic moves", "[position]")
 
 TEST_CASE("Position from FEN", "[position]")
 {
+    Zobrist::initialize();
+
     SECTION("Starting position") {
         // |r|n|b|q|k|b|n|r|
         // |p|p|p|p|p|p|p|p|
@@ -241,14 +245,14 @@ TEST_CASE("Position from FEN", "[position]")
         }
 
         REQUIRE(position.white_to_move() == true);
-        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == CASTLE_ALL);
         REQUIRE(position.enpassant_available() == false);
         REQUIRE(position.fifty_move_rule_moves() == 0);
         REQUIRE(position.move_number() == 1);
 
         // flip side to move a couple times to verify that...
         REQUIRE(position.white_to_move() == true);
-        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == CASTLE_ALL);
         REQUIRE(position.enpassant_available() == false);
     }
 
@@ -292,7 +296,7 @@ TEST_CASE("Position from FEN", "[position]")
         }
 
         REQUIRE(position.white_to_move() == false);
-        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == CASTLE_ALL);
         REQUIRE(position.fifty_move_rule_moves() == 0);
         REQUIRE(position.move_number() == 1);
         REQUIRE(position.enpassant_available() == true);
@@ -355,7 +359,7 @@ TEST_CASE("Position from FEN", "[position]")
         }
 
         REQUIRE(position.white_to_move() == true);
-        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == CASTLE_ALL);
         REQUIRE(position.fifty_move_rule_moves() == 0);
         REQUIRE(position.move_number() == 2);
         REQUIRE(position.enpassant_available() == true);
@@ -394,7 +398,7 @@ TEST_CASE("Position from FEN", "[position]")
 
         REQUIRE(position.move_number() == 1); // default value when missing from FEN
         REQUIRE(position.fifty_move_rule_moves() == 0); // default value when missing from FEN
-        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == CASTLE_ALL);
         REQUIRE(position.enpassant_available() == false);
     }
 
@@ -432,7 +436,7 @@ TEST_CASE("Position from FEN", "[position]")
 
         REQUIRE(position.move_number() == 1);
         REQUIRE(position.fifty_move_rule_moves() == 0);
-        REQUIRE(position.castle_flags() == Position::CASTLE_NONE);
+        REQUIRE(position.castle_flags() == CASTLE_NONE);
         REQUIRE(position.enpassant_available() == false);
     }
 
@@ -491,7 +495,10 @@ TEST_CASE("Position from FEN", "[position]")
 
         REQUIRE(position.move_number() == 1);
         REQUIRE(position.fifty_move_rule_moves() == 0);
-        REQUIRE(position.castle_flags() == (Position::CASTLE_BLACK_KING_SIDE | Position::CASTLE_BLACK_QUEEN_SIDE));
+        REQUIRE(!position.castle_kind_allowed(CastleKind::WHITE_KING_SIDE));
+        REQUIRE(!position.castle_kind_allowed(CastleKind::WHITE_QUEEN_SIDE));
+        REQUIRE(position.castle_kind_allowed(CastleKind::BLACK_KING_SIDE));
+        REQUIRE(position.castle_kind_allowed(CastleKind::BLACK_QUEEN_SIDE));
         REQUIRE(position.enpassant_available() == false);
     }
 
@@ -510,7 +517,10 @@ TEST_CASE("Position from FEN", "[position]")
 
         REQUIRE(position.move_number() == 8);
         REQUIRE(position.fifty_move_rule_moves() == 1);
-        REQUIRE(position.castle_flags() == (Position::CASTLE_WHITE_KING_SIDE | Position::CASTLE_WHITE_QUEEN_SIDE));
+        REQUIRE(position.castle_kind_allowed(CastleKind::WHITE_KING_SIDE));
+        REQUIRE(position.castle_kind_allowed(CastleKind::WHITE_QUEEN_SIDE));
+        REQUIRE(!position.castle_kind_allowed(CastleKind::BLACK_KING_SIDE));
+        REQUIRE(!position.castle_kind_allowed(CastleKind::BLACK_QUEEN_SIDE));
         REQUIRE(position.enpassant_available() == false);
     }
 
@@ -518,6 +528,8 @@ TEST_CASE("Position from FEN", "[position]")
 
 TEST_CASE("Position::dump_fen", "[position]")
 {
+    Zobrist::initialize();
+
     using FEN = std::string;
     std::vector<FEN> test_cases = {
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
@@ -538,6 +550,8 @@ TEST_CASE("Position::dump_fen", "[position]")
 
 TEST_CASE("Position::make_move", "[position]")
 {
+    Zobrist::initialize();
+
     SECTION("1.e4") {
         // |r|n|b|q|k|b|n|r|
         // |p|p|p|p|p|p|p|p|
@@ -566,7 +580,7 @@ TEST_CASE("Position::make_move", "[position]")
         REQUIRE(position.piece_on_square(E2) == NO_PIECE);
         REQUIRE(position.piece_on_square(E4) == Piece(WHITE, PAWN));
 
-        REQUIRE(position.castle_flags() == Position::CASTLE_ALL);
+        REQUIRE(position.castle_flags() == CASTLE_ALL);
         REQUIRE(position.enpassant_available() == true);
         REQUIRE(position.enpassant_target_square() == E3);
 
@@ -809,6 +823,8 @@ TEST_CASE("Position::make_move", "[position]")
 
 TEST_CASE("Undo Move", "[position]")
 {
+    Zobrist::initialize();
+
     SECTION("Undo Flags=NONE with no capture") {
         std::string starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         Position position = Position::from_fen(starting_position);
@@ -970,6 +986,8 @@ TEST_CASE("Undo Move", "[position]")
 
 TEST_CASE("FEN to ASCII and back", "[position]")
 {
+    Zobrist::initialize();
+
     std::vector<std::pair<std::string, std::string>> fens = {
         {
             "|r| |b|k| | | |r|\n" \
@@ -1040,6 +1058,8 @@ TEST_CASE("FEN to ASCII and back", "[position]")
 
 TEST_CASE("Square is Attacked?", "[position]")
 {
+    Zobrist::initialize();
+
     SECTION("Immortal Game Position")
     {
         std::string position =
@@ -1068,6 +1088,8 @@ TEST_CASE("Square is Attacked?", "[position]")
 
 TEST_CASE("Legal Move Check", "[position]")
 {
+    Zobrist::initialize();
+
     using TestMove = std::pair<Move, bool>;
     std::vector<std::pair<std::string, std::vector<TestMove>>> tests = {
         {
@@ -1144,6 +1166,8 @@ std::set<std::string> BB2SQs(u64 bb)
 
 TEST_CASE("_generate_checkers", "[position]")
 {
+    Zobrist::initialize();
+
     using Squares = std::initializer_list<int>;
     std::vector<std::tuple<std::string, Color, Squares>> ts = {
         {
@@ -1238,6 +1262,8 @@ TEST_CASE("_generate_checkers", "[position]")
 // TODO: move to private and remove tests
 TEST_CASE("_generate_attacked", "[position]")
 {
+    Zobrist::initialize();
+
     using Squares = std::initializer_list<int>;
     std::vector<std::tuple<std::string, Color, Squares>> tcs = {
         {
@@ -1384,6 +1410,8 @@ TEST_CASE("_generate_attacked", "[position]")
 
 TEST_CASE("generate_legal_moves", "[position]")
 {
+    Zobrist::initialize();
+
     using MoveList = std::vector<Move>;
 
     auto gen_moves = [](const Position& position) -> MoveList
@@ -1891,6 +1919,8 @@ TEST_CASE("generate_legal_moves", "[position]")
 
 TEST_CASE("in_check", "[position]")
 {
+    Zobrist::initialize();
+
     std::vector<std::tuple<std::string, bool, bool>> ts = {
         { "k7/8/8/8/8/8/1K6/6Nr w - - 0 1", false, false, },
         { "k7/8/8/8/8/8/1K5r/6N1 w - - 0 1", true, false, },
@@ -1913,4 +1943,25 @@ TEST_CASE("in_check", "[position]")
         REQUIRE(white_result == white_expect);
         REQUIRE(black_result == black_expect);
     }
+}
+
+TEST_CASE("zobrist", "[position]")
+{
+    Zobrist::initialize();
+
+    std::string fen1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    std::string move = "e2e4";
+    std::string fen2 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+
+	Position position = Position::from_fen(fen1);
+    REQUIRE(position.zobrist_hash() != 0u);
+    Position original = position;
+    Move m = position.move_from_long_algebraic(move);
+    Savepos sp;
+    position.make_move(sp, m);
+    Position expected = Position::from_fen(fen2);
+    REQUIRE(expected.zobrist_hash() != 0u);
+    REQUIRE(position == expected);
+    position.undo_move(sp, m);
+    REQUIRE(position == original);
 }

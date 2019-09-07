@@ -8,6 +8,8 @@
 
 namespace lesschess {
 
+/*static*/ u64 Zobrist::_values[SIZE];
+
 struct PossibleMoves
 {
     struct Iterator {
@@ -69,11 +71,12 @@ Position::Position() noexcept
     , _halfmoves(0u)
     , _wtm(1u)
     , _ep_target(Position::ENPASSANT_NONE)
-    , _castle_rights(Position::CASTLE_NONE)
+    , _castle_rights(CASTLE_NONE)
 {
     _boards.fill(0ull);
     _sidemask.fill(0ull);
     _sq2pc.fill(NO_PIECE);
+    _compute_zobrist_hash();
 }
 
 template <class Iter>
@@ -117,7 +120,7 @@ void parse_fen_spec(Iter it, Iter last, Position& position)
     if (it == last) {
         throw std::runtime_error("Expected castling availability specification");
     } else if (*it == '-') {
-        position._castle_rights = Position::CASTLE_NONE;
+        position._castle_rights = CASTLE_NONE;
         ++it;
     } else {
         u8 flags = 0;
@@ -125,16 +128,16 @@ void parse_fen_spec(Iter it, Iter last, Position& position)
             char c = *it++;
             switch (c) {
             case 'K':
-                flags |= Position::CASTLE_WHITE_KING_SIDE;
+                flags |= static_cast<u8>(CastleKind::WHITE_KING_SIDE);
                 break;
             case 'k':
-                flags |= Position::CASTLE_BLACK_KING_SIDE;
+                flags |= static_cast<u8>(CastleKind::BLACK_KING_SIDE);
                 break;
             case 'Q':
-                flags |= Position::CASTLE_WHITE_QUEEN_SIDE;
+                flags |= static_cast<u8>(CastleKind::WHITE_QUEEN_SIDE);
                 break;
             case 'q':
-                flags |= Position::CASTLE_BLACK_QUEEN_SIDE;
+                flags |= static_cast<u8>(CastleKind::BLACK_QUEEN_SIDE);
                 break;
             default:
                 throw std::runtime_error("Invalid character in castling specification");
@@ -244,6 +247,7 @@ Position Position::from_ascii(std::string_view ascii)
     }
 
     parse_fen_spec(it, end, position);
+    position._compute_zobrist_hash();
     position._validate();
     return position;
 }
@@ -301,6 +305,7 @@ Position Position::from_fen(std::string_view fen)
     it = expect(it, ' ');
 
     parse_fen_spec(it, last, position);
+    position._compute_zobrist_hash();
 
     position._validate();
     return position;
@@ -410,19 +415,19 @@ std::string Position::dump_fen() const noexcept
     result += _wtm == WHITE ? 'w' : 'b';
     result += ' ';
 
-    if ((_castle_rights & Position::CASTLE_WHITE_KING_SIDE) != 0) {
+    if (castle_kind_allowed(CastleKind::WHITE_KING_SIDE)) {
         result += 'K';
     }
-    if ((_castle_rights & Position::CASTLE_WHITE_QUEEN_SIDE) != 0) {
+    if (castle_kind_allowed(CastleKind::WHITE_QUEEN_SIDE)) {
         result += 'Q';
     }
-    if ((_castle_rights & Position::CASTLE_BLACK_KING_SIDE) != 0) {
+    if (castle_kind_allowed(CastleKind::BLACK_KING_SIDE)) {
         result += 'k';
     }
-    if ((_castle_rights & Position::CASTLE_BLACK_QUEEN_SIDE) != 0) {
+    if (castle_kind_allowed(CastleKind::BLACK_QUEEN_SIDE)) {
         result += 'q';
     }
-    if (_castle_rights == Position::CASTLE_NONE) {
+    if (_castle_rights == CASTLE_NONE) {
         result += '-';
     }
     result += ' ';
@@ -484,10 +489,10 @@ std::string Position::dump_ascii() const noexcept {
 constexpr u8 rook_square_to_castle_flag(Square square) noexcept
 {
     switch (square.value()) {
-        case A8: return Position::CASTLE_BLACK_QUEEN_SIDE;
-        case H8: return Position::CASTLE_BLACK_KING_SIDE;
-        case A1: return Position::CASTLE_WHITE_QUEEN_SIDE;
-        case H1: return Position::CASTLE_WHITE_KING_SIDE;
+        case A8: return static_cast<u8>(CastleKind::BLACK_QUEEN_SIDE);
+        case H8: return static_cast<u8>(CastleKind::BLACK_KING_SIDE);
+        case A1: return static_cast<u8>(CastleKind::WHITE_QUEEN_SIDE);
+        case H1: return static_cast<u8>(CastleKind::WHITE_KING_SIDE);
         default: return 0;
     }
 }
@@ -551,6 +556,10 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     sp.ep_target = _ep_target;
     sp.castle_rights = _castle_rights;
     sp.captured = captured;
+    _hash ^= Zobrist::side_to_move();
+    if (enpassant_available()) {
+        _hash ^= Zobrist::enpassant(enpassant_target_square());
+    }
 
     if (flags == Move::Flags::NONE) {
         if (board) {
@@ -559,9 +568,21 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         } else {
             _kings[side] = to;
             if (side == WHITE) {
-                _castle_rights &= ~Position::CASTLE_WHITE;
+                if (castle_kind_allowed(CastleKind::WHITE_KING_SIDE)) {
+                    _hash ^= Zobrist::castle_rights(CastleKind::WHITE_KING_SIDE);
+                }
+                if (castle_kind_allowed(CastleKind::WHITE_QUEEN_SIDE)) {
+                    _hash ^= Zobrist::castle_rights(CastleKind::WHITE_QUEEN_SIDE);
+                }
+                _castle_rights &= ~CASTLE_WHITE_ALL;
             } else {
-                _castle_rights &= ~Position::CASTLE_BLACK;
+                if (castle_kind_allowed(CastleKind::BLACK_KING_SIDE)) {
+                    _hash ^= Zobrist::castle_rights(CastleKind::BLACK_KING_SIDE);
+                }
+                if (castle_kind_allowed(CastleKind::BLACK_QUEEN_SIDE)) {
+                    _hash ^= Zobrist::castle_rights(CastleKind::BLACK_QUEEN_SIDE);
+                }
+                _castle_rights &= ~CASTLE_BLACK_ALL;
             }
         }
         _sq2pc[from.value()] = NO_PIECE;
@@ -576,6 +597,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         } else if (kind == PAWN && is_rank2(side, from) && is_enpassant_square(side, to)) {
             u8 target = side == WHITE ? to.value() - 8 : to.value() + 8;
             new_ep_target = target;
+            _hash ^= Zobrist::enpassant(new_ep_target);
             assert((target >= A3 && target <= H3) || (target >= A6 && target <= H6));
         }
 
@@ -628,9 +650,9 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         _sidemask[side] &= ~(to.mask() | from.mask());
         _sidemask[side] |= ksq.mask() | rsq.mask();
         if (side == WHITE) {
-            _castle_rights &= ~Position::CASTLE_WHITE;
+            _castle_rights &= ~CASTLE_WHITE_ALL;
         } else {
-            _castle_rights &= ~Position::CASTLE_BLACK;
+            _castle_rights &= ~CASTLE_BLACK_ALL;
         }
     } else {
         assert(0);
@@ -746,10 +768,13 @@ bool Position::operator==(const Position& rhs) const noexcept {
             (lhs._sq2pc == rhs._sq2pc) &&
             (lhs._kings == rhs._kings) &&
             (lhs._moves == rhs._moves) &&
+            // TODO: temp fix me!
+            // (lhs._hash == rhs._hash) &&
             (lhs._halfmoves == rhs._halfmoves) &&
             (lhs._wtm == rhs._wtm) &&
             (lhs._ep_target == rhs._ep_target) &&
-            (lhs._castle_rights == rhs._castle_rights));
+            (lhs._castle_rights == rhs._castle_rights)
+           );
 }
 
 bool Position::operator!=(const Position& rhs) const noexcept
@@ -1068,6 +1093,41 @@ Move* Position::_generate_non_evasions(Move* moves) const noexcept
     }
 
     return moves;
+}
+
+void Position::_compute_zobrist_hash() noexcept
+{
+    u64 hash = 0;
+
+    for (int i = 0; i < 64; ++i) {
+        Square square{i};
+        Piece piece = piece_on_square(square);
+        if (!piece.empty()) {
+            hash ^= Zobrist::board(piece, square);
+        }
+    }
+
+    if (white_to_move()) {
+        hash ^= Zobrist::side_to_move();
+    }
+
+    std::initializer_list<CastleKind> kinds = {
+        CastleKind::WHITE_KING_SIDE,
+        CastleKind::BLACK_KING_SIDE,
+        CastleKind::WHITE_QUEEN_SIDE,
+        CastleKind::BLACK_QUEEN_SIDE,
+    };
+    for (auto kind : kinds) {
+        if (castle_kind_allowed(kind)) {
+            hash ^= Zobrist::castle_rights(kind);
+        }
+    }
+
+    if (enpassant_available()) {
+        hash ^= Zobrist::enpassant(enpassant_target_square());
+    }
+
+    _hash = hash;
 }
 
 void Position::_validate() const noexcept {
@@ -1417,6 +1477,15 @@ u64 Position::_generate_checkers(Color side) const noexcept
     rval |= king_attacks(ksq) & king;
     rval |= pawn_attacks(side, ksq) & pawns;
     return rval;
+}
+
+std::ostream& operator<<(std::ostream& os, const Position& position)
+{
+    os << position.dump_fen();
+    os << " (";
+    os << std::hex << position.zobrist_hash();
+    os << ")";
+    return os;
 }
 
 } // ~namespace lesschess

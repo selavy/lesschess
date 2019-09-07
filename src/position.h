@@ -17,24 +17,96 @@ struct Savepos {
 };
 static_assert(std::is_trivially_copyable<Savepos>::value == true, "");
 
+struct Zobrist {
+    // square x piece = 64 squares x 6 piece types x 2 colors
+    // white to move  = 1
+    // castle rights  = 16
+    // enpassant file = 8
+    static constexpr int SIZE = ((64 * 6 * 2) + 1 + 16 + 8);
+    static u64 _values[SIZE];
+
+    static u64 board(Piece piece, Square square) noexcept
+    { return _values[board_index(piece, square)]; }
+
+    static u64 side_to_move() noexcept
+    { return _values[side_to_move_index()]; }
+
+    static u64 castle_rights(CastleKind kind) noexcept
+    { return _values[castle_rights_index(kind)]; }
+
+    static u64 enpassant(Square square) noexcept
+    { return _values[enpassant_index(square)]; }
+
+    static void initialize() {
+        srand(42);
+        for (int i = 0; i < SIZE; ++i) {
+            _values[i] = (static_cast<u64>(rand()) << 32) | static_cast<u64>(rand());
+        }
+
+try_again:
+        for (int i = 0; i < SIZE; ++i) {
+            for (int j = i + 1; j < SIZE; ++j) {
+                if (_values[i] == _values[j]) {
+                    _values[j] = (static_cast<u64>(rand()) << 32) | static_cast<u64>(rand());
+                    goto try_again;
+                }
+            }
+        }
+    }
+
+private:
+    enum IndexBoundaries
+    {
+        BOARD_BEGIN         = 0,
+        BOARD_END           = BOARD_BEGIN + 12*64,
+        SIDE_TO_MOVE_BEGIN  = BOARD_END,
+        SIDE_TO_MOVE_END    = SIDE_TO_MOVE_BEGIN + 1,
+        CASTLE_RIGHTS_BEGIN = SIDE_TO_MOVE_END,
+        CASTLE_RIGHTS_END   = CASTLE_RIGHTS_BEGIN + 16,
+        ENPASSANT_BEGIN     = CASTLE_RIGHTS_END,
+        ENPASSANT_END       = ENPASSANT_BEGIN + 8,
+    };
+
+    static int board_index(Piece piece, Square square) noexcept
+    {
+        int index = 12*square.value() + piece.value();
+        assert(BOARD_BEGIN <= index && index < BOARD_END);
+        return index;
+    }
+
+    static int side_to_move_index() noexcept
+    {
+        int index = SIDE_TO_MOVE_BEGIN;
+        assert(SIDE_TO_MOVE_BEGIN <= index && index < SIDE_TO_MOVE_END);
+        return index;
+    }
+
+    static int castle_rights_index(CastleKind kind) noexcept
+    {
+        int index = CASTLE_RIGHTS_BEGIN + static_cast<int>(kind);
+        assert(CASTLE_RIGHTS_BEGIN <= index && index < CASTLE_RIGHTS_END);
+        return index;
+    }
+
+    static int enpassant_index(Square square) noexcept
+    {
+        int index = ENPASSANT_BEGIN + (square.value() % 8);
+        assert(ENPASSANT_BEGIN <= index && index < ENPASSANT_END);
+        return index;
+    }
+};
+
 class Position {
 public:
     enum {
-        CASTLE_NONE             = 0,
-        CASTLE_WHITE_KING_SIDE  = static_cast<u8>(CastleKind::WHITE_KING_SIDE),
-        CASTLE_WHITE_QUEEN_SIDE = static_cast<u8>(CastleKind::WHITE_QUEEN_SIDE),
-        CASTLE_BLACK_KING_SIDE  = static_cast<u8>(CastleKind::BLACK_KING_SIDE),
-        CASTLE_BLACK_QUEEN_SIDE = static_cast<u8>(CastleKind::BLACK_QUEEN_SIDE),
-        CASTLE_WHITE = CASTLE_WHITE_KING_SIDE | CASTLE_WHITE_QUEEN_SIDE,
-        CASTLE_BLACK = CASTLE_BLACK_KING_SIDE | CASTLE_BLACK_QUEEN_SIDE,
-        CASTLE_ALL   = CASTLE_WHITE | CASTLE_BLACK,
-
         ENPASSANT_NONE = Square::INVALID,
     };
 
     Position() noexcept;
     Position(const Position&) noexcept = default;
     Position& operator=(const Position&) noexcept = default;
+    Position(Position&&) noexcept = default;
+    Position& operator=(Position&&) noexcept = default;
 
 	[[nodiscard]]
     static Position from_fen(std::string_view fen);
@@ -55,10 +127,7 @@ public:
 
     [[nodiscard]]
     Square enpassant_target_square() const noexcept
-    {
-        assert(enpassant_available());
-        return Square(_ep_target);
-    }
+    { assert(enpassant_available()); return Square(_ep_target); }
 
     [[nodiscard]]
     bool enpassant_available() const noexcept
@@ -143,7 +212,12 @@ public:
     int piece_count(Color c, PieceKind p) const noexcept
     { return popcountll(_bboard(c, p)); }
 
+    u64 zobrist_hash() const noexcept
+    { return _hash; }
+
 private:
+    void _compute_zobrist_hash() noexcept;
+
     [[nodiscard]]
     u64 _bboard(Color c, PieceKind p) const noexcept
     { return _boards[Piece(c, p).value()]; }
@@ -204,5 +278,7 @@ private:
     u8 _ep_target;
     u8 _castle_rights;
 };
+
+std::ostream& operator<<(std::ostream& os, const Position& position);
 
 } // ~namespace lesschess

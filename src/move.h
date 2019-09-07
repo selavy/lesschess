@@ -283,6 +283,13 @@ enum class CastleKind : u8 {
     BLACK_QUEEN_SIDE = 1 << 3,
 };
 
+enum CastleMasks : u8 {
+    CASTLE_NONE = 0,
+    CASTLE_WHITE_ALL = static_cast<u8>(CastleKind::WHITE_KING_SIDE) | static_cast<u8>(CastleKind::WHITE_QUEEN_SIDE),
+    CASTLE_BLACK_ALL = static_cast<u8>(CastleKind::BLACK_KING_SIDE) | static_cast<u8>(CastleKind::BLACK_QUEEN_SIDE),
+    CASTLE_ALL   = CASTLE_WHITE_ALL | CASTLE_BLACK_ALL,
+};
+
 class Move {
 public:
     enum Flags : u16 {
