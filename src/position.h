@@ -41,8 +41,6 @@ public:
     [[nodiscard]]
     static Position from_ascii(std::string_view ascii);
 
-    // Move from_san(std::string_view san) const;
-
     [[nodiscard]]
     Move move_from_long_algebraic(std::string_view move) const;
 
@@ -199,6 +197,7 @@ private:
     std::array<u64, 2>    _sidemask;
     std::array<Piece, 64> _sq2pc;
     std::array<Square, 2> _kings;
+    u64 _hash;
     u16 _moves;
     u8 _halfmoves;
     u8 _wtm;
