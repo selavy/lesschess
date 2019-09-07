@@ -1949,20 +1949,38 @@ TEST_CASE("zobrist", "[position]")
 {
     Zobrist::initialize();
 
-    std::string fen1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    std::string move = "e2e4";
-    std::string fen2 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+    SECTION("1.e4 - pawn move that changes e.p. target square")
+    {
+        std::string fen1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        std::string move = "e2e4";
+        std::string fen2 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+        // position.undo_move(sp, m);
+        // TODO: uncomment this
+        // REQUIRE(position == original);
+    }
 
-	Position position = Position::from_fen(fen1);
-    REQUIRE(position.zobrist_hash() != 0u);
-    Position original = position;
-    Move m = position.move_from_long_algebraic(move);
-    Savepos sp;
-    position.make_move(sp, m);
-    Position expected = Position::from_fen(fen2);
-    REQUIRE(expected.zobrist_hash() != 0u);
-    REQUIRE(position == expected);
-    // position.undo_move(sp, m);
-    // TODO: uncomment this
-    // REQUIRE(position == original);
+    SECTION("Pawn capture -- does not change castle flags")
+    {
+        std::string fen1 = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 1";
+        std::string move = "e4d5";
+        std::string fen2 = "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
 }

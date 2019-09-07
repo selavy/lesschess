@@ -568,20 +568,16 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         } else {
             _kings[side] = to;
             if (side == WHITE) {
-                if (castle_allowed(Castle::WHITE_KING_SIDE)) {
+                if (castle_allowed(Castle::WHITE_KING_SIDE))
                     _hash ^= Zobrist::castle_rights(Castle::WHITE_KING_SIDE);
-                }
-                if (castle_allowed(Castle::WHITE_QUEEN_SIDE)) {
+                if (castle_allowed(Castle::WHITE_QUEEN_SIDE))
                     _hash ^= Zobrist::castle_rights(Castle::WHITE_QUEEN_SIDE);
-                }
                 _castle_rights &= ~CASTLE_WHITE_ALL;
             } else {
-                if (castle_allowed(Castle::BLACK_KING_SIDE)) {
+                if (castle_allowed(Castle::BLACK_KING_SIDE))
                     _hash ^= Zobrist::castle_rights(Castle::BLACK_KING_SIDE);
-                }
-                if (castle_allowed(Castle::BLACK_QUEEN_SIDE)) {
+                if (castle_allowed(Castle::BLACK_QUEEN_SIDE))
                     _hash ^= Zobrist::castle_rights(Castle::BLACK_QUEEN_SIDE);
-                }
                 _castle_rights &= ~CASTLE_BLACK_ALL;
             }
         }
@@ -589,11 +585,21 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         _sq2pc[to.value()] = piece;
         _sidemask[side] &= ~from.mask();
         _sidemask[side] |= to.mask();
+        _hash ^= Zobrist::board(piece, from);
+        _hash ^= Zobrist::board(piece, to);
 
         if (!captured.empty()) {
             _boards[captured.value()] &= ~to.mask();
             _sidemask[contra] &= ~to.mask();
-            _castle_rights &= ~rook_square_to_castle_flag(to);
+            _hash ^= Zobrist::board(captured, to);
+
+            // TODO: check this xform:
+            // _castle_rights &= ~rook_square_to_castle_flag(to);
+            u8 castle_flag = rook_square_to_castle_flag(to);
+            if ((_castle_rights & castle_flag) != 0) {
+                _castle_rights &= ~castle_flag;
+                _hash ^= Zobrist::castle_rights(static_cast<Castle>(castle_flag));
+            }
         } else if (kind == PAWN && is_rank2(side, from) && is_enpassant_square(side, to)) {
             u8 target = side == WHITE ? to.value() - 8 : to.value() + 8;
             new_ep_target = target;
@@ -602,9 +608,16 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         }
 
         if (kind == ROOK) {
-            _castle_rights &= ~rook_square_to_castle_flag(from);
+            // TODO: check this xform
+            // _castle_rights &= ~rook_square_to_castle_flag(from);
+            u8 castle_flag = rook_square_to_castle_flag(from);
+            if ((_castle_rights & castle_flag) != 0) {
+                _castle_rights &= ~castle_flag;
+                _hash ^= Zobrist::castle_rights(static_cast<Castle>(castle_flag));
+            }
         }
     } else if (flags == Move::Flags::ENPASSANT) {
+        // TODO: update zobrist
         assert(enpassant_available() == true);
         assert(kind == PAWN);
         assert(captured.empty());
@@ -621,6 +634,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         _sidemask[side] |= to.mask();
         _sidemask[contra] &= ~epsq.mask();
     } else if (flags == Move::Flags::PROMOTION) {
+        // TODO: update zobrist
         const PieceKind promotion_kind = move.promotion();
         const Piece promotion_piece = Piece(side, promotion_kind);
         assert(kind == PAWN);
@@ -636,6 +650,7 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
             _castle_rights &= ~rook_square_to_castle_flag(to);
         }
     } else if (flags == Move::Flags::CASTLE) {
+        // TODO: update zobrist
         assert(kind == KING);
         u64* rooks = &_boards[Piece(side, ROOK).value()];
         auto [ksq, rsq] = _get_castle_squares(to);
