@@ -1983,4 +1983,35 @@ TEST_CASE("zobrist", "[position]")
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
     }
+
+    SECTION("White king side castle")
+    {
+        std::string fen1 = "r1bqkb1r/1pp2ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1";
+        std::string move = "e1g1"; // == 0-0
+        std::string fen2 = "r1bqkb1r/1pp2ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQ1RK1 b kq - 1 1";
+        Position position = Position::from_fen(fen1);
+        REQUIRE(position.zobrist_hash() != 0u);
+        Position original = position;
+        Move m = position.move_from_long_algebraic(move);
+        REQUIRE(m.is_castle());
+        REQUIRE(m.castle_kind() == Castle::WHITE_KING_SIDE);
+        Savepos sp;
+        position.make_move(sp, m);
+        Position expected = Position::from_fen(fen2);
+        REQUIRE(expected.zobrist_hash() != 0u);
+        REQUIRE(position == expected);
+    }
+
+    // white en passant capture
+    // black en passant capture
+    // white king side castle
+    // white queen side castle
+    // black king side castle
+    // black queen side castle
+    // white promotion
+    // black promotion
+    // white capture of rook changing king side castle rights
+    // black capture of rook changing king side castle rights
+    // white capture of rook changing queen side castle rights
+    // black capture of rook changing queen side castle rights
 }

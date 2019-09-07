@@ -652,7 +652,9 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
     } else if (flags == Move::Flags::CASTLE) {
         // TODO: update zobrist
         assert(kind == KING);
-        u64* rooks = &_boards[Piece(side, ROOK).value()];
+        Piece king = Piece(side, KING);
+        Piece rook = Piece(side, ROOK);
+        u64* rooks = &_boards[rook.value()];
         auto [ksq, rsq] = _get_castle_squares(to);
         _kings[side] = ksq;
         *rooks &= ~to.mask();
@@ -660,13 +662,25 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
 
         _sq2pc[from.value()] = NO_PIECE;
         _sq2pc[to.value()] = NO_PIECE;
-        _sq2pc[ksq.value()] = Piece(side, KING);
-        _sq2pc[rsq.value()] = Piece(side, ROOK);
+        _sq2pc[ksq.value()] = king;
+        _sq2pc[rsq.value()] = rook;
         _sidemask[side] &= ~(to.mask() | from.mask());
         _sidemask[side] |= ksq.mask() | rsq.mask();
+        _hash ^= Zobrist::board(king, from);
+        _hash ^= Zobrist::board(rook, to);
+        _hash ^= Zobrist::board(king, ksq);
+        _hash ^= Zobrist::board(rook, rsq);
         if (side == WHITE) {
+            if (castle_allowed(Castle::WHITE_KING_SIDE))
+                _hash ^= Zobrist::castle_rights(Castle::WHITE_KING_SIDE);
+            if (castle_allowed(Castle::WHITE_QUEEN_SIDE))
+                _hash ^= Zobrist::castle_rights(Castle::WHITE_QUEEN_SIDE);
             _castle_rights &= ~CASTLE_WHITE_ALL;
         } else {
+            if (castle_allowed(Castle::BLACK_KING_SIDE))
+                _hash ^= Zobrist::castle_rights(Castle::BLACK_KING_SIDE);
+            if (castle_allowed(Castle::BLACK_QUEEN_SIDE))
+                _hash ^= Zobrist::castle_rights(Castle::BLACK_QUEEN_SIDE);
             _castle_rights &= ~CASTLE_BLACK_ALL;
         }
     } else {
