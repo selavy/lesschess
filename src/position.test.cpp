@@ -2333,7 +2333,6 @@ TEST_CASE("zobrist undo_move", "[position]")
         REQUIRE(position == original);
     }
 
-#if 0
     SECTION("Pawn capture -- does not change castle flags")
     {
         std::string fen1 = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 1";
@@ -2348,6 +2347,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("white king side castle")
@@ -2366,6 +2367,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("white queen side castle")
@@ -2384,6 +2387,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("black king side castle")
@@ -2402,6 +2407,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("black queen side castle")
@@ -2420,8 +2427,11 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
+#if 0
     SECTION("white en passant capture")
     {
         std::string fen1 = "2kr3r/1ppqbp1p/p1n1bn2/4p1pP/B3P3/2NPBN2/PPPQ1PP1/R3K1R1 w - g6 0 1";
@@ -2437,6 +2447,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("black en passant capture")
@@ -2454,6 +2466,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("white promotion")
@@ -2471,6 +2485,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("black promotion")
@@ -2488,6 +2504,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("white underpromotion")
@@ -2505,6 +2523,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("black underpromotion")
@@ -2522,6 +2542,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("white promotion with capture of rook changing castle rights")
@@ -2539,6 +2561,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("black promotion with capture of rook changing castle rights")
@@ -2556,6 +2580,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("white capture of rook changing king side castle rights")
@@ -2572,6 +2598,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("black capture of rook changing king side castle rights")
@@ -2588,6 +2616,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("white capture of rook changing queen side castle rights")
@@ -2604,6 +2634,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 
     SECTION("black capture of rook changing queen side castle rights")
@@ -2620,6 +2652,8 @@ TEST_CASE("zobrist undo_move", "[position]")
         Position expected = Position::from_fen(fen2);
         REQUIRE(expected.zobrist_hash() != 0u);
         REQUIRE(position == expected);
+        position.undo_move(sp, m);
+        REQUIRE(position == original);
     }
 #endif
 }

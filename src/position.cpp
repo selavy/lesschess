@@ -10,6 +10,13 @@ namespace lesschess {
 
 /*static*/ u64 Zobrist::_values[SIZE];
 
+constexpr std::initializer_list<Castle> CastleKinds = {
+    Castle::WHITE_KING_SIDE,
+    Castle::BLACK_KING_SIDE,
+    Castle::WHITE_QUEEN_SIDE,
+    Castle::BLACK_QUEEN_SIDE,
+};
+
 struct PossibleMoves
 {
     struct Iterator {
@@ -729,9 +736,17 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         _hash ^= Zobrist::enpassant(Square{save.ep_target});
     if (_ep_target != ENPASSANT_NONE)
         _hash ^= Zobrist::enpassant(Square{_ep_target});
-    // TODO: update castle rights
     _halfmoves = save.halfmoves;
     _ep_target = save.ep_target;
+    u8 changed = _castle_rights ^ save.castle_rights;
+    if (changed) {
+        for (auto kind : CastleKinds) {
+            if (changed & static_cast<u8>(kind)) {
+                _hash ^= Zobrist::castle_rights(kind);
+            }
+        }
+    }
+
     _castle_rights = save.castle_rights;
     if (side == BLACK)
         --_moves;
@@ -757,7 +772,6 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
             _hash ^= Zobrist::board(captured, to);
         }
     } else if (flags == Move::Flags::CASTLE) {
-        // TODO: update zobrist
         assert(move.is_castle());
         Piece rook = Piece(side, ROOK);
         Piece king = Piece(side, KING);
@@ -772,6 +786,10 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         // TODO(peter): verify only doing 1 load here
         _boards[rook.value()] &= ~rsq.mask();
         _boards[rook.value()] |= to.mask();
+        _hash ^= Zobrist::board(king, ksq);
+        _hash ^= Zobrist::board(king, from);
+        _hash ^= Zobrist::board(rook, rsq);
+        _hash ^= Zobrist::board(rook, to);
     } else if (flags == Move::Flags::PROMOTION) {
         // TODO: update zobrist
         assert(move.is_promotion());
@@ -1158,13 +1176,7 @@ void Position::_compute_zobrist_hash() noexcept
         hash ^= Zobrist::side_to_move();
     }
 
-    std::initializer_list<Castle> kinds = {
-        Castle::WHITE_KING_SIDE,
-        Castle::BLACK_KING_SIDE,
-        Castle::WHITE_QUEEN_SIDE,
-        Castle::BLACK_QUEEN_SIDE,
-    };
-    for (auto kind : kinds) {
+    for (auto kind : CastleKinds) {
         if (castle_allowed(kind)) {
             hash ^= Zobrist::castle_rights(kind);
         }
