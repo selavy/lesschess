@@ -819,6 +819,9 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         _sq2pc[to.value()] = NO_PIECE;
         _sq2pc[epsq.value()] = opp_pawn;
         _boards[opp_pawn.value()] |= epsq.mask();
+        _hash ^= Zobrist::board(piece, from);
+        _hash ^= Zobrist::board(piece, to);
+        _hash ^= Zobrist::board(opp_pawn, epsq);
     } else {
         assert(0);
         __builtin_unreachable();

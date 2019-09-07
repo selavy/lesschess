@@ -2431,7 +2431,6 @@ TEST_CASE("zobrist undo_move", "[position]")
         REQUIRE(position == original);
     }
 
-#if 0
     SECTION("white en passant capture")
     {
         std::string fen1 = "2kr3r/1ppqbp1p/p1n1bn2/4p1pP/B3P3/2NPBN2/PPPQ1PP1/R3K1R1 w - g6 0 1";
@@ -2470,6 +2469,7 @@ TEST_CASE("zobrist undo_move", "[position]")
         REQUIRE(position == original);
     }
 
+#if 0
     SECTION("white promotion")
     {
         std::string fen1 = "2kr3r/1ppqbpP1/p1n1bn2/4p3/B3P3/2NPBN2/PPPQ1P1p/2KR1R2 w - - 0 1";
