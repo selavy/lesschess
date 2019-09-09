@@ -1164,7 +1164,7 @@ std::set<std::string> BB2SQs(u64 bb)
     return result;
 }
 
-TEST_CASE("_generate_checkers", "[position]")
+TEST_CASE("Generate Checkers", "[position]")
 {
     Zobrist::initialize();
 
@@ -1254,13 +1254,12 @@ TEST_CASE("_generate_checkers", "[position]")
         auto position = Position::from_ascii(std::get<0>(t));
         auto side = std::get<1>(t);
         auto expect = BB2SQs(BB(std::get<2>(t)));
-        auto result = BB2SQs(position._generate_checkers(side));
+        auto result = BB2SQs(Position::UnitTestAccess{position}.generate_checkers(side));
         REQUIRE(result == expect);
     }
 }
 
-// TODO: move to private and remove tests
-TEST_CASE("_generate_attacked", "[position]")
+TEST_CASE("Generate Attacked", "[position]")
 {
     Zobrist::initialize();
 
@@ -1403,7 +1402,7 @@ TEST_CASE("_generate_attacked", "[position]")
         auto position = Position::from_ascii(std::get<0>(tc));
         auto attacker = std::get<1>(tc);
         auto expect = BB2SQs(BB(std::get<2>(tc)));
-        auto result = BB2SQs(position._generate_attacked(attacker));
+        auto result = BB2SQs(Position::UnitTestAccess{position}.generate_attacked(attacker));
         REQUIRE(result == expect);
     }
 }

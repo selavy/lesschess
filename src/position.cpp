@@ -996,7 +996,7 @@ Move* Position::_generate_evasions(u64 checkers, Move* moves) const noexcept
     u64 occupied = _occupied();
 
     if (check_piece.kind() == PAWN) {
-        if (_ep_target != Position::ENPASSANT_NONE && ep_capture_square() == check_square) {
+        if (_ep_target != Position::ENPASSANT_NONE && _ep_capture_square() == check_square) {
             // capture left
             if (_ep_target != H6 && _ep_target != H3) {
                 int from = side == WHITE ? _ep_target - 7 : _ep_target + 9;

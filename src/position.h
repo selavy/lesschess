@@ -200,16 +200,29 @@ public:
     constexpr Color wtm() const noexcept
     { return Color(_wtm); };
 
-    // XXX: move this back to private and remove tests
-    u64 _generate_attacked(Color side) const noexcept;
-    u64 _generate_checkers(Color side) const noexcept;
-
     [[nodiscard]]
     int piece_count(Color c, PieceKind p) const noexcept
     { return popcountll(_bboard(c, p)); }
 
     u64 zobrist_hash() const noexcept
     { return _hash; }
+
+    struct UnitTestAccess
+    {
+        UnitTestAccess(Position& position) : p(position) {}
+
+        u64 generate_attacked(Color side) const noexcept
+        { return p._generate_attacked(side); }
+        u64 generate_checkers(Color side) const noexcept
+        { return p._generate_checkers(side); }
+
+        Position& p;
+    };
+
+    Square ep_target() const noexcept {
+        assert(_ep_target != Position::ENPASSANT_NONE);
+        return { _ep_target };
+    }
 
 private:
     enum {
@@ -233,14 +246,9 @@ private:
               (_ep_target >= A6 && _ep_target <= H6));
     }
 
-    Square ep_capture_square() const noexcept {
+    Square _ep_capture_square() const noexcept {
         assert(_ep_target != Position::ENPASSANT_NONE);
         return { _wtm == WHITE ? _ep_target - 8 : _ep_target + 8 };
-    }
-
-    Square ep_target() const noexcept {
-        assert(_ep_target != Position::ENPASSANT_NONE);
-        return { _ep_target };
     }
 
     void _validate() const noexcept;
@@ -265,6 +273,8 @@ private:
     Move* _generate_evasions(u64 checkers, Move* moves) const noexcept;
     Move* _generate_non_evasions(Move* moves) const noexcept;
     u64 _generate_pinned(Color side, Color kingcolor) const noexcept;
+    u64 _generate_attacked(Color side) const noexcept;
+    u64 _generate_checkers(Color side) const noexcept;
 
 private:
     std::array<u64, 10>   _boards;
