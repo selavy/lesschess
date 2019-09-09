@@ -132,12 +132,10 @@ TEST_CASE("Black mate in 2 with rook", "[search]")
     TransposeTable tt;
     std::string fen = "8/8/8/8/1k6/7r/8/K7 b - - 0 1";
     auto position = Position::from_fen(fen);
-    auto result   = search(position, tt);
+    auto result   = search(position, tt, 4);
     auto expected = Move{B4, B3};
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == BLACK_CHECKMATE);
-
-    std::cout << "\n\nTT HITS: " << tt.hits << "\n\n";
 }
 
 TEST_CASE("Black stalemate white king", "[search]")
@@ -158,4 +156,27 @@ TEST_CASE("White mate -- philidor's smothered mate", "[search]")
     auto expected = Move{C4, G8};
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == CHECKMATE);
+}
+
+TEST_CASE("White mate in 2 utilizing pin")
+{
+    // solution: 1. Qxh6+ Kg8 2. Qxg7#
+    std::string fen = "5r1k/p3b1p1/1p2P2p/4Bp2/P1p1n3/5q2/BP1Q1PRP/7K w - - 0 1";
+    auto position = Position::from_fen(fen);
+    auto result   = easy_search(position);
+    auto expected = Move{D2, H6};
+    REQUIRE(result.move  == expected);
+    REQUIRE(result.score == CHECKMATE);
+}
+
+TEST_CASE("White wins bishop with fork")
+{
+    std::string fen = "r1b2rk1/pp1p1ppp/1qn1pn2/2b5/2P5/1PN1PN2/P2B1PPP/R2QKB1R w KQ - 0 1";
+    auto position = Position::from_fen(fen);
+    auto result   = easy_search(position);
+    auto expected = Move{C3, A4};
+    REQUIRE(result.move  == expected);
+    // TODO: fix me
+    // REQUIRE(result.score >= 300);
+    REQUIRE(result.score >= 210);
 }

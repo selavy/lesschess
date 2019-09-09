@@ -23,40 +23,17 @@ namespace lesschess {
 using Moves = std::vector<Move>; // TODO: change this back to std::array<Move, 256>?
 
 template <int N>
-struct PrimaryVariation {
-    void push(Move m) noexcept { assert(count < moves.size()); moves[count++] = m; }
-    void pop() noexcept { --count; }
-    Move* begin() noexcept { return &moves[0]; }
-    Move* end() noexcept { return &moves[count]; }
-    Move& back() noexcept { assert(count > 0); return moves[count-1]; }
-    const Move* begin() const noexcept { return begin(); }
-    const Move* end() const noexcept { return end(); }
-    void dump() const {
-        // for (const Move& move : *this) {
-        for (int i = 0; i < count; ++i) {
-            const Move& move = moves[i];
-            std::cout << move.to_long_algebraic_string() << " ";
-        }
+void PrimaryVariation<N>::dump() const
+{
+    // for (const Move& move : *this) {
+    for (int i = 0; i < count; ++i) {
+        const Move& move = moves[i];
+        std::cout << move.to_long_algebraic_string() << " ";
     }
-
-    std::array<Move, N> moves;
-    int                 count = 0;
-};
-
-constexpr int MAX_DEPTH = 4;
-using PV = PrimaryVariation<MAX_DEPTH>;
+}
 
 int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TransposeTable& tt)
 {
-// #define VERBOSE
-#ifdef VERBOSE
-    if (depth == MAX_DEPTH) {
-        std::cout << "entering root"
-            << "move=" << pv.back().to_long_algebraic_string()
-            << "\n";
-    }
-#endif
-
     int alpha_orig = alpha;
     auto& tt_entry = tt.find(position.zobrist_hash());
     if (tt_entry.is_valid() && tt_entry.depth >= depth) {
@@ -114,30 +91,21 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, Transpos
     }
     tt_entry.depth = depth;
 
-#ifdef VERBOSE
-    if (depth == MAX_DEPTH) {
-        std::cout << "leaving root"
-            << "move=" << pv.back().to_long_algebraic_string() << " "
-            << "score=" << -value
-            << "\n";
-    }
-#endif
-
     return -value;
 }
 
-SearchResult search(Position& position, TransposeTable& tt)
+SearchResult search(Position& position, TransposeTable& tt, int max_depth)
 {
     int bestmove = -1;
     int bestscore = -MAX_SCORE;
     Savepos sp;
     Moves moves{256};
     int nmoves = position.generate_legal_moves(&moves[0]);
-    PV pv;
+    PV pv ;
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
         pv.push(moves[i]);
-        int score = negamax(position, /*alpha*/-MAX_SCORE, /*beta*/MAX_SCORE, /*depth*/MAX_DEPTH - 1, pv, tt);
+        int score = negamax(position, /*alpha*/-MAX_SCORE, /*beta*/MAX_SCORE, /*depth*/max_depth - 1, pv, tt);
         position.undo_move(sp, moves[i]);
         pv.pop();
         if (score > bestscore) {
@@ -153,7 +121,7 @@ SearchResult search(Position& position, TransposeTable& tt)
 SearchResult easy_search(Position& position)
 {
     TransposeTable tt;
-    return search(position, tt);
+    return search(position, tt, /*max_depth*/4);
 }
 
 } // ~namespace lesschess
