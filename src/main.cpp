@@ -186,9 +186,7 @@ std::string engine_info() {
 
 int main(int argc, char** argv)
 {
-    // std::random_device rd;
-    // std::mt19937 gen(rd());
-    // std::uniform_int_distribution<> dis;
+    Zobrist::initialize();
 
     Move move;
     Savepos sp;
