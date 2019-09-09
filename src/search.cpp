@@ -32,8 +32,10 @@ void PrimaryVariation<N>::dump() const
     }
 }
 
-int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TransposeTable& tt, bool useTT)
+int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TransposeTable& tt, bool useTT, s64& nodes)
 {
+    ++nodes;
+
     int alpha_orig = alpha;
     auto& tt_entry = tt.find(position.zobrist_hash());
     if (useTT && tt_entry.is_valid() && tt_entry.depth >= depth) {
@@ -41,9 +43,13 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, Transpos
         if (tt_entry.is_exact()) {
             return tt_entry.value;
         } else if (tt_entry.is_lower()) {
+            // std::cout << "adjusting alpha from to MAX(" << alpha << ", " << tt_entry.value << ")\n";
             alpha = std::max(alpha, tt_entry.value);
         } else if (tt_entry.is_upper()) {
+            // std::cout << "adjusting beta from to MIN(" << beta << ", " << tt_entry.value << ")\n";
             beta = std::min(beta, tt_entry.value);
+        } else {
+            assert(0 && "invalid tt entry");
         }
 
         if (alpha >= beta) {
@@ -70,7 +76,7 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, Transpos
             for (int i = 0; i < nmoves; ++i) {
                 position.make_move(sp, moves[i]);
                 pv.push(moves[i]);
-                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv, tt, useTT));
+                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv, tt, useTT, nodes));
                 pv.pop();
                 position.undo_move(sp, moves[i]);
                 alpha = std::max(alpha, value);
@@ -81,7 +87,7 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, Transpos
         }
     }
 
-    tt_entry.value = value;
+    tt_entry.value = -value;
     if (value <= alpha_orig) {
         tt_entry.flag = TransposeTable::Flag::kUpper;
     } else if (value >= beta) {
@@ -94,8 +100,10 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, Transpos
     return -value;
 }
 
-SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool useTT)
+SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool useTT, s64& nodes_searched)
 {
+    nodes_searched = 0;
+
     int bestmove = -1;
     int bestscore = -MAX_SCORE;
     Savepos sp;
@@ -105,8 +113,17 @@ SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool 
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
         pv.push(moves[i]);
-        int score = negamax(position, /*alpha*/-MAX_SCORE, /*beta*/MAX_SCORE, /*depth*/max_depth - 1, pv, tt, useTT);
-        position.undo_move(sp, moves[i]);
+        int score = negamax(
+                        position,
+                        /*alpha*/-MAX_SCORE,
+                        /*beta*/MAX_SCORE,
+                        /*depth*/max_depth - 1,
+                        pv,
+                        tt,
+                        useTT,
+                        nodes_searched
+                    );
+		position.undo_move(sp, moves[i]);
         pv.pop();
         if (score > bestscore) {
             bestscore = score;
@@ -121,7 +138,8 @@ SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool 
 SearchResult easy_search(Position& position, bool useTT)
 {
     TransposeTable tt;
-    return search(position, tt, /*max_depth*/4, useTT);
+    s64 nodes_searched = 0;
+    return search(position, tt, /*max_depth*/4, useTT, nodes_searched);
 }
 
 } // ~namespace lesschess

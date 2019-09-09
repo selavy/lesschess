@@ -58,7 +58,7 @@ struct SearchResult {
     Move move;
 };
 
-SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool useTT);
+SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool useTT, s64& nodes_searched);
 
 SearchResult easy_search(Position& position, bool useTT = true);
 

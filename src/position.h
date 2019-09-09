@@ -111,7 +111,7 @@ struct TransposeTable {
     struct Entry {
 
         bool is_valid() const noexcept
-        { return flag == Flag::kInvalid; }
+        { return flag != Flag::kInvalid; }
 
         bool is_exact() const noexcept
         { return flag == Flag::kExact; }
