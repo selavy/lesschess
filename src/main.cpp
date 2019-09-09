@@ -365,7 +365,7 @@ int main(int argc, char** argv)
             // 		search until the "stop" command. Do not exit the search without being told so in this mode!
 
             // TODO: implement
-            search_result = search(position);
+            search_result = easy_search(position);
             std::cout << "info score cp " << search_result.score << std::endl;
             std::cout << "bestmove " << search_result.move.to_long_algebraic_string() << std::endl;
             // TEMP TEMP

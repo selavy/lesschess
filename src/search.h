@@ -22,6 +22,8 @@ struct SearchResult {
     Move move;
 };
 
-SearchResult search(Position& position);
+SearchResult search(Position& position, TransposeTable& tt);
+
+SearchResult easy_search(Position& position);
 
 } // namespace lesschess

@@ -46,7 +46,7 @@ struct PrimaryVariation {
 constexpr int MAX_DEPTH = 4;
 using PV = PrimaryVariation<MAX_DEPTH>;
 
-int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
+int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TransposeTable& tt)
 {
 // #define VERBOSE
 #ifdef VERBOSE
@@ -56,6 +56,23 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
             << "\n";
     }
 #endif
+
+    int alpha_orig = alpha;
+    auto& tt_entry = tt.find(position.zobrist_hash());
+    if (tt_entry.is_valid() && tt_entry.depth >= depth) {
+        tt.record_hit();
+        if (tt_entry.is_exact()) {
+            return tt_entry.value;
+        } else if (tt_entry.is_lower()) {
+            alpha = std::max(alpha, tt_entry.value);
+        } else if (tt_entry.is_upper()) {
+            beta = std::min(beta, tt_entry.value);
+        }
+
+        if (alpha >= beta) {
+            return tt_entry.value;
+        }
+    }
 
     int value;
     if (depth == 0) {
@@ -76,7 +93,7 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
             for (int i = 0; i < nmoves; ++i) {
                 position.make_move(sp, moves[i]);
                 pv.push(moves[i]);
-                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv));
+                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv, tt));
                 pv.pop();
                 position.undo_move(sp, moves[i]);
                 alpha = std::max(alpha, value);
@@ -86,6 +103,16 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
             }
         }
     }
+
+    tt_entry.value = value;
+    if (value <= alpha_orig) {
+        tt_entry.flag = TransposeTable::Flag::kUpper;
+    } else if (value >= beta) {
+        tt_entry.flag = TransposeTable::Flag::kLower;
+    } else {
+        tt_entry.flag = TransposeTable::Flag::kExact;
+    }
+    tt_entry.depth = depth;
 
 #ifdef VERBOSE
     if (depth == MAX_DEPTH) {
@@ -99,7 +126,7 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv)
     return -value;
 }
 
-SearchResult search(Position& position)
+SearchResult search(Position& position, TransposeTable& tt)
 {
     int bestmove = -1;
     int bestscore = -MAX_SCORE;
@@ -110,7 +137,7 @@ SearchResult search(Position& position)
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
         pv.push(moves[i]);
-        int score = negamax(position, /*alpha*/-MAX_SCORE, /*beta*/MAX_SCORE, /*depth*/MAX_DEPTH - 1, pv);
+        int score = negamax(position, /*alpha*/-MAX_SCORE, /*beta*/MAX_SCORE, /*depth*/MAX_DEPTH - 1, pv, tt);
         position.undo_move(sp, moves[i]);
         pv.pop();
         if (score > bestscore) {
@@ -121,6 +148,12 @@ SearchResult search(Position& position)
     assert(bestmove != -1);
     bestscore = position.white_to_move() ? bestscore : -bestscore;
     return {moves[bestmove], bestscore};
+}
+
+SearchResult easy_search(Position& position)
+{
+    TransposeTable tt;
+    return search(position, tt);
 }
 
 } // ~namespace lesschess

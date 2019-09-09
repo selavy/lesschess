@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "lesschess.h"
 #include <climits>
+#include <iostream>
 
 using namespace lesschess;
 
@@ -59,7 +60,7 @@ TEST_CASE("Win knight - wtm", "[search]")
     std::string fen = "k5n1/8/8/8/8/8/3K4/7R w - - 0 1";
 
     auto position = Position::from_fen(fen);
-    auto result   = search(position);
+    auto result   = easy_search(position);
     auto expected = Move{H1, H8};
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == 500); // TODO: make into lower bound
@@ -82,7 +83,7 @@ TEST_CASE("Win knight - btm", "[search]")
     std::string fen = "k6r/8/8/8/8/8/8/K5N1 b - - 0 1";
 
     auto position = Position::from_fen(fen);
-    auto result   = search(position);
+    auto result   = easy_search(position);
     auto expected = Move{H8, H1};
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == -500); // TODO: make into upper bound
@@ -101,7 +102,7 @@ TEST_CASE("White mate in 1 with rook", "[search]")
     // w - - 0 1
     std::string fen = "k7/8/K6R/8/8/8/8/8 w - - 0 1";
     auto position = Position::from_fen(fen);
-    auto result   = search(position);
+    auto result   = easy_search(position);
     auto expected = Move{H6, H8};
     REQUIRE(result.move == expected);
     REQUIRE(result.score == WHITE_CHECKMATE);
@@ -120,7 +121,7 @@ TEST_CASE("Black mate in 1 with rook", "[search]")
     // b - - 0 1
     std::string fen = "8/8/8/8/8/k6r/8/K7 b - - 0 1";
     auto position = Position::from_fen(fen);
-    auto result   = search(position);
+    auto result   = easy_search(position);
     auto expected = Move{H3, H1};
     REQUIRE(result.move == expected);
     REQUIRE(result.score == BLACK_CHECKMATE);
@@ -128,19 +129,22 @@ TEST_CASE("Black mate in 1 with rook", "[search]")
 
 TEST_CASE("Black mate in 2 with rook", "[search]")
 {
+    TransposeTable tt;
     std::string fen = "8/8/8/8/1k6/7r/8/K7 b - - 0 1";
     auto position = Position::from_fen(fen);
-    auto result   = search(position);
+    auto result   = search(position, tt);
     auto expected = Move{B4, B3};
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == BLACK_CHECKMATE);
+
+    std::cout << "\n\nTT HITS: " << tt.hits << "\n\n";
 }
 
 TEST_CASE("Black stalemate white king", "[search]")
 {
     std::string fen = "K7/P7/2k5/8/8/8/8/8 b - - 0 1";
     auto position = Position::from_fen(fen);
-    auto result   = search(position);
+    auto result   = easy_search(position);
     auto expected = Move{C6, C7};
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == STALEMATE);
@@ -150,7 +154,7 @@ TEST_CASE("White mate -- philidor's smothered mate", "[search]")
 {
     std::string fen = "1r5k/6pp/7N/8/2Q5/8/8/7K w - - 0 1";
     auto position = Position::from_fen(fen);
-    auto result   = search(position);
+    auto result   = easy_search(position);
     auto expected = Move{C4, G8};
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == CHECKMATE);
