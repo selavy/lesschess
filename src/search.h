@@ -58,8 +58,8 @@ struct SearchResult {
     Move move;
 };
 
-SearchResult search(Position& position, TransposeTable& tt, int max_depth);
+SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool useTT);
 
-SearchResult easy_search(Position& position);
+SearchResult easy_search(Position& position, bool useTT = true);
 
 } // namespace lesschess

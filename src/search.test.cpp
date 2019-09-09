@@ -132,7 +132,7 @@ TEST_CASE("Black mate in 2 with rook", "[search]")
     TransposeTable tt;
     std::string fen = "8/8/8/8/1k6/7r/8/K7 b - - 0 1";
     auto position = Position::from_fen(fen);
-    auto result   = search(position, tt, 4);
+    auto result   = search(position, tt, 4, true);
     auto expected = Move{B4, B3};
     REQUIRE(result.move  == expected);
     REQUIRE(result.score == BLACK_CHECKMATE);
@@ -179,4 +179,18 @@ TEST_CASE("White wins bishop with fork")
     // TODO: fix me
     // REQUIRE(result.score >= 300);
     REQUIRE(result.score >= 210);
+
+#if 0
+    std::cout << "Search result = " << result.move.to_long_algebraic_string() << " -- " << result.score << "\n";
+
+    Savepos sp;
+    int score;
+    for (int i = 0; i < 6; ++i) {
+        position.make_move(sp, result.move);
+        score = evaluate(position);
+        std::cout << "Making move: " << result.move.to_long_algebraic_string() << " -- eval = " << score << "\n";
+        result = easy_search(position);
+        std::cout << "Returned move: " << result.move.to_long_algebraic_string() << " -- " << result.score << "\n";
+    }
+#endif
 }

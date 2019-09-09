@@ -32,11 +32,11 @@ void PrimaryVariation<N>::dump() const
     }
 }
 
-int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TransposeTable& tt)
+int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TransposeTable& tt, bool useTT)
 {
     int alpha_orig = alpha;
     auto& tt_entry = tt.find(position.zobrist_hash());
-    if (tt_entry.is_valid() && tt_entry.depth >= depth) {
+    if (useTT && tt_entry.is_valid() && tt_entry.depth >= depth) {
         tt.record_hit();
         if (tt_entry.is_exact()) {
             return tt_entry.value;
@@ -70,7 +70,7 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, Transpos
             for (int i = 0; i < nmoves; ++i) {
                 position.make_move(sp, moves[i]);
                 pv.push(moves[i]);
-                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv, tt));
+                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv, tt, useTT));
                 pv.pop();
                 position.undo_move(sp, moves[i]);
                 alpha = std::max(alpha, value);
@@ -94,7 +94,7 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, Transpos
     return -value;
 }
 
-SearchResult search(Position& position, TransposeTable& tt, int max_depth)
+SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool useTT)
 {
     int bestmove = -1;
     int bestscore = -MAX_SCORE;
@@ -105,7 +105,7 @@ SearchResult search(Position& position, TransposeTable& tt, int max_depth)
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
         pv.push(moves[i]);
-        int score = negamax(position, /*alpha*/-MAX_SCORE, /*beta*/MAX_SCORE, /*depth*/max_depth - 1, pv, tt);
+        int score = negamax(position, /*alpha*/-MAX_SCORE, /*beta*/MAX_SCORE, /*depth*/max_depth - 1, pv, tt, useTT);
         position.undo_move(sp, moves[i]);
         pv.pop();
         if (score > bestscore) {
@@ -118,10 +118,10 @@ SearchResult search(Position& position, TransposeTable& tt, int max_depth)
     return {moves[bestmove], bestscore};
 }
 
-SearchResult easy_search(Position& position)
+SearchResult easy_search(Position& position, bool useTT)
 {
     TransposeTable tt;
-    return search(position, tt, /*max_depth*/4);
+    return search(position, tt, /*max_depth*/4, useTT);
 }
 
 } // ~namespace lesschess
