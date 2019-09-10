@@ -14,6 +14,7 @@ add_executable(lesschess
     main.cpp
     move.cpp
     position.cpp
+    tt.cpp
     evaluate.cpp
     search.cpp
     perft.cpp

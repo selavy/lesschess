@@ -260,7 +260,7 @@ TEST_CASE("Tactics")
         auto position = Position::from_fen(fen);
 
         // TEMP TEMP
-        TransposeTable tt;
+        TT tt;
         s64 nodes_searched = 0;
 
         {

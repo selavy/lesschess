@@ -32,7 +32,7 @@ void PrimaryVariation<N>::dump() const
     }
 }
 
-int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TransposeTable& tt, bool useTT, s64& nodes)
+int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TT& tt, bool useTT, s64& nodes)
 {
     ++nodes;
 
@@ -89,18 +89,18 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, Transpos
 
     tt_entry.value = -value;
     if (value <= alpha_orig) {
-        tt_entry.flag = TransposeTable::Flag::kUpper;
+        tt_entry.flag = TT::Flag::kUpper;
     } else if (value >= beta) {
-        tt_entry.flag = TransposeTable::Flag::kLower;
+        tt_entry.flag = TT::Flag::kLower;
     } else {
-        tt_entry.flag = TransposeTable::Flag::kExact;
+        tt_entry.flag = TT::Flag::kExact;
     }
     tt_entry.depth = depth;
 
     return -value;
 }
 
-SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool useTT, s64& nodes_searched)
+SearchResult search(Position& position, TT& tt, int max_depth, bool useTT, s64& nodes_searched)
 {
     nodes_searched = 0;
 
@@ -137,7 +137,7 @@ SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool 
 
 SearchResult easy_search(Position& position, bool useTT)
 {
-    TransposeTable tt;
+    TT tt;
     s64 nodes_searched = 0;
     return search(position, tt, /*max_depth*/4, useTT, nodes_searched);
 }

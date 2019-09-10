@@ -1,6 +1,7 @@
 #pragma once
 
 #include "position.h"
+#include "tt.h"
 #include <climits>
 #include <array>
 
@@ -58,7 +59,7 @@ struct SearchResult {
     Move move;
 };
 
-SearchResult search(Position& position, TransposeTable& tt, int max_depth, bool useTT, s64& nodes_searched);
+SearchResult search(Position& position, TT& tt, int max_depth, bool useTT, s64& nodes_searched);
 
 SearchResult easy_search(Position& position, bool useTT = true);
 
