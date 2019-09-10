@@ -9,8 +9,8 @@
   * Fix not checking for checkmate, stalemate, etc [DONE]
       * Need a test for 50-move rule
   * Fix not checking for 3-move repetition
-6. Transposition Table
-  * Implement Zobrist hashing
+6. Transposition Table [DONE]
+  * Implement Zobrist hashing [DONE]
   * Benchmark some hashtables -- khash, abseil, google dense hashmap
 7. Switch to iterative deepening search
 8. Implement a quiescence search
