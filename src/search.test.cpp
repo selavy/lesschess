@@ -258,32 +258,9 @@ TEST_CASE("Tactics")
     {
         std::string fen = "r1b2bkr/ppp3pp/2n5/3qp3/2B5/8/PPPP1PPP/RNB1K2R w KQ - 0 1";
         auto position = Position::from_fen(fen);
-
-        // TEMP TEMP
-        TT tt;
-        s64 nodes_searched = 0;
-
-        {
-            tt.clear();
-            nodes_searched = 0;
-            auto result = search(position, tt, /*max_depth*/4, /*useTT*/true, nodes_searched);
-            // auto result   = easy_search(position);
-            auto expected = Move{C4, D5};
-            REQUIRE(result.move  == expected);
-            REQUIRE(result.score == WHITE_CHECKMATE);
-        }
-
-        std::cout << "Nodes search with TT: " << nodes_searched << ", hits = " << tt.hits << "\n";
-
-        {
-            tt.clear();
-            nodes_searched = 0;
-            auto result = search(position, tt, /*max_depth*/4, /*useTT*/false, nodes_searched);
-            // auto result   = easy_search(position);
-            auto expected = Move{C4, D5};
-            REQUIRE(result.move  == expected);
-            REQUIRE(result.score == WHITE_CHECKMATE);
-        }
-        std::cout << "Nodes search without TT: " << nodes_searched << ", hits = " << tt.hits << "\n";
+        auto result   = easy_search(position);
+        auto expected = Move{C4, D5};
+        REQUIRE(result.move  == expected);
+        REQUIRE(result.score == WHITE_CHECKMATE);
     }
 }

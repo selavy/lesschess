@@ -32,10 +32,32 @@ void PrimaryVariation<N>::dump() const
     }
 }
 
-int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TT& tt, bool useTT, s64& nodes)
+int side_relative_score(Position& position, int score) noexcept
 {
-    ++nodes;
+    return position.white_to_move() ? score : -score;
+}
 
+int quiescence(Position& position)
+{
+    int score;
+    Moves moves{256}; // TODO: tune this number, likely can be lower
+    int nmoves = position.generate_captures(&moves[0]);
+    if (nmoves == 0) {
+        score = side_relative_score(position, evaluate(position));
+    } else if (position.fifty_move_rule_moves() >= 50) {
+        score = FIFTY_MOVE_RULE_DRAW;
+    } else {
+        // TODO:
+        score = 0;
+    }
+    return score;
+}
+
+int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TT& tt, bool useTT)
+{
+    Moves moves{256};
+    Savepos sp;
+    int value;
     int alpha_orig = alpha;
     auto& tt_entry = tt.find(position.zobrist_hash());
     if (useTT && tt_entry.is_valid() && tt_entry.depth >= depth) {
@@ -43,10 +65,8 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TT& tt, 
         if (tt_entry.is_exact()) {
             return tt_entry.value;
         } else if (tt_entry.is_lower()) {
-            // std::cout << "adjusting alpha from to MAX(" << alpha << ", " << tt_entry.value << ")\n";
             alpha = std::max(alpha, tt_entry.value);
         } else if (tt_entry.is_upper()) {
-            // std::cout << "adjusting beta from to MIN(" << beta << ", " << tt_entry.value << ")\n";
             beta = std::min(beta, tt_entry.value);
         } else {
             assert(0 && "invalid tt entry");
@@ -57,26 +77,22 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TT& tt, 
         }
     }
 
-    int value;
     if (depth == 0) {
-        int score = evaluate(position);
-        value = position.white_to_move() ? score : -score;
+        value = side_relative_score(position, evaluate(position));
     } else if (position.fifty_move_rule_moves() >= 50) {
         // TODO: check for 3-move repetition
         value = FIFTY_MOVE_RULE_DRAW;
     } else {
-        Moves moves{256};
         int nmoves = position.generate_legal_moves(&moves[0]);
         if (nmoves == 0) {
             // TODO: cache `checkers` from generate_legal_moves() so we can check if mate or stalemate?
             value = position.in_check(position.color_to_move()) ? -CHECKMATE : STALEMATE;
         } else {
             value = -MAX_SCORE;
-            Savepos sp;
             for (int i = 0; i < nmoves; ++i) {
                 position.make_move(sp, moves[i]);
                 pv.push(moves[i]);
-                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv, tt, useTT, nodes));
+                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv, tt, useTT));
                 pv.pop();
                 position.undo_move(sp, moves[i]);
                 alpha = std::max(alpha, value);
@@ -100,10 +116,8 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TT& tt, 
     return -value;
 }
 
-SearchResult search(Position& position, TT& tt, int max_depth, bool useTT, s64& nodes_searched)
+SearchResult search(Position& position, TT& tt, int max_depth, bool useTT)
 {
-    nodes_searched = 0;
-
     int bestmove = -1;
     int bestscore = -MAX_SCORE;
     Savepos sp;
@@ -115,13 +129,12 @@ SearchResult search(Position& position, TT& tt, int max_depth, bool useTT, s64& 
         pv.push(moves[i]);
         int score = negamax(
                         position,
-                        /*alpha*/-MAX_SCORE,
-                        /*beta*/MAX_SCORE,
-                        /*depth*/max_depth - 1,
+                        -MAX_SCORE,    // alpha
+                        MAX_SCORE,     // beta
+                        max_depth - 1, // depth
                         pv,
                         tt,
-                        useTT,
-                        nodes_searched
+                        useTT
                     );
 		position.undo_move(sp, moves[i]);
         pv.pop();
@@ -138,8 +151,7 @@ SearchResult search(Position& position, TT& tt, int max_depth, bool useTT, s64& 
 SearchResult easy_search(Position& position, bool useTT)
 {
     TT tt;
-    s64 nodes_searched = 0;
-    return search(position, tt, /*max_depth*/4, useTT, nodes_searched);
+    return search(position, tt, /*max_depth*/4, useTT);
 }
 
 } // ~namespace lesschess
