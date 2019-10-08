@@ -230,14 +230,14 @@ SearchResult search(Position& position, TT* tt, int depth, SearchMetrics& metric
     assert(bestmove != -1);
     bestscore = position.white_to_move() ? bestscore : -bestscore;
 
-    // TEMP TEMP
-    std::cout << "\nEnd of search:\nMove : " << moves[bestmove].to_long_algebraic_string() << "\n"
-        << "Score: " << bestscore << "\n"
-        << "Principal Variation: ";
-    for (int i = 0; i < bestline.count; ++i) {
-        std::cout << bestline.moves[i].to_long_algebraic_string() << " ";
-    }
-    std::cout << "\nbestline.score = " << bestline.score << "\n\n";
+    // // TEMP TEMP
+    // std::cout << "\nEnd of search:\nMove : " << moves[bestmove].to_long_algebraic_string() << "\n"
+    //     << "Score: " << bestscore << "\n"
+    //     << "Principal Variation: ";
+    // for (int i = 0; i < bestline.count; ++i) {
+    //     std::cout << bestline.moves[i].to_long_algebraic_string() << " ";
+    // }
+    // std::cout << "\nbestline.score = " << bestline.score << "\n\n";
 
     return {moves[bestmove], bestscore};
 }
