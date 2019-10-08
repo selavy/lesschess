@@ -42,30 +42,26 @@ void copy_line(Line& dst, Line& src, Move move, int score) noexcept
 {
     memcpy(&dst.moves[1], &src.moves[0], src.count * sizeof(Move));
     dst.moves[0] = move;
-    dst.scores[0] = score;
+    dst.score = score;
     dst.count = src.count + 1;
 }
 
 // alpha = lower bound on maximizer's score
 // beta  = upper bound on minimizer's score
 
-int quiescence(Position& position, int alpha, int beta, int depth,
-        SearchMetrics& metrics, Line& pline)
+int quiescence(Position& position, int alpha, int beta, SearchMetrics& metrics, Line& pline)
 {
     assert(beta >= alpha);
     metrics.qnodes++;
 
-    int score = evaluate(position);
+    int score = side_relative_score(position, evaluate(position));
     if (score >= beta) { // failed hard beta-cutoff
         metrics.beta_cutoffs++;
-        return score;
+        pline.count = 0;
+        return beta;
     }
     if (score > alpha) {
         alpha = score;
-    }
-    if (depth == 0) {
-        pline.count = 0;
-        return score;
     }
 
     Line line;
@@ -74,18 +70,21 @@ int quiescence(Position& position, int alpha, int beta, int depth,
     int nmoves = position.generate_captures(&moves[0]);
     for (int i = 0; i < nmoves; ++i) {
         position.make_move(sp, moves[i]);
-        score = -quiescence(position, -beta, -alpha, depth - 1, metrics, line);
+        metrics.pv.push(moves[i]);
+        score = -quiescence(position, -beta, -alpha, metrics, line);
+        metrics.pv.pop();
         position.undo_move(sp, moves[i]);
         if (score >= beta) { // failed hard beta-cutoff
             ++metrics.beta_cutoffs;
             return beta;
         }
-        if (score >  alpha) {
+        if (score > alpha) {
             ++metrics.alpha_cutoffs;
             alpha = score;
             copy_line(pline, line, moves[i], score);
         }
     }
+
     return alpha;
 }
 
@@ -153,10 +152,8 @@ int negamax(Position& position, int alpha, int beta, int depth, TT* tt,
     }
 
     if (depth == 0) {
-        // value = evaluate(position);
-        constexpr int MaxQsearchPly = 5;
-        value = quiescence(position, alpha, beta, MaxQsearchPly, metrics, pline);
-        value = side_relative_score(position, value);
+        value = quiescence(position, alpha, beta, metrics, pline);
+        // value = side_relative_score(position, evaluate(position));
         metrics.lnodes++;
     } else if (position.fifty_move_rule_moves() >= 50) {
         // TODO: check for 3-move repetition
@@ -172,7 +169,9 @@ int negamax(Position& position, int alpha, int beta, int depth, TT* tt,
             value = -MAX_SCORE;
             for (int i = 0; i < nmoves; ++i) {
                 position.make_move(sp, moves[i]);
-                score = negamax(position, -beta, -alpha, depth - 1, tt, metrics, line);
+                metrics.pv.push(moves[i]);
+                score = -negamax(position, -beta, -alpha, depth - 1, tt, metrics, line);
+                metrics.pv.pop();
                 position.undo_move(sp, moves[i]);
                 value = std::max(value, score);
                 if (value >= beta) {
@@ -189,7 +188,7 @@ int negamax(Position& position, int alpha, int beta, int depth, TT* tt,
     }
 
     if (tt_entry) {
-        tt_entry->value = -value;
+        tt_entry->value = value;
         if (value <= alpha_orig) {
             tt_entry->flag = TT::Flag::kUpper;
         } else if (value >= beta) {
@@ -200,7 +199,7 @@ int negamax(Position& position, int alpha, int beta, int depth, TT* tt,
         tt_entry->depth = depth;
     }
 
-    return -value;
+    return value;
 }
 
 SearchResult search(Position& position, TT* tt, int depth, SearchMetrics& metrics, Line& bestline)
@@ -217,7 +216,9 @@ SearchResult search(Position& position, TT* tt, int depth, SearchMetrics& metric
     for (int i = 0; i < nmoves; ++i) {
         Line line;
         position.make_move(sp, moves[i]);
-        int score = negamax(position, alpha, beta, depth - 1, tt, metrics, line);
+        metrics.pv.push(moves[i]);
+        int score = -negamax(position, alpha, beta, depth - 1, tt, metrics, line);
+        metrics.pv.pop();
         position.undo_move(sp, moves[i]);
         if (score > bestscore) {
             bestscore = score;
@@ -225,8 +226,19 @@ SearchResult search(Position& position, TT* tt, int depth, SearchMetrics& metric
             copy_line(bestline, line, moves[i], score);
         }
     }
+
     assert(bestmove != -1);
     bestscore = position.white_to_move() ? bestscore : -bestscore;
+
+    // TEMP TEMP
+    std::cout << "\nEnd of search:\nMove : " << moves[bestmove].to_long_algebraic_string() << "\n"
+        << "Score: " << bestscore << "\n"
+        << "Principal Variation: ";
+    for (int i = 0; i < bestline.count; ++i) {
+        std::cout << bestline.moves[i].to_long_algebraic_string() << " ";
+    }
+    std::cout << "\nbestline.score = " << bestline.score << "\n\n";
+
     return {moves[bestmove], bestscore};
 }
 

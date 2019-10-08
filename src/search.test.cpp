@@ -180,6 +180,17 @@ TEST_CASE("White mate in 2 utilizing pin")
     REQUIRE(result.score == CHECKMATE);
 }
 
+TEST_CASE("Knight fork reduced")
+{
+    Zobrist::initialize();
+    std::string fen = "4k3/p3ppp1/1qp5/p1bp4/1pP5/1PN1P2P/P2P1PP1/3QK3 w - - 0 1";
+    auto position = Position::from_fen(fen);
+    auto result   = easy_search(position);
+    auto expected = Move{C3, A4};
+    REQUIRE(result.move  == expected);
+    REQUIRE(result.score >= 300);
+}
+
 TEST_CASE("White wins bishop with fork")
 {
     Zobrist::initialize();
@@ -188,23 +199,7 @@ TEST_CASE("White wins bishop with fork")
     auto result   = easy_search(position);
     auto expected = Move{C3, A4};
     REQUIRE(result.move  == expected);
-    // TODO: fix me
-    // REQUIRE(result.score >= 300);
-    REQUIRE(result.score >= 210);
-
-#if 0
-    std::cout << "Search result = " << result.move.to_long_algebraic_string() << " -- " << result.score << "\n";
-
-    Savepos sp;
-    int score;
-    for (int i = 0; i < 6; ++i) {
-        position.make_move(sp, result.move);
-        score = evaluate(position);
-        std::cout << "Making move: " << result.move.to_long_algebraic_string() << " -- eval = " << score << "\n";
-        result = easy_search(position);
-        std::cout << "Returned move: " << result.move.to_long_algebraic_string() << " -- " << result.score << "\n";
-    }
-#endif
+    REQUIRE(result.score >= 300);
 }
 
 TEST_CASE("Black wins bishop with fork")
@@ -212,26 +207,10 @@ TEST_CASE("Black wins bishop with fork")
     Zobrist::initialize();
     std::string fen = "r2qkb1r/p2b1ppp/1pn1pn2/2p5/2B5/1QN1PN2/PP1P1PPP/R1B2RK1 b kq - 0 1";
     auto position = Position::from_fen(fen);
-    // auto result   = easy_search(position);
-    TT tt;
-    SearchMetrics metrics;
-    Line bestline;
-    auto result = search(position, &tt, 3, metrics, bestline);
-
-    std::cout << "\n" << metrics << std::endl;
-    std::cout << "Principal Variation: ";
-    for (int i = 0; i < bestline.count; ++i) {
-        std::cout << bestline.moves[i].to_long_algebraic_string() << "(" << bestline.scores[i] << ") ";
-    }
-    std::cout << "\n";
-    std::cout << "Move choosen: " << result.move.to_long_algebraic_string() << "\n";
-    std::cout << "Move score  : " << result.score << "\n";
-
+    auto result   = easy_search(position);
     auto expected = Move{C6, A5};
-    // TODO: fix me
     REQUIRE(result.move  == expected);
-    // REQUIRE(result.score <= -300);
-    REQUIRE(result.score <= -210);
+    REQUIRE(result.score <= -300);
 }
 
 TEST_CASE("Tactics")

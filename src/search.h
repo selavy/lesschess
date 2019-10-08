@@ -6,6 +6,7 @@
 #include <array>
 #include <iostream>
 #include <vector>
+#include <array>
 
 namespace lesschess {
 
@@ -17,7 +18,7 @@ constexpr int STALEMATE = DRAW;
 constexpr int FIFTY_MOVE_RULE_DRAW = DRAW;
 constexpr int WHITE_CHECKMATE = CHECKMATE;
 constexpr int BLACK_CHECKMATE = -CHECKMATE;
-constexpr int MAX_DEPTH = 32;
+constexpr int MAX_DEPTH = 128; // 32;
 
 template <int N>
 struct PrimaryVariation {
@@ -71,12 +72,14 @@ struct SearchMetrics {
     int nodes = 0;
     int lnodes = 0;
     int qnodes = 0;
+    PV pv;
 };
 
 struct Line {
-    Move moves[32];
-    int  scores[32];
-    int  count = 0;
+    // constexpr static int MaxSize = 16;
+    std::array<Move, MAX_DEPTH> moves;
+    int count = 0;
+    int score = 0;
 };
 
 struct MoveInfo {
