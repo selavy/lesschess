@@ -26,6 +26,9 @@ build/release:
 test: debug
 	./build/debug/bin/unittest "$(name)"
 
+reltest: release
+	./build/release/bin/unittest "$(name)"
+
 perft: release
 	ninja -C build/release perft && ./build/release/bin/perft
 
