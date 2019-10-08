@@ -39,14 +39,14 @@ struct TT {
         bool is_upper() const noexcept
         { return flag == Flag::kUpper; }
 
-        Entry() noexcept : flag{Flag::kInvalid} {}
+        constexpr Entry() noexcept = default;
 
         constexpr Entry(Flag flag, int value, int depth) noexcept
             : flag{flag}, value{value}, depth{static_cast<u8>(depth)} {}
 
-        Flag flag;
-        u8   depth;
-        int  value;
+        Flag flag = Flag::kInvalid;
+        u8   depth = 0;
+        int  value = 0;
     };
 
     Entry& find(u64 hash) noexcept { return table[hash]; }

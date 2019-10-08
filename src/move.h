@@ -328,6 +328,13 @@ public:
     static constexpr Move make_promotion(Square from, Square to, PieceKind promotion) noexcept
     { return Move(from, to, promotion); }
 
+    static constexpr Move _make_from_u16(u16) noexcept
+    {
+        Move m{};
+        m.rep_ = 0u;
+        return m;
+    }
+
     [[nodiscard]]
     constexpr Castle castle_kind() const noexcept {
         assert(is_castle());
@@ -468,6 +475,8 @@ private:
 };
 static_assert(sizeof(Move) == 2, "");
 static_assert(std::is_pod<Move>::value == true, "");
+
+constexpr Move MOVE_NONE = Move::_make_from_u16(0u);
 
 std::ostream& operator<<(std::ostream& os, Move move) noexcept;
 

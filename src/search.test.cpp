@@ -212,7 +212,21 @@ TEST_CASE("Black wins bishop with fork")
     Zobrist::initialize();
     std::string fen = "r2qkb1r/p2b1ppp/1pn1pn2/2p5/2B5/1QN1PN2/PP1P1PPP/R1B2RK1 b kq - 0 1";
     auto position = Position::from_fen(fen);
-    auto result   = easy_search(position);
+    // auto result   = easy_search(position);
+    TT tt;
+    SearchMetrics metrics;
+    Line bestline;
+    auto result = search(position, &tt, 3, metrics, bestline);
+
+    std::cout << "\n" << metrics << std::endl;
+    std::cout << "Principal Variation: ";
+    for (int i = 0; i < bestline.count; ++i) {
+        std::cout << bestline.moves[i].to_long_algebraic_string() << "(" << bestline.scores[i] << ") ";
+    }
+    std::cout << "\n";
+    std::cout << "Move choosen: " << result.move.to_long_algebraic_string() << "\n";
+    std::cout << "Move score  : " << result.score << "\n";
+
     auto expected = Move{C6, A5};
     // TODO: fix me
     REQUIRE(result.move  == expected);

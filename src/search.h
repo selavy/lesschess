@@ -4,6 +4,8 @@
 #include "tt.h"
 #include <climits>
 #include <array>
+#include <iostream>
+#include <vector>
 
 namespace lesschess {
 
@@ -27,6 +29,10 @@ struct PrimaryVariation {
     const Move* begin() const noexcept { return begin(); }
     const Move* end() const noexcept { return end(); }
     void dump() const;
+    bool empty() const noexcept { return count == 0; }
+    Move& operator[](size_t i) noexcept { return moves[i]; }
+    const Move& operator[](size_t i) const noexcept { return moves[i]; }
+    void clear() noexcept { count = 0; }
 
     constexpr PrimaryVariation() noexcept : moves{} {}
     PrimaryVariation(const PrimaryVariation& other) noexcept
@@ -59,7 +65,29 @@ struct SearchResult {
     Move move;
 };
 
-SearchResult search(Position& position, TT& tt, int max_depth, bool useTT, s64& nodes_searched);
+struct SearchMetrics {
+    int alpha_cutoffs = 0;
+    int beta_cutoffs = 0;
+    int nodes = 0;
+    int lnodes = 0;
+    int qnodes = 0;
+};
+
+struct Line {
+    Move moves[32];
+    int  scores[32];
+    int  count = 0;
+};
+
+struct MoveInfo {
+    Move move;
+    int  score;
+    MoveInfo* next;
+};
+
+std::ostream& operator<<(std::ostream& os, const SearchMetrics& metrics);
+
+SearchResult search(Position& position, TT* tt, int depth, SearchMetrics& metrics, Line& pline);
 
 SearchResult easy_search(Position& position, bool useTT = true);
 

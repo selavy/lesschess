@@ -3,7 +3,8 @@
 #include <array>
 #include <cassert>
 #include <functional>
-#include <iostream> // TEMP
+#include <vector> // TEMP TEMP
+#include <cstring>
 
 namespace lesschess {
 
@@ -20,7 +21,8 @@ namespace lesschess {
 // position isn't going to happen -- will either be checkmate or stalemate.
 
 // TODO: what is the maximum number of possible moves in a position?
-using Moves = std::vector<Move>; // TODO: change this back to std::array<Move, 256>?
+// using Moves = std::vector<Move>; // TODO: change this back to std::array<Move, 256>?
+using Moves = std::array<Move, 128>;
 
 template <int N>
 void PrimaryVariation<N>::dump() const
@@ -32,53 +34,130 @@ void PrimaryVariation<N>::dump() const
     }
 }
 
-int side_relative_score(Position& position, int score) noexcept
-{
+int side_relative_score(Position& position, int score) noexcept {
     return position.white_to_move() ? score : -score;
 }
 
-int quiescence(Position& position)
+void copy_line(Line& dst, Line& src, Move move, int score) noexcept
 {
-    int score;
-    Moves moves{256}; // TODO: tune this number, likely can be lower
-    int nmoves = position.generate_captures(&moves[0]);
-    if (nmoves == 0) {
-        score = side_relative_score(position, evaluate(position));
-    } else if (position.fifty_move_rule_moves() >= 50) {
-        score = FIFTY_MOVE_RULE_DRAW;
-    } else {
-        // TODO:
-        score = 0;
-    }
-    return score;
+    memcpy(&dst.moves[1], &src.moves[0], src.count * sizeof(Move));
+    dst.moves[0] = move;
+    dst.scores[0] = score;
+    dst.count = src.count + 1;
 }
 
-int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TT& tt, bool useTT)
+// alpha = lower bound on maximizer's score
+// beta  = upper bound on minimizer's score
+
+int quiescence(Position& position, int alpha, int beta, int depth,
+        SearchMetrics& metrics, Line& pline)
 {
-    Moves moves{256};
+    assert(beta >= alpha);
+    metrics.qnodes++;
+
+    int score = evaluate(position);
+    if (score >= beta) { // failed hard beta-cutoff
+        metrics.beta_cutoffs++;
+        return score;
+    }
+    if (score > alpha) {
+        alpha = score;
+    }
+    if (depth == 0) {
+        pline.count = 0;
+        return score;
+    }
+
+    Line line;
     Savepos sp;
-    int value;
+    Moves moves; // TODO: tune this number, likely can be lower
+    int nmoves = position.generate_captures(&moves[0]);
+    for (int i = 0; i < nmoves; ++i) {
+        position.make_move(sp, moves[i]);
+        score = -quiescence(position, -beta, -alpha, depth - 1, metrics, line);
+        position.undo_move(sp, moves[i]);
+        if (score >= beta) { // failed hard beta-cutoff
+            ++metrics.beta_cutoffs;
+            return beta;
+        }
+        if (score >  alpha) {
+            ++metrics.alpha_cutoffs;
+            alpha = score;
+            copy_line(pline, line, moves[i], score);
+        }
+    }
+    return alpha;
+}
+
+std::ostream& operator<<(std::ostream& os, const SearchMetrics& metrics)
+{
+    os << "SearchMetrics\n=========================\n"
+        << "Alpha Cutoffs   : " << metrics.alpha_cutoffs << "\n"
+        << "Beta Cutoffs    : " << metrics.beta_cutoffs << "\n"
+        << "Nodes Searched  : " << metrics.nodes << "\n"
+        << "Leaf Nodes      : " << metrics.lnodes << "\n"
+        << "Quiescence Nodes: " << metrics.qnodes << "\n"
+        << "=========================\n";
+    return os;
+}
+
+int move_sort_value(const Position& position, Move move) noexcept
+{
+    auto pc = position.piece_on_square(move.to());
+    int value = 0;
+    value += !pc.empty()         ? BasePieceValues[pc.kind()]        : 0;
+    value += move.is_promotion() ? BasePieceValues[move.promotion()] : 0;
+    return value;
+}
+
+template <class MoveIter>
+void sort_moves(const Position& position, MoveIter first, MoveIter last) noexcept
+{
+    // sort captures and promotions to front of list
+    std::stable_sort(
+        first, last,
+        [&](Move m1, Move m2) {
+            return move_sort_value(position, m1) > move_sort_value(position, m2);
+        }
+    );
+}
+
+int negamax(Position& position, int alpha, int beta, int depth, TT* tt,
+        SearchMetrics& metrics, Line& pline)
+{
+    metrics.nodes++;
+    assert(beta >= alpha);
+
+    Moves moves;
+    Savepos sp;
+    int value, score;
     int alpha_orig = alpha;
-    auto& tt_entry = tt.find(position.zobrist_hash());
-    if (useTT && tt_entry.is_valid() && tt_entry.depth >= depth) {
-        tt.record_hit();
-        if (tt_entry.is_exact()) {
-            return tt_entry.value;
-        } else if (tt_entry.is_lower()) {
-            alpha = std::max(alpha, tt_entry.value);
-        } else if (tt_entry.is_upper()) {
-            beta = std::min(beta, tt_entry.value);
+    auto* tt_entry = tt ? &tt->find(position.zobrist_hash()) : nullptr;
+    if (tt_entry && tt_entry->is_valid() && tt_entry->depth >= depth) {
+        tt->record_hit();
+
+        if (tt_entry->is_exact()) {
+            return tt_entry->value;
+        } else if (tt_entry->is_lower()) {
+            alpha = std::max(alpha, tt_entry->value);
+        } else if (tt_entry->is_upper()) {
+            beta = std::min(beta, tt_entry->value);
         } else {
             assert(0 && "invalid tt entry");
         }
 
         if (alpha >= beta) {
-            return tt_entry.value;
+            metrics.beta_cutoffs++;
+            return tt_entry->value;
         }
     }
 
     if (depth == 0) {
-        value = side_relative_score(position, evaluate(position));
+        // value = evaluate(position);
+        constexpr int MaxQsearchPly = 5;
+        value = quiescence(position, alpha, beta, MaxQsearchPly, metrics, pline);
+        value = side_relative_score(position, value);
+        metrics.lnodes++;
     } else if (position.fifty_move_rule_moves() >= 50) {
         // TODO: check for 3-move repetition
         value = FIFTY_MOVE_RULE_DRAW;
@@ -88,59 +167,62 @@ int negamax(Position& position, int alpha, int beta, int depth, PV& pv, TT& tt, 
             // TODO: cache `checkers` from generate_legal_moves() so we can check if mate or stalemate?
             value = position.in_check(position.color_to_move()) ? -CHECKMATE : STALEMATE;
         } else {
+            Line line;
+            sort_moves(position, &moves[0], &moves[nmoves]);
             value = -MAX_SCORE;
             for (int i = 0; i < nmoves; ++i) {
                 position.make_move(sp, moves[i]);
-                pv.push(moves[i]);
-                value = std::max(value, negamax(position, /*alpha*/-beta, /*beta*/-alpha, depth - 1, pv, tt, useTT));
-                pv.pop();
+                score = negamax(position, -beta, -alpha, depth - 1, tt, metrics, line);
                 position.undo_move(sp, moves[i]);
-                alpha = std::max(alpha, value);
-                if (alpha >= beta) {
+                value = std::max(value, score);
+                if (value >= beta) {
+                    metrics.beta_cutoffs++;
                     break;
+                }
+                if (value > alpha) {
+                    metrics.alpha_cutoffs++;
+                    alpha = value;
+                    copy_line(pline, line, moves[i], value);
                 }
             }
         }
     }
 
-    tt_entry.value = -value;
-    if (value <= alpha_orig) {
-        tt_entry.flag = TT::Flag::kUpper;
-    } else if (value >= beta) {
-        tt_entry.flag = TT::Flag::kLower;
-    } else {
-        tt_entry.flag = TT::Flag::kExact;
+    if (tt_entry) {
+        tt_entry->value = -value;
+        if (value <= alpha_orig) {
+            tt_entry->flag = TT::Flag::kUpper;
+        } else if (value >= beta) {
+            tt_entry->flag = TT::Flag::kLower;
+        } else {
+            tt_entry->flag = TT::Flag::kExact;
+        }
+        tt_entry->depth = depth;
     }
-    tt_entry.depth = depth;
 
     return -value;
 }
 
-SearchResult search(Position& position, TT& tt, int max_depth, bool useTT)
+SearchResult search(Position& position, TT* tt, int depth, SearchMetrics& metrics, Line& bestline)
 {
+    Savepos sp;
+    Moves moves;
+    int nmoves = position.generate_legal_moves(&moves[0]);
+    sort_moves(position, &moves[0], &moves[nmoves]);
+    memset(&bestline, 0, sizeof(bestline));
     int bestmove = -1;
     int bestscore = -MAX_SCORE;
-    Savepos sp;
-    Moves moves{256};
-    int nmoves = position.generate_legal_moves(&moves[0]);
-    PV pv ;
+    int alpha = -MAX_SCORE; // -10;
+    int beta  =  MAX_SCORE; // 10;
     for (int i = 0; i < nmoves; ++i) {
+        Line line;
         position.make_move(sp, moves[i]);
-        pv.push(moves[i]);
-        int score = negamax(
-                        position,
-                        -MAX_SCORE,    // alpha
-                        MAX_SCORE,     // beta
-                        max_depth - 1, // depth
-                        pv,
-                        tt,
-                        useTT
-                    );
-		position.undo_move(sp, moves[i]);
-        pv.pop();
+        int score = negamax(position, alpha, beta, depth - 1, tt, metrics, line);
+        position.undo_move(sp, moves[i]);
         if (score > bestscore) {
             bestscore = score;
             bestmove = i;
+            copy_line(bestline, line, moves[i], score);
         }
     }
     assert(bestmove != -1);
@@ -150,8 +232,11 @@ SearchResult search(Position& position, TT& tt, int max_depth, bool useTT)
 
 SearchResult easy_search(Position& position, bool useTT)
 {
-    TT tt;
-    return search(position, tt, /*max_depth*/4, useTT);
+    SearchMetrics metrics;
+    Line bestline;
+    TT table;
+    TT* tt = useTT ? &table : nullptr;
+    return search(position, tt, /*max_depth*/4, metrics, bestline);
 }
 
 } // ~namespace lesschess
