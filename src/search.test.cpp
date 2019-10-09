@@ -268,14 +268,23 @@ TEST_CASE("Tactics")
     }
 
     std::vector<std::pair<std::string, Move>> white_checkmate_yacpdb_positions = {
-        { "3R4/4K3/5p2/5p2/8/3BkNQ1/8/8 w - - 0 1",              Move{D3, E4} },
-        { "3K4/4B3/3Rp3/8/4pk2/1Qp1Np2/2p2P2/2R5 w - - 0 1",     Move{D6, D7} },
-        { "6r1/5Q2/1n1p2pB/4k2b/3b3r/8/1NBRp2N/1K2R3 w - - 0 1", Move{D2, D1} },
-        { "8/1Rp5/K3P3/2B2Q2/n1kP4/P3r3/P3PN2/1N2bB2 w - - 0 1", Move{F2, D1} },
+        { "3R4/4K3/5p2/5p2/8/3BkNQ1/8/8",                    Move{D3, E4} },
+        { "3K4/4B3/3Rp3/8/4pk2/1Qp1Np2/2p2P2/2R5",           Move{D6, D7} },
+        { "6r1/5Q2/1n1p2pB/4k2b/3b3r/8/1NBRp2N/1K2R3",       Move{D2, D1} },
+        { "8/1Rp5/K3P3/2B2Q2/n1kP4/P3r3/P3PN2/1N2bB2",       Move{F2, D1} },
+        { "3KN3/2B2R2/6n1/8/4k2n/4p3/4B3/3R4",               Move{C7, B8} },
+        { "5B2/3p1n2/R2p4/1P1NRBQ1/1KPkrb2/1p6/2Pp1Pn1/4r3", Move{D5, C7} },
+        { "rqr5/1B1N3p/2n1p2K/b2P4/RB1Nkn1R/1P6/2P2PP1/1Q6", Move{D4, E2} },
+        { "2B5/8/4pN1K/R1B1qkP1/4p3/7p/5P1P/4Q3",            Move{C5, E3} },
+        { "5Q2/8/8/8/8/5p2/2N1Np2/2K2k2",                    Move{F8, H6} },
+        { "8/8/1R6/2p5/8/2Bk1NRN/3P4/K6B",                   Move{B6, B1} },
+        { "8/8/8/p7/kPr4R/N1P5/2P5/1K5Q",                    Move{H1, D5} },
+        { "3Rb3/B4NpB/4N1n1/3P1P1R/1r2kP2/1p1np3/8/3Q2K1",   Move{G1, H2} },
+        { "7Q/3B4/1B3R2/3pk3/1Nr1P2r/2n5/5nq1/K2R4",         Move{B6, E3} },
     };
 
     for (auto&& p : white_checkmate_yacpdb_positions) {
-        auto&& fen = p.first;
+        auto fen = p.first + " w - - 0 1";
         SECTION(fen) {
             auto position = Position::from_fen(fen);
             auto result   = easy_search(position);
@@ -283,5 +292,15 @@ TEST_CASE("Tactics")
             REQUIRE(result.move  == expected);
             REQUIRE(result.score == WHITE_CHECKMATE);
         }
+    }
+
+    SECTION("promotion leading to mate tactic") {
+        std::string fen = "8/3k1P2/1K3B2/3B4/8/8/8/8 w - - 0 1";
+        auto position = Position::from_fen(fen);
+        auto result   = easy_search(position);
+        auto ex1 = Move::make_promotion(F7, F8, QUEEN);
+        auto ex2 = Move::make_promotion(F7, F8, ROOK);
+        REQUIRE((result.move  == ex1 || result.move == ex2));
+        REQUIRE(result.score == WHITE_CHECKMATE);
     }
 }
