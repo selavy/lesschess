@@ -256,4 +256,32 @@ TEST_CASE("Tactics")
         REQUIRE(result.move  == expected);
         REQUIRE(result.score == WHITE_CHECKMATE);
     }
+
+    SECTION("White mate after queen sac")
+    {
+        std::string fen = "7n/3NR3/1P3p2/1p1kbN1B/1p6/1K6/6b1/1Q6 w - - 0 1";
+        auto position = Position::from_fen(fen);
+        auto result   = easy_search(position);
+        auto expected = Move{B1, F1};
+        REQUIRE(result.move  == expected);
+        REQUIRE(result.score == WHITE_CHECKMATE);
+    }
+
+    std::vector<std::pair<std::string, Move>> white_checkmate_yacpdb_positions = {
+        { "3R4/4K3/5p2/5p2/8/3BkNQ1/8/8 w - - 0 1",              Move{D3, E4} },
+        { "3K4/4B3/3Rp3/8/4pk2/1Qp1Np2/2p2P2/2R5 w - - 0 1",     Move{D6, D7} },
+        { "6r1/5Q2/1n1p2pB/4k2b/3b3r/8/1NBRp2N/1K2R3 w - - 0 1", Move{D2, D1} },
+        { "8/1Rp5/K3P3/2B2Q2/n1kP4/P3r3/P3PN2/1N2bB2 w - - 0 1", Move{F2, D1} },
+    };
+
+    for (auto&& p : white_checkmate_yacpdb_positions) {
+        auto&& fen = p.first;
+        SECTION(fen) {
+            auto position = Position::from_fen(fen);
+            auto result   = easy_search(position);
+            auto expected = p.second;
+            REQUIRE(result.move  == expected);
+            REQUIRE(result.score == WHITE_CHECKMATE);
+        }
+    }
 }
