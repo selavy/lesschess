@@ -110,3 +110,18 @@ TEST_CASE("const ops", "[ringbuffer]")
     }
     REQUIRE(it == end);
 }
+
+TEST_CASE("pop front", "[ringbuffer]")
+{
+    RingBuffer<int, 8> rb;
+    for (int i = 0; i < 16; ++i) {
+        rb.push_front(i);
+    }
+
+    for (int i = 15; i >= 8; --i) {
+        REQUIRE(rb.empty() == false);
+        REQUIRE(rb[0] == i);
+        rb.pop_front();
+    }
+    REQUIRE(rb.empty());
+}

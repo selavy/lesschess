@@ -57,6 +57,13 @@ public:
         return emplace_front(x);
     }
 
+    constexpr void pop_front() noexcept
+    {
+        assert(!empty());
+        _head = (_head + 1) % N;
+        --_size;
+    }
+
     constexpr reference operator[](size_type pos) noexcept
     {
         assert(0 <= pos && pos < _size);
@@ -165,7 +172,7 @@ struct RingBuffer<T, N>::const_iterator
 
     constexpr const_iterator operator++(int) noexcept
     {
-        iterator tmp{*this};
+        const_iterator tmp{*this};
         ++(*this);
         return tmp;
     }

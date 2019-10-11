@@ -715,6 +715,8 @@ void Position::make_move(Savepos& sp, Move move) noexcept {
         ++_moves;
     }
 
+    _hashs.push_front(_hash);
+
     _validate();
 }
 
@@ -827,6 +829,7 @@ void Position::undo_move(const Savepos& save, Move move) noexcept {
         assert(0);
         __builtin_unreachable();
     }
+    _hashs.pop_front();
 
     _validate();
 }
@@ -1352,6 +1355,22 @@ bool Position::attacks(Color side, Square square) const noexcept
     return false;
 }
 
+bool Position::is_repetition() const noexcept
+{
+    // max ply that need to look back is the same logic
+    // as the 50-move rule: if a capture happens, then can't repeat,
+    // if a pawn moves, also can't repeat past that point.
+    assert(!_hashs.empty());
+    assert(_hashs.size() > _halfmoves);
+    auto it = _hashs.begin();
+    auto curr = *it++;
+    for (int ply = 0; ply < _halfmoves; ++ply) {
+        assert(it != _hashs.end());
+        if (*it == curr)
+            return true;
+    }
+    return false;
+}
 
 // checks a pseudo-legal move for legality
 bool Position::_is_legal(u64 pinned, Move move) const noexcept

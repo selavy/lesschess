@@ -1,9 +1,10 @@
 #pragma once
 
-#include "move.h"
 #include <string>
 #include <string_view>
 #include <array>
+#include "move.h"
+#include "ring_buffer.h"
 
 namespace lesschess {
 
@@ -224,6 +225,8 @@ public:
         return { _ep_target };
     }
 
+    bool is_repetition() const noexcept;
+
 private:
     enum {
         ENPASSANT_NONE = Square::INVALID,
@@ -281,8 +284,7 @@ private:
     std::array<u64, 2>    _sidemask;
     std::array<Piece, 64> _sq2pc;
     std::array<Square, 2> _kings;
-    // TODO: use RingBuffer<u64, 64> _hashs;
-    // std::array<u64, 50>   _hashes; // TODO: size up to 64?
+    RingBuffer<u64, 50>   _hashs; // TODO: size up to 64?
     u64 _hash;
     u16 _moves;
     u8 _halfmoves;
