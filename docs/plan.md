@@ -12,10 +12,29 @@
 6. Transposition Table [DONE]
   * Implement Zobrist hashing [DONE]
   * Benchmark some hashtables -- khash, abseil, google dense hashmap
-7. Implement a quiescence search
+7. Implement quiescence search [DONE]
 8. Switch to iterative deepening search
-9. Move search to a separate thread -- started and stopped by UCI thread
-10. Make search iterative (instead of recursive) with explicit stack
+9. Add aspiration windows
+10. Move search to a separate thread -- started and stopped by UCI thread
+11. Add endgame table base
+12. Add opening book hooks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 [[NOTES]]
 +Bitboard move generation

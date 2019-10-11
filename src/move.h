@@ -477,6 +477,7 @@ static_assert(sizeof(Move) == 2, "");
 static_assert(std::is_pod<Move>::value == true, "");
 
 constexpr Move MOVE_NONE = Move::_make_from_u16(0u);
+constexpr Move NULL_MOVE = MOVE_NONE;
 
 std::ostream& operator<<(std::ostream& os, Move move) noexcept;
 

@@ -54,6 +54,10 @@ int quiescence(Position& position, int alpha, int beta, SearchMetrics& metrics, 
     assert(beta >= alpha);
     metrics.qnodes++;
 
+    // if (is_repetition(metrics.pv, position.fifty_move_rule_moves())) {
+    //     return DRAW;
+    // }
+
     int score = side_relative_score(position, evaluate(position));
     if (score >= beta) { // failed hard beta-cutoff
         metrics.beta_cutoffs++;
