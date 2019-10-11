@@ -21,7 +21,7 @@ public:
     using size_type = int;
 
     struct iterator;
-    // struct const_iterator;
+    struct const_iterator;
 
     constexpr RingBuffer() noexcept = default;
 
@@ -35,9 +35,9 @@ public:
     }
 
     constexpr iterator begin() noexcept { return iterator(&_data[_head], this); }
-    // constexpr const_iterator begin() const noexcept { return const_iterator{&_data[_head], this}; }
-    constexpr iterator end() noexcept { return iterator(nullptr, this); }
-    // constexpr const_iterator end() const noexcept { return const_iterator{&_data[_tail], this}; }
+    constexpr const_iterator begin() const noexcept { return const_iterator{&_data[_head], this}; }
+    constexpr iterator end() noexcept { return iterator{}; }
+    constexpr const_iterator end() const noexcept { return const_iterator{}; }
     constexpr size_type size() const noexcept { return _size; }
     constexpr bool empty() const noexcept { return _size == 0; }
     constexpr bool full() const noexcept { return _size == N; }
@@ -57,12 +57,6 @@ public:
         return emplace_front(x);
     }
 
-    // constexpr void pop_back() noexcept
-    // {
-    //     --_size;
-    //     _tail = _advance(_tail);
-    // }
-
     constexpr reference operator[](size_type pos) noexcept
     {
         assert(0 <= pos && pos < _size);
@@ -77,15 +71,8 @@ public:
         return _data[pos];
     }
 
-    void dump() const
-    {
-        for (int i = 0; i < N; ++i) {
-            printf("[%d]=%d ; ", i, _data[i]);
-        }
-        printf("_head = %d, _size = %d\n", _head, _size);
-    }
-
     friend class iterator;
+    friend class const_iterator;
 
 private:
     constexpr static int _advance(int pos) noexcept
@@ -94,6 +81,12 @@ private:
     }
 
     constexpr pointer _advance_pointer(pointer ptr) noexcept
+    {
+        int pos = _advance(ptr - &_data[0]);
+        return &_data[pos];
+    }
+
+    constexpr const_pointer _advance_pointer(const_pointer ptr) const noexcept
     {
         int pos = _advance(ptr - &_data[0]);
         return &_data[pos];
@@ -111,7 +104,7 @@ struct RingBuffer<T, N>::iterator
     constexpr iterator(T* ptr, RingBuffer<T, N>* rb) noexcept
         : _ptr(ptr), _rb(rb) {}
 
-    iterator& operator++() noexcept
+    constexpr iterator& operator++() noexcept
     {
         _ptr = _rb->_advance_pointer(_ptr);
         if (_ptr == &_rb->_data[_rb->_head])
@@ -119,83 +112,85 @@ struct RingBuffer<T, N>::iterator
         return *this;
     }
 
-    iterator operator++(int) noexcept
+    constexpr iterator operator++(int) noexcept
     {
         iterator tmp{*this};
         ++(*this);
         return tmp;
     }
 
-    reference operator*() const noexcept
+    constexpr reference operator*() const noexcept
     {
         return *_ptr;
     }
 
-    pointer operator->() const noexcept
+    constexpr pointer operator->() const noexcept
     {
         return _ptr;
     }
 
-    friend bool operator==(iterator a, iterator b) noexcept
+    friend constexpr bool operator==(iterator a, iterator b) noexcept
     {
         return a._ptr == b._ptr;
     }
 
-    friend bool operator!=(iterator a, iterator b) noexcept
+    friend constexpr bool operator!=(iterator a, iterator b) noexcept
     {
         return a._ptr != b._ptr;
     }
 
-    // friend class RingBuffer<T, N>::const_iterator;
+    friend class RingBuffer<T, N>::const_iterator;
 
 private:
     T*                _ptr = nullptr;
     RingBuffer<T, N>* _rb = nullptr;
 };
 
-// template <class T, size_t N>
-// struct RingBuffer<T, N>::const_iterator
-// {
-//     constexpr const_iterator() noexcept = default;
-//     constexpr const_iterator(int pos, const RingBuffer<T, N>& rb) noexcept
-//         : _pos(pos), _rb(rb) {}
-//     constexpr const_iterator(iterator it) noexcept
-//         : _pos(it._pos), _rb(it._rb) {}
-// 
-//     const_iterator& operator++() noexcept
-//     {
-//         _pos = _rb._advance(_pos);
-//         return *this;
-//     }
-// 
-//     const_iterator operator++(int) noexcept
-//     {
-//         iterator tmp{*this};
-//         ++(*this);
-//         return tmp;
-//     }
-// 
-//     const_reference operator*() const noexcept
-//     {
-//         return *_rb->_data[_pos];
-//     }
-// 
-//     const_pointer operator->() const noexcept
-//     {
-//         return _rb->_data[_pos];
-//     }
-// 
-//     friend bool operator==(const_iterator a, const_iterator b) noexcept
-//     {
-//         return a._pos == b._pos;
-//     }
-// 
-//     friend bool operator!=(const_iterator a, const_iterator b) noexcept
-//     {
-//         return a._pos != b._pos;
-//     }
-// 
-// private:
-//     const T*                _p = nullptr;
-//     const RingBuffer<T, N>* _r = nullptr;
-// };
+template <class T, size_t N>
+struct RingBuffer<T, N>::const_iterator
+{
+    constexpr const_iterator() noexcept = default;
+    constexpr const_iterator(const T* ptr, const RingBuffer<T, N>* rb) noexcept
+        : _ptr(ptr), _rb(rb) {}
+    constexpr const_iterator(iterator it) noexcept
+        : _ptr(it._ptr), _rb(it._rb) {}
+
+    constexpr const_iterator& operator++() noexcept
+    {
+        _ptr = _rb->_advance_pointer(_ptr);
+        if (_ptr == &_rb->_data[_rb->_head])
+            _ptr = nullptr;
+        return *this;
+    }
+
+    constexpr const_iterator operator++(int) noexcept
+    {
+        iterator tmp{*this};
+        ++(*this);
+        return tmp;
+    }
+
+    constexpr const_reference operator*() const noexcept
+    {
+        return *_ptr;
+    }
+
+    constexpr const_pointer operator->() const noexcept
+    {
+        return _ptr;
+    }
+
+    friend constexpr bool operator==(const_iterator a, const_iterator b) noexcept
+    {
+        return a._ptr == b._ptr;
+    }
+
+    friend constexpr bool operator!=(const_iterator a, const_iterator b) noexcept
+    {
+        return a._ptr != b._ptr;
+    }
+
+private:
+    const T*                _ptr = nullptr;
+    const RingBuffer<T, N>* _rb = nullptr;
+};
