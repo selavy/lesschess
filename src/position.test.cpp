@@ -2324,3 +2324,23 @@ TEST_CASE("zobrist", "[position]")
         REQUIRE(position == original);
     }
 }
+
+TEST_CASE("is_repetition", "[position]")
+{
+    Position position = Position::from_fen(start_position_fen);
+    Savepos sp;
+    position.make_move(sp, position.move_from_long_algebraic("e2e4"));
+    REQUIRE(position.is_repetition() == false);
+    position.make_move(sp, position.move_from_long_algebraic("e7e5"));
+    REQUIRE(position.is_repetition() == false);
+
+    position.make_move(sp, position.move_from_long_algebraic("f1c4"));
+    REQUIRE(position.is_repetition() == false);
+    position.make_move(sp, position.move_from_long_algebraic("f8c5"));
+    REQUIRE(position.is_repetition() == false);
+
+    position.make_move(sp, position.move_from_long_algebraic("c4f1"));
+    REQUIRE(position.is_repetition() == true);
+    position.make_move(sp, position.move_from_long_algebraic("c5f8"));
+    REQUIRE(position.is_repetition() == true);
+}
