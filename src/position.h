@@ -227,6 +227,15 @@ public:
 
     bool is_repetition() const noexcept;
 
+    // TEMP TEMP
+    void dump_hashes() const noexcept
+    {
+        std::cout << "Zobrist Hashes: ";
+        for (auto h : _hashs)
+            std::cout << h << " ";
+        std::cout << std::endl;
+    }
+
 private:
     enum {
         ENPASSANT_NONE = Square::INVALID,

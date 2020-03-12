@@ -2334,6 +2334,7 @@ TEST_CASE("is_repetition", "[position]")
     position.make_move(sp, position.move_from_long_algebraic("e7e5"));
     REQUIRE(position.is_repetition() == false);
 
+    position.dump_hashes();
     position.make_move(sp, position.move_from_long_algebraic("f1c4"));
     REQUIRE(position.is_repetition() == false);
     position.make_move(sp, position.move_from_long_algebraic("f8c5"));
